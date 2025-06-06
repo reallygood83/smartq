@@ -1,0 +1,39 @@
+{
+  "sessions": {
+    "test-session-1": {
+      "sessionId": "test-session-1",
+      "title": "테스트 세션",
+      "accessCode": "V5ZRGL",
+      "sessionType": "general",
+      "subjects": ["science"],
+      "learningGoals": "테스트용 세션입니다",
+      "keywords": ["테스트"],
+      "createdAt": 1733472000000,
+      "teacherId": "test-teacher"
+    }
+  },
+  "questions": {
+    "test-session-1": {
+      "q1": {
+        "questionId": "q1",
+        "text": "테스트 질문입니다",
+        "sessionId": "test-session-1",
+        "isAnonymous": true,
+        "createdAt": 1733472100000
+      }
+    }
+  },
+  "sharedContents": {
+    "test-session-1": {
+      "c1": {
+        "contentId": "c1",
+        "title": "환영 메시지",
+        "content": "SmartQ 테스트 세션에 오신 것을 환영합니다!",
+        "type": "instruction",
+        "createdAt": 1733472200000,
+        "sessionId": "test-session-1",
+        "teacherId": "test-teacher"
+      }
+    }
+  }
+}

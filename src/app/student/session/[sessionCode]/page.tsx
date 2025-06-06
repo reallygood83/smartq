@@ -26,11 +26,13 @@ export default function StudentSessionPage() {
     }
 
     // 접속 코드로 세션 찾기
+    console.log('세션 코드로 검색:', sessionCode)
     const sessionsRef = ref(database, 'sessions')
     const sessionQuery = query(sessionsRef, orderByChild('accessCode'), equalTo(sessionCode))
     
     const unsubscribe = onValue(sessionQuery, (snapshot) => {
       const data = snapshot.val()
+      console.log('Firebase 쿼리 결과:', data)
       if (data) {
         // 첫 번째 (그리고 유일한) 결과 가져오기
         const sessionData = Object.values(data)[0] as Session
