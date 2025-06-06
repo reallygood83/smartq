@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Session, Question, MultiSubjectAnalysisResult, SharedContent } from '@/lib/utils'
-import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor } from '@/lib/utils'
+import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, isYouTubeUrl, getYouTubeEmbedUrl } from '@/lib/utils'
 import { database } from '@/lib/firebase'
 import { ref, onValue, push, set, remove } from 'firebase/database'
 import { Card } from '@/components/common/Card'
@@ -30,7 +30,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
   const [contentForm, setContentForm] = useState({
     title: '',
     content: '',
-    type: 'text' as 'text' | 'link' | 'instruction'
+    type: 'text' as 'text' | 'link' | 'instruction' | 'youtube'
   })
 
   useEffect(() => {
@@ -132,11 +132,18 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
 
     try {
       const contentId = Date.now().toString()
+      
+      // 유튜브 URL 자동 감지
+      let contentType = contentForm.type
+      if (contentType === 'link' && isYouTubeUrl(contentForm.content)) {
+        contentType = 'youtube'
+      }
+      
       const newContent: SharedContent = {
         contentId,
         title: contentForm.title,
         content: contentForm.content,
-        type: contentForm.type,
+        type: contentType,
         createdAt: Date.now(),
         sessionId,
         teacherId: user.uid
@@ -389,11 +396,12 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
                 <select
                   id="contentType"
                   value={contentForm.type}
-                  onChange={(e) => setContentForm(prev => ({ ...prev, type: e.target.value as 'text' | 'link' | 'instruction' }))}
+                  onChange={(e) => setContentForm(prev => ({ ...prev, type: e.target.value as 'text' | 'link' | 'instruction' | 'youtube' }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="text">📄 텍스트</option>
                   <option value="link">🔗 링크</option>
+                  <option value="youtube">🎬 유튜브</option>
                   <option value="instruction">📋 안내사항</option>
                 </select>
               </div>
@@ -412,6 +420,8 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
                   placeholder={
                     contentForm.type === 'link' 
                       ? "https://example.com" 
+                      : contentForm.type === 'youtube'
+                      ? "https://youtube.com/watch?v=... 또는 https://youtu.be/..."
                       : contentForm.type === 'instruction'
                       ? "학생들에게 전달할 안내사항을 입력하세요"
                       : "공유할 텍스트 내용을 입력하세요"
@@ -462,7 +472,9 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className="text-lg">
-                        {content.type === 'text' ? '📄' : content.type === 'link' ? '🔗' : '📋'}
+                        {content.type === 'text' ? '📄' : 
+                         content.type === 'link' ? '🔗' : 
+                         content.type === 'youtube' ? '🎬' : '📋'}
                       </span>
                       <h3 className="text-lg font-medium text-gray-900">
                         {content.title}
@@ -472,8 +484,21 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
                       </span>
                     </div>
                     
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      {content.type === 'link' ? (
+                    <div className={`rounded-md ${
+                      content.type === 'youtube' ? 'bg-black' : 'bg-gray-50 p-3'
+                    }`}>
+                      {content.type === 'youtube' ? (
+                        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                          <iframe
+                            className="absolute top-0 left-0 w-full h-full rounded-md"
+                            src={getYouTubeEmbedUrl(content.content) || ''}
+                            title={content.title}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : content.type === 'link' ? (
                         <a
                           href={content.content}
                           target="_blank"

@@ -102,7 +102,7 @@ export interface SharedContent {
   contentId: string;
   title: string;
   content: string;
-  type: 'text' | 'link' | 'instruction';
+  type: 'text' | 'link' | 'instruction' | 'youtube';
   createdAt: number;
   sessionId: string;
   teacherId: string;
@@ -210,4 +210,33 @@ export function getSubjectColor(subject: Subject): string {
     default:
       return 'bg-gray-100 text-gray-800';
   }
+}
+
+// YouTube URL 관련 함수들
+export function isYouTubeUrl(url: string): boolean {
+  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+  return youtubeRegex.test(url);
+}
+
+export function getYouTubeVideoId(url: string): string | null {
+  const regexPatterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+  ];
+  
+  for (const regex of regexPatterns) {
+    const match = url.match(regex);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  
+  return null;
+}
+
+export function getYouTubeEmbedUrl(url: string): string | null {
+  const videoId = getYouTubeVideoId(url);
+  if (!videoId) return null;
+  
+  return `https://www.youtube.com/embed/${videoId}`;
 }

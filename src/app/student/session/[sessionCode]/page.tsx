@@ -9,7 +9,7 @@ import { database } from '@/lib/firebase'
 import { ref, query, orderByChild, equalTo, onValue } from 'firebase/database'
 import QuestionInput from '@/components/student/QuestionInput'
 import QuestionList from '@/components/student/QuestionList'
-import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor } from '@/lib/utils'
+import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, getYouTubeEmbedUrl } from '@/lib/utils'
 
 export default function StudentSessionPage() {
   const { sessionCode } = useParams()
@@ -194,7 +194,9 @@ export default function StudentSessionPage() {
                 >
                   <div className="flex items-start space-x-3">
                     <span className="text-xl flex-shrink-0">
-                      {content.type === 'text' ? '📄' : content.type === 'link' ? '🔗' : '📋'}
+                      {content.type === 'text' ? '📄' : 
+                       content.type === 'link' ? '🔗' : 
+                       content.type === 'youtube' ? '🎬' : '📋'}
                     </span>
                     <div className="flex-1">
                       <h3 className={`text-lg font-medium mb-2 ${
@@ -203,12 +205,25 @@ export default function StudentSessionPage() {
                         {content.title}
                       </h3>
                       
-                      <div className={`p-3 rounded-md ${
+                      <div className={`rounded-md ${
                         content.type === 'instruction' 
-                          ? 'bg-orange-100' 
-                          : 'bg-gray-50'
+                          ? 'bg-orange-100 p-3' 
+                          : content.type === 'youtube'
+                          ? 'bg-black'
+                          : 'bg-gray-50 p-3'
                       }`}>
-                        {content.type === 'link' ? (
+                        {content.type === 'youtube' ? (
+                          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                            <iframe
+                              className="absolute top-0 left-0 w-full h-full rounded-md"
+                              src={getYouTubeEmbedUrl(content.content) || ''}
+                              title={content.title}
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          </div>
+                        ) : content.type === 'link' ? (
                           <a
                             href={content.content}
                             target="_blank"
