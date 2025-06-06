@@ -87,6 +87,7 @@ export interface MultiSubjectAnalysisResult {
   subjectAnalysis: Record<Subject, SubjectAnalysisResult>;
   recommendedActivities: ActivityRecommendation[];
   extractedTerms: TermDefinition[];
+  conceptDefinitions: TermDefinition[];
 }
 
 export interface TermDefinition {

@@ -235,13 +235,53 @@ export default function StudentSessionPage() {
                             <span className="ml-2 text-sm">↗</span>
                           </a>
                         ) : (
-                          <p className={`whitespace-pre-wrap ${
+                          <div className={`whitespace-pre-wrap ${
                             content.type === 'instruction' 
                               ? 'text-orange-800' 
                               : 'text-gray-900'
                           }`}>
-                            {content.content}
-                          </p>
+                            {/* 개념 설명인 경우 특별한 포맷팅 */}
+                            {content.title.startsWith('개념 설명:') ? (
+                              <div className="space-y-3">
+                                {content.content.split('\n\n').map((section, index) => {
+                                  if (section.startsWith('📚 **') && section.endsWith('**')) {
+                                    // 제목 부분
+                                    const title = section.replace('📚 **', '').replace('**', '')
+                                    return (
+                                      <div key={index} className="text-lg font-bold text-orange-900 flex items-center">
+                                        <span className="text-2xl mr-2">📚</span>
+                                        {title}
+                                      </div>
+                                    )
+                                  } else if (section.startsWith('🔍 **예시:**')) {
+                                    // 예시 부분
+                                    const example = section.replace('🔍 **예시:** ', '')
+                                    return (
+                                      <div key={index} className="bg-orange-200 p-3 rounded-md">
+                                        <div className="flex items-start">
+                                          <span className="text-lg mr-2">🔍</span>
+                                          <div>
+                                            <span className="font-semibold text-orange-900">예시: </span>
+                                            <span className="text-orange-800">{example}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )
+                                  } else {
+                                    // 일반 설명 부분
+                                    return (
+                                      <p key={index} className="text-orange-800 leading-relaxed">
+                                        {section}
+                                      </p>
+                                    )
+                                  }
+                                })}
+                              </div>
+                            ) : (
+                              // 일반 콘텐츠
+                              <p>{content.content}</p>
+                            )}
+                          </div>
                         )}
                       </div>
                       

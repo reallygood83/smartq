@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { Session, Question, MultiSubjectAnalysisResult, SharedContent } from '@/lib/utils'
+import { Session, Question, MultiSubjectAnalysisResult, SharedContent, TermDefinition } from '@/lib/utils'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, isYouTubeUrl, getYouTubeEmbedUrl } from '@/lib/utils'
 import { database } from '@/lib/firebase'
 import { ref, onValue, push, set, remove } from 'firebase/database'
@@ -176,6 +176,33 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
     } catch (error) {
       console.error('콘텐츠 삭제 오류:', error)
       alert('콘텐츠 삭제에 실패했습니다.')
+    }
+  }
+
+  const shareConcept = async (concept: TermDefinition) => {
+    if (!user || !session) return
+
+    try {
+      const contentId = Date.now().toString()
+      const content = `📚 **${concept.term}**\n\n${concept.definition}${concept.description ? `\n\n🔍 **예시:** ${concept.description}` : ''}`
+      
+      const newContent: SharedContent = {
+        contentId,
+        title: `개념 설명: ${concept.term}`,
+        content: content,
+        type: 'instruction',
+        createdAt: Date.now(),
+        sessionId,
+        teacherId: user.uid
+      }
+
+      const contentRef = ref(database, `sharedContents/${sessionId}/${contentId}`)
+      await set(contentRef, newContent)
+      
+      alert('개념 설명이 학생들에게 공유되었습니다!')
+    } catch (error) {
+      console.error('개념 공유 오류:', error)
+      alert('개념 공유에 실패했습니다.')
     }
   }
 
@@ -626,6 +653,59 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
                       <div className="bg-blue-50 p-3 rounded-md">
                         <span className="text-sm font-medium text-blue-900">추천 이유:</span>
                         <p className="text-sm text-blue-800 mt-1">{activity.reason}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* 개념 정의 */}
+          {analysisResult.conceptDefinitions && analysisResult.conceptDefinitions.length > 0 && (
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                📚 주요 개념 설명
+              </h2>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {analysisResult.conceptDefinitions.map((concept, index) => (
+                  <div key={index} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <div className="flex items-start mb-3">
+                      <div className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mr-3">
+                        📖
+                      </div>
+                      <h3 className="text-lg font-semibold text-blue-900">
+                        {concept.term}
+                      </h3>
+                    </div>
+                    
+                    <div className="space-y-3 ml-11">
+                      <div>
+                        <span className="text-sm font-medium text-blue-800">쉬운 설명:</span>
+                        <p className="text-sm text-blue-700 mt-1">{concept.definition}</p>
+                      </div>
+                      
+                      {concept.description && (
+                        <div>
+                          <span className="text-sm font-medium text-blue-800">예시:</span>
+                          <p className="text-sm text-blue-700 mt-1">{concept.description}</p>
+                        </div>
+                      )}
+                      
+                      <div className="bg-blue-100 p-3 rounded-md">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-blue-600">
+                            💡 <strong>교사 팁:</strong> 이 개념을 학생들에게 설명할 때 위의 예시를 활용해보세요!
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => shareConcept(concept)}
+                            className="text-xs px-2 py-1 h-6"
+                          >
+                            학생에게 공유
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>

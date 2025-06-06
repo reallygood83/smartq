@@ -121,13 +121,17 @@ export async function analyzeQuestionsMultiSubject(
   clusteredQuestions: QuestionCluster[];
   recommendedActivities: ActivityRecommendation[];
   extractedTerms: TermDefinition[];
+  conceptDefinitions: TermDefinition[];
 }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // First, cluster the questions
-    const clusteringResult = await clusterQuestions(questions, userApiKey);
+    const clusteringResult = await clusterQuestions(questions, userApiKey)
+    
+    // Extract key concepts from questions
+    const conceptDefinitions = await extractConceptsFromQuestions(questions, sessionType, subjects, userApiKey);
 
     // Get subject-specific or generic prompts
     const subjectPrompts = subjects.map(subject => 
@@ -184,14 +188,16 @@ ${JSON.stringify(clusteringResult.clusters, null, 2)}
       return {
         clusteredQuestions: clusteringResult.clusters,
         recommendedActivities: parsed.recommendedActivities || [],
-        extractedTerms: parsed.extractedTerms || []
+        extractedTerms: parsed.extractedTerms || [],
+        conceptDefinitions: conceptDefinitions
       };
     } catch (e) {
       console.error('JSON parsing error:', e);
       return {
         clusteredQuestions: clusteringResult.clusters,
         recommendedActivities: [],
-        extractedTerms: []
+        extractedTerms: [],
+        conceptDefinitions: conceptDefinitions
       };
     }
   } catch (error) {
@@ -199,7 +205,8 @@ ${JSON.stringify(clusteringResult.clusters, null, 2)}
     return {
       clusteredQuestions: [],
       recommendedActivities: [],
-      extractedTerms: []
+      extractedTerms: [],
+      conceptDefinitions: []
     };
   }
 }
@@ -218,6 +225,87 @@ function getSessionTypeContext(sessionType: SessionType): string {
       return '토의/의견 나누기 - 서로의 생각을 공유하고 의견을 나누는 활동';
     default:
       return '일반 Q&A - 자유로운 질문과 답변 활동';
+  }
+}
+
+// Extract and define key concepts from student questions
+export async function extractConceptsFromQuestions(
+  questions: string[],
+  sessionType: SessionType,
+  subjects: Subject[],
+  userApiKey: string
+): Promise<TermDefinition[]> {
+  try {
+    const genAI = new GoogleGenerativeAI(userApiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const subjectContext = subjects.map(s => getSubjectLabel(s)).join(', ');
+    const sessionContext = getSessionTypeContext(sessionType);
+
+    const prompt = `
+당신은 초등학생을 위한 교육 전문가입니다. 다음 학생들의 질문에서 중요한 개념들을 찾아내고, 초등학생이 이해하기 쉽게 설명해주세요.
+
+세션 유형: ${sessionContext}
+교과목: ${subjectContext}
+
+학생 질문들:
+${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+다음 기준으로 중요한 개념들을 추출하고 설명해주세요:
+
+1. 학생들이 어려워할 수 있는 전문 용어나 개념
+2. 교과서에 나오는 핵심 개념
+3. 학습에 꼭 필요한 기초 개념
+4. 학생들이 궁금해하는 현상이나 원리
+
+각 개념은 다음과 같이 설명해주세요:
+- 초등학생 수준에 맞는 쉬운 언어 사용
+- 일상생활 예시나 비유 활용
+- 2-3문장으로 간단명료하게
+- 학생의 호기심을 자극하는 방식
+
+응답 형식 (JSON):
+{
+  "concepts": [
+    {
+      "term": "개념 이름",
+      "definition": "쉬운 설명 (초등학생 수준)",
+      "example": "일상생활 예시",
+      "subject": "${subjects[0] || 'general'}",
+      "difficulty": "easy/medium"
+    }
+  ]
+}
+
+최대 5개의 가장 중요한 개념만 선별해주세요.
+`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    
+    // Extract JSON from response
+    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/({[\s\S]*})/);
+    const jsonStr = jsonMatch ? jsonMatch[1] : text;
+    
+    try {
+      const parsed = JSON.parse(jsonStr);
+      
+      // Convert to TermDefinition format
+      return parsed.concepts?.map((concept: any, index: number) => ({
+        definitionId: `concept-${Date.now()}-${index}`,
+        term: concept.term,
+        definition: concept.definition,
+        description: concept.example,
+        studentGroup: 'elementary',
+        sessionId: undefined // Will be set when saving
+      })) || [];
+    } catch (e) {
+      console.error('JSON parsing error:', e);
+      return [];
+    }
+  } catch (error) {
+    console.error('Concept extraction error:', error);
+    return [];
   }
 }
 
