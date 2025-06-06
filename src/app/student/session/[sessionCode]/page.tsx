@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { Header } from '@/components/common/Header'
 import Footer from '@/components/common/Footer'
 import { Card } from '@/components/common/Card'
-import { Session, SharedContent } from '@/lib/utils'
+import { Session, SharedContent, MultiSubjectAnalysisResult } from '@/lib/utils'
 import { database } from '@/lib/firebase'
 import { ref, query, orderByChild, equalTo, onValue } from 'firebase/database'
 import QuestionInput from '@/components/student/QuestionInput'
@@ -16,6 +16,7 @@ export default function StudentSessionPage() {
   const { sessionCode } = useParams()
   const [session, setSession] = useState<Session | null>(null)
   const [sharedContents, setSharedContents] = useState<SharedContent[]>([])
+  const [analysisResult, setAnalysisResult] = useState<MultiSubjectAnalysisResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -49,6 +50,11 @@ export default function StudentSessionPage() {
           setSession(sessionData)
           setNotFound(false)
           setLoading(false)
+          
+          // AI 분석 결과가 있다면 로드
+          if (sessionData.aiAnalysisResult) {
+            setAnalysisResult(sessionData.aiAnalysisResult)
+          }
           
           // 공유 콘텐츠 로드 (별도 useEffect에서 처리)
         } catch (error) {
@@ -305,12 +311,179 @@ export default function StudentSessionPage() {
         </Card>
 
         {/* 질문 목록 */}
-        <Card className="p-6">
+        <Card className="p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             다른 학생들의 질문
           </h2>
           <QuestionList sessionId={session.sessionId} />
         </Card>
+
+        {/* AI 분석 결과 - 학생용 */}
+        {analysisResult && (
+          <>
+            {/* 질문 그룹화 결과 */}
+            {analysisResult.clusteredQuestions && analysisResult.clusteredQuestions.length > 0 && (
+              <Card className="p-6 mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  🧩 우리 질문들의 주제별 정리
+                </h2>
+                <p className="text-gray-600 mb-6 text-sm">
+                  선생님이 여러분의 질문들을 비슷한 주제끼리 묶어서 정리해주셨어요!
+                </p>
+                <div className="space-y-4">
+                  {analysisResult.clusteredQuestions.map((cluster) => (
+                    <div key={cluster.clusterId} className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                      <div className="flex items-start mb-3">
+                        <div className="bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mr-3">
+                          {cluster.clusterId}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-purple-900 mb-2">
+                            📋 {cluster.clusterTitle}
+                          </h3>
+                          <p className="text-purple-700 text-sm mb-3">
+                            {cluster.clusterSummary}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="ml-11">
+                        <div className="bg-white p-3 rounded-md mb-3">
+                          <h4 className="text-sm font-medium text-purple-800 mb-2">
+                            이 주제에 포함된 질문들:
+                          </h4>
+                          <ul className="text-sm text-purple-700 space-y-1">
+                            {cluster.questions.map((question, index) => (
+                              <li key={index} className="flex items-start">
+                                <span className="text-purple-400 mr-2">💭</span>
+                                <span>{question}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-purple-100 p-3 rounded-md">
+                          <p className="text-xs text-purple-600">
+                            💡 <strong>학습 팁:</strong> {cluster.combinationGuide}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* 추천 활동 */}
+            {analysisResult.recommendedActivities && analysisResult.recommendedActivities.length > 0 && (
+              <Card className="p-6 mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  🎯 추천 학습 활동
+                </h2>
+                <p className="text-gray-600 mb-6 text-sm">
+                  여러분의 질문을 바탕으로 선생님이 준비한 재미있는 학습 활동들이에요!
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {analysisResult.recommendedActivities.map((activity) => (
+                    <div key={activity.activityId} className="border border-green-200 rounded-lg p-4 bg-green-50">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-green-900">
+                          🎮 {activity.activityTitle}
+                        </h3>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          activity.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+                          activity.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {activity.difficulty === 'easy' ? '😊 쉬움' :
+                           activity.difficulty === 'medium' ? '🤔 보통' : '😤 어려움'}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <span className="text-sm font-medium text-green-800">📝 활동 내용:</span>
+                          <p className="text-sm text-green-700 mt-1">{activity.description}</p>
+                        </div>
+                        
+                        <div>
+                          <span className="text-sm font-medium text-green-800">⏰ 예상 시간:</span>
+                          <p className="text-sm text-green-700 mt-1">{activity.timeRequired}</p>
+                        </div>
+                        
+                        {activity.materials && activity.materials.length > 0 && (
+                          <div>
+                            <span className="text-sm font-medium text-green-800">🛠️ 필요한 것들:</span>
+                            <ul className="text-sm text-green-700 mt-1">
+                              {activity.materials.map((material, index) => (
+                                <li key={index} className="flex items-start">
+                                  <span className="text-green-400 mr-2">✓</span>
+                                  <span>{material}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        <div className="bg-green-100 p-3 rounded-md">
+                          <p className="text-xs text-green-600">
+                            🌟 <strong>왜 이 활동을 할까요?</strong> {activity.reason}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* 개념 정의 - 학생용 */}
+            {analysisResult.conceptDefinitions && analysisResult.conceptDefinitions.length > 0 && (
+              <Card className="p-6 mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  📚 오늘 배운 중요한 개념들
+                </h2>
+                <p className="text-gray-600 mb-6 text-sm">
+                  질문 속에 나온 중요한 개념들을 쉽게 정리해두었어요. 복습할 때 활용해보세요!
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {analysisResult.conceptDefinitions.map((concept, index) => (
+                    <div key={index} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                      <div className="flex items-start mb-3">
+                        <div className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mr-3">
+                          📖
+                        </div>
+                        <h3 className="text-lg font-semibold text-blue-900">
+                          {concept.term}
+                        </h3>
+                      </div>
+                      
+                      <div className="space-y-3 ml-11">
+                        <div>
+                          <span className="text-sm font-medium text-blue-800">💡 쉬운 설명:</span>
+                          <p className="text-sm text-blue-700 mt-1 leading-relaxed">{concept.definition}</p>
+                        </div>
+                        
+                        {concept.description && (
+                          <div>
+                            <span className="text-sm font-medium text-blue-800">🔍 예시:</span>
+                            <p className="text-sm text-blue-700 mt-1 leading-relaxed">{concept.description}</p>
+                          </div>
+                        )}
+                        
+                        <div className="bg-blue-100 p-3 rounded-md">
+                          <p className="text-xs text-blue-600">
+                            ✨ <strong>복습 팁:</strong> 이 개념을 친구나 가족에게 설명해보세요!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </>
+        )}
       </div>
       
       <Footer />
