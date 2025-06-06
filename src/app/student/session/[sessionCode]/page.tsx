@@ -25,6 +25,13 @@ export default function StudentSessionPage() {
       return
     }
 
+    if (!database) {
+      console.error('Firebase database가 초기화되지 않음')
+      setNotFound(true)
+      setLoading(false)
+      return
+    }
+
     // 접속 코드로 세션 찾기
     console.log('세션 코드로 검색:', sessionCode)
     const sessionsRef = ref(database, 'sessions')
@@ -34,33 +41,55 @@ export default function StudentSessionPage() {
       const data = snapshot.val()
       console.log('Firebase 쿼리 결과:', data)
       if (data) {
-        // 첫 번째 (그리고 유일한) 결과 가져오기
-        const sessionData = Object.values(data)[0] as Session
-        setSession(sessionData)
-        setNotFound(false)
-        
-        // 공유 콘텐츠 로드
-        const sharedContentsRef = ref(database, `sharedContents/${sessionData.sessionId}`)
-        const unsubscribeContents = onValue(sharedContentsRef, (contentSnapshot) => {
-          const contentData = contentSnapshot.val()
-          if (contentData) {
-            const contentsList = Object.values(contentData) as SharedContent[]
-            contentsList.sort((a, b) => b.createdAt - a.createdAt)
-            setSharedContents(contentsList)
-          } else {
-            setSharedContents([])
-          }
-        })
-        
-        return unsubscribeContents
+        try {
+          // 첫 번째 (그리고 유일한) 결과 가져오기
+          const sessionData = Object.values(data)[0] as Session
+          console.log('세션 데이터:', sessionData)
+          setSession(sessionData)
+          setNotFound(false)
+          setLoading(false)
+          
+          // 공유 콘텐츠 로드 (별도 useEffect에서 처리)
+        } catch (error) {
+          console.error('세션 데이터 파싱 오류:', error)
+          setNotFound(true)
+          setLoading(false)
+        }
       } else {
+        console.log('세션을 찾을 수 없음')
         setNotFound(true)
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => unsubscribe()
   }, [sessionCode])
+
+  // 공유 콘텐츠 로드
+  useEffect(() => {
+    if (!session?.sessionId || !database) return
+
+    console.log('공유 콘텐츠 로드 시작:', session.sessionId)
+    const sharedContentsRef = ref(database, `sharedContents/${session.sessionId}`)
+    const unsubscribeContents = onValue(sharedContentsRef, (contentSnapshot) => {
+      const contentData = contentSnapshot.val()
+      console.log('공유 콘텐츠 데이터:', contentData)
+      if (contentData) {
+        try {
+          const contentsList = Object.values(contentData) as SharedContent[]
+          contentsList.sort((a, b) => b.createdAt - a.createdAt)
+          setSharedContents(contentsList)
+        } catch (error) {
+          console.error('공유 콘텐츠 파싱 오류:', error)
+          setSharedContents([])
+        }
+      } else {
+        setSharedContents([])
+      }
+    })
+
+    return () => unsubscribeContents()
+  }, [session?.sessionId])
 
   if (loading) {
     return (
