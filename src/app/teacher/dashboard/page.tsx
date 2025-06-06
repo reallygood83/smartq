@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { Header } from '@/components/common/Header'
+import Footer from '@/components/common/Footer'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import SessionList from '@/components/teacher/SessionList'
@@ -157,6 +158,8 @@ export default function TeacherDashboardPage() {
           </Link>
         </div>
       </div>
+      
+      <Footer />
     </div>
   )
 }

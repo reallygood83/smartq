@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { Header } from '@/components/common/Header'
+import Footer from '@/components/common/Footer'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
@@ -131,6 +132,8 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   )
 }

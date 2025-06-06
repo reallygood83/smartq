@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Header } from '@/components/common/Header'
+import Footer from '@/components/common/Footer'
 import { Card } from '@/components/common/Card'
 import { Session, SharedContent } from '@/lib/utils'
 import { database } from '@/lib/firebase'
@@ -271,6 +272,8 @@ export default function StudentSessionPage() {
           <QuestionList sessionId={session.sessionId} />
         </Card>
       </div>
+      
+      <Footer />
     </div>
   )
 }

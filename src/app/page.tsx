@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Header from '@/components/common/Header'
+import Footer from '@/components/common/Footer'
 import Button from '@/components/common/Button'
 import Card from '@/components/common/Card'
 import { getSessionTypeIcon, getSessionTypeLabel } from '@/lib/utils'
@@ -213,25 +214,7 @@ export default function HomePage() {
         </div>
       </div>
       
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex justify-center items-center mb-4">
-              <div className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold mr-3">
-                Q
-              </div>
-              <span className="text-xl font-bold">SmartQ</span>
-            </div>
-            <p className="text-gray-400 mb-4">
-              모든 질문이 스마트한 학습이 되는 곳
-            </p>
-            <p className="text-sm text-gray-500">
-              © 2025 SmartQ. Built with ❤️ for education.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   )
 }
