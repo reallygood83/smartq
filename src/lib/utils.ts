@@ -26,6 +26,7 @@ export interface Question {
   questionId: string;
   text: string;
   studentName?: string;
+  studentId?: string; // 학생을 구분하기 위한 브라우저 세션 기반 ID
   isAnonymous: boolean;
   createdAt: number;
   sessionId: string;

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/common/Button'
 import { SessionType } from '@/lib/utils'
 import { database } from '@/lib/firebase'
@@ -16,6 +16,17 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
   const [studentName, setStudentName] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [studentId, setStudentId] = useState('')
+
+  // 학생 ID 초기화
+  useEffect(() => {
+    let id = localStorage.getItem('smartq_student_id')
+    if (!id) {
+      id = `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      localStorage.setItem('smartq_student_id', id)
+    }
+    setStudentId(id)
+  }, [])
 
   const getPlaceholderText = (type: SessionType): string => {
     switch (type) {
@@ -73,6 +84,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
         questionId: newQuestionRef.key,
         text: questionText.trim(),
         studentName: isAnonymous ? null : studentName.trim(),
+        studentId: studentId, // 학생 식별을 위한 ID 추가
         isAnonymous,
         createdAt: Date.now(),
         sessionId

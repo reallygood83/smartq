@@ -7,21 +7,34 @@ import { ref, onValue } from 'firebase/database'
 
 interface QuestionListProps {
   sessionId: string
+  currentStudentId?: string // 현재 학생을 식별하기 위한 ID (브라우저 고유값)
 }
 
-export default function QuestionList({ sessionId }: QuestionListProps) {
+export default function QuestionList({ sessionId, currentStudentId }: QuestionListProps) {
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
+  const [myStudentId, setMyStudentId] = useState<string>('')
 
   useEffect(() => {
+    // 현재 학생의 고유 ID 생성 (브라우저 세션 기반)
+    let studentId = currentStudentId
+    if (!studentId) {
+      studentId = localStorage.getItem('smartq_student_id')
+      if (!studentId) {
+        studentId = `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        localStorage.setItem('smartq_student_id', studentId)
+      }
+    }
+    setMyStudentId(studentId)
+
     const questionsRef = ref(database, `questions/${sessionId}`)
     
     const unsubscribe = onValue(questionsRef, (snapshot) => {
       const data = snapshot.val()
       if (data) {
         const questionsList = Object.values(data) as Question[]
-        // 최신순으로 정렬
-        questionsList.sort((a, b) => b.createdAt - a.createdAt)
+        // 시간순으로 정렬 (오래된 것부터)
+        questionsList.sort((a, b) => a.createdAt - b.createdAt)
         setQuestions(questionsList)
       } else {
         setQuestions([])
@@ -30,7 +43,7 @@ export default function QuestionList({ sessionId }: QuestionListProps) {
     })
 
     return () => unsubscribe()
-  }, [sessionId])
+  }, [sessionId, currentStudentId])
 
   if (loading) {
     return (
@@ -58,48 +71,78 @@ export default function QuestionList({ sessionId }: QuestionListProps) {
     )
   }
 
+  // 내 질문인지 확인하는 함수
+  const isMyQuestion = (question: Question): boolean => {
+    // studentId 기반으로 확인 (질문 제출 시 저장된 ID와 비교)
+    return question.studentId === myStudentId
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="text-sm text-gray-600 mb-4">
-        총 {questions.length}개의 질문이 있습니다
+    <div className="space-y-3">
+      <div className="text-sm text-gray-600 mb-4 text-center">
+        💬 총 {questions.length}개의 질문이 있습니다
       </div>
       
-      {questions.map((question, index) => (
-        <div
-          key={question.questionId}
-          className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-        >
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium">
-                  {questions.length - index}
-                </span>
+      <div className="max-h-96 overflow-y-auto space-y-3 px-2">
+        {questions.map((question, index) => {
+          const isMine = isMyQuestion(question)
+          
+          return (
+            <div
+              key={question.questionId}
+              className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                isMine 
+                  ? 'bg-blue-500 text-white rounded-br-md' 
+                  : 'bg-white border border-gray-200 rounded-bl-md'
+              }`}>
+                {/* 발신자 정보 */}
+                <div className={`flex items-center justify-between mb-2 ${
+                  isMine ? 'flex-row-reverse' : 'flex-row'
+                }`}>
+                  <span className={`text-xs font-medium ${
+                    isMine ? 'text-blue-100' : 'text-gray-600'
+                  }`}>
+                    {isMine ? '나' : (question.isAnonymous ? '익명' : (question.studentName || '학생'))}
+                  </span>
+                  <span className={`text-xs ${
+                    isMine ? 'text-blue-200' : 'text-gray-400'
+                  }`}>
+                    {new Date(question.createdAt).toLocaleString('ko-KR', {
+                      month: 'numeric',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+                
+                {/* 질문 내용 */}
+                <p className={`text-sm leading-relaxed ${
+                  isMine ? 'text-white' : 'text-gray-800'
+                }`}>
+                  {question.text}
+                </p>
+                
+                {/* 읽음 표시 (내 질문인 경우에만) */}
+                {isMine && (
+                  <div className="flex justify-end mt-1">
+                    <span className="text-xs text-blue-200">✓</span>
+                  </div>
+                )}
               </div>
             </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-sm font-medium text-gray-900">
-                  {question.isAnonymous ? '익명' : (question.studentName || '학생')}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {new Date(question.createdAt).toLocaleString('ko-KR', {
-                    month: 'numeric',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
-              </div>
-              
-              <p className="text-gray-800 leading-relaxed">
-                {question.text}
-              </p>
-            </div>
-          </div>
+          )
+        })}
+      </div>
+      
+      {/* 스크롤 안내 */}
+      {questions.length > 5 && (
+        <div className="text-center">
+          <span className="text-xs text-gray-400">👆 위로 스크롤하여 더 많은 질문을 볼 수 있어요</span>
         </div>
-      ))}
+      )}
     </div>
   )
 }

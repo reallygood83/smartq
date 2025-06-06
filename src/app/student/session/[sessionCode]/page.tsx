@@ -313,7 +313,7 @@ export default function StudentSessionPage() {
         {/* 질문 목록 */}
         <Card className="p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            다른 학생들의 질문
+            💬 우리들의 질문 대화
           </h2>
           <QuestionList sessionId={session.sessionId} />
         </Card>
