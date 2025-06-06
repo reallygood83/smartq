@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Header } from '@/components/common/Header'
 import { Card } from '@/components/common/Card'
-import { Session } from '@/lib/utils'
+import { Session, SharedContent } from '@/lib/utils'
 import { database } from '@/lib/firebase'
 import { ref, query, orderByChild, equalTo, onValue } from 'firebase/database'
 import QuestionInput from '@/components/student/QuestionInput'
@@ -14,6 +14,7 @@ import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectCol
 export default function StudentSessionPage() {
   const { sessionCode } = useParams()
   const [session, setSession] = useState<Session | null>(null)
+  const [sharedContents, setSharedContents] = useState<SharedContent[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -35,6 +36,21 @@ export default function StudentSessionPage() {
         const sessionData = Object.values(data)[0] as Session
         setSession(sessionData)
         setNotFound(false)
+        
+        // 공유 콘텐츠 로드
+        const sharedContentsRef = ref(database, `sharedContents/${sessionData.sessionId}`)
+        const unsubscribeContents = onValue(sharedContentsRef, (contentSnapshot) => {
+          const contentData = contentSnapshot.val()
+          if (contentData) {
+            const contentsList = Object.values(contentData) as SharedContent[]
+            contentsList.sort((a, b) => b.createdAt - a.createdAt)
+            setSharedContents(contentsList)
+          } else {
+            setSharedContents([])
+          }
+        })
+        
+        return unsubscribeContents
       } else {
         setNotFound(true)
       }
@@ -128,6 +144,70 @@ export default function StudentSessionPage() {
             </div>
           )}
         </Card>
+
+        {/* 선생님 공유 자료 */}
+        {sharedContents.length > 0 && (
+          <Card className="p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              📢 선생님 공유 자료 ({sharedContents.length}개)
+            </h2>
+            <div className="space-y-4">
+              {sharedContents.map((content) => (
+                <div
+                  key={content.contentId}
+                  className={`border rounded-lg p-4 ${
+                    content.type === 'instruction' 
+                      ? 'border-orange-200 bg-orange-50' 
+                      : 'border-gray-200 bg-white'
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <span className="text-xl flex-shrink-0">
+                      {content.type === 'text' ? '📄' : content.type === 'link' ? '🔗' : '📋'}
+                    </span>
+                    <div className="flex-1">
+                      <h3 className={`text-lg font-medium mb-2 ${
+                        content.type === 'instruction' ? 'text-orange-900' : 'text-gray-900'
+                      }`}>
+                        {content.title}
+                      </h3>
+                      
+                      <div className={`p-3 rounded-md ${
+                        content.type === 'instruction' 
+                          ? 'bg-orange-100' 
+                          : 'bg-gray-50'
+                      }`}>
+                        {content.type === 'link' ? (
+                          <a
+                            href={content.content}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-500 break-all font-medium"
+                          >
+                            {content.content}
+                            <span className="ml-2 text-sm">↗</span>
+                          </a>
+                        ) : (
+                          <p className={`whitespace-pre-wrap ${
+                            content.type === 'instruction' 
+                              ? 'text-orange-800' 
+                              : 'text-gray-900'
+                          }`}>
+                            {content.content}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="mt-2 text-xs text-gray-500">
+                        {new Date(content.createdAt).toLocaleString('ko-KR')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* 질문 입력 */}
         <Card className="p-6 mb-6">

@@ -98,6 +98,16 @@ export interface TermDefinition {
   sessionId?: string;
 }
 
+export interface SharedContent {
+  contentId: string;
+  title: string;
+  content: string;
+  type: 'text' | 'link' | 'instruction';
+  createdAt: number;
+  sessionId: string;
+  teacherId: string;
+}
+
 // Utility functions
 export function generateSessionCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

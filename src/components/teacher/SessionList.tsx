@@ -128,6 +128,11 @@ export default function SessionList() {
                   세션 관리
                 </Button>
               </Link>
+              <Link href={`/teacher/session/edit/${session.sessionId}`}>
+                <Button variant="outline" size="sm">
+                  세션 수정
+                </Button>
+              </Link>
               <Button 
                 variant="outline" 
                 size="sm"

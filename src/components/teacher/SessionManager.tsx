@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { Session, Question, MultiSubjectAnalysisResult } from '@/lib/utils'
+import { Session, Question, MultiSubjectAnalysisResult, SharedContent } from '@/lib/utils'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor } from '@/lib/utils'
 import { database } from '@/lib/firebase'
-import { ref, onValue, push, set } from 'firebase/database'
+import { ref, onValue, push, set, remove } from 'firebase/database'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { analyzeQuestionsMultiSubject } from '@/lib/gemini'
@@ -23,8 +23,15 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
   const [session, setSession] = useState<Session | null>(null)
   const [questions, setQuestions] = useState<Question[]>([])
   const [analysisResult, setAnalysisResult] = useState<MultiSubjectAnalysisResult | null>(null)
+  const [sharedContents, setSharedContents] = useState<SharedContent[]>([])
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
+  const [showContentForm, setShowContentForm] = useState(false)
+  const [contentForm, setContentForm] = useState({
+    title: '',
+    content: '',
+    type: 'text' as 'text' | 'link' | 'instruction'
+  })
 
   useEffect(() => {
     // 세션 데이터 로드
@@ -56,9 +63,23 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       }
     })
 
+    // 공유 콘텐츠 로드
+    const sharedContentsRef = ref(database, `sharedContents/${sessionId}`)
+    const unsubscribeContents = onValue(sharedContentsRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const contentsList = Object.values(data) as SharedContent[]
+        contentsList.sort((a, b) => b.createdAt - a.createdAt)
+        setSharedContents(contentsList)
+      } else {
+        setSharedContents([])
+      }
+    })
+
     return () => {
       unsubscribeSession()
       unsubscribeQuestions()
+      unsubscribeContents()
     }
   }, [sessionId, router])
 
@@ -103,6 +124,52 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
     const studentUrl = `${window.location.origin}/student/session/${session.accessCode}`
     navigator.clipboard.writeText(studentUrl)
     alert('학생 접속 링크가 클립보드에 복사되었습니다!')
+  }
+
+  const handleShareContent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user || !session) return
+
+    try {
+      const contentId = Date.now().toString()
+      const newContent: SharedContent = {
+        contentId,
+        title: contentForm.title,
+        content: contentForm.content,
+        type: contentForm.type,
+        createdAt: Date.now(),
+        sessionId,
+        teacherId: user.uid
+      }
+
+      const contentRef = ref(database, `sharedContents/${sessionId}/${contentId}`)
+      await set(contentRef, newContent)
+
+      // 폼 초기화
+      setContentForm({
+        title: '',
+        content: '',
+        type: 'text'
+      })
+      setShowContentForm(false)
+      alert('콘텐츠가 공유되었습니다!')
+    } catch (error) {
+      console.error('콘텐츠 공유 오류:', error)
+      alert('콘텐츠 공유에 실패했습니다.')
+    }
+  }
+
+  const handleDeleteContent = async (contentId: string) => {
+    if (!confirm('이 콘텐츠를 삭제하시겠습니까?')) return
+
+    try {
+      const contentRef = ref(database, `sharedContents/${sessionId}/${contentId}`)
+      await remove(contentRef)
+      alert('콘텐츠가 삭제되었습니다.')
+    } catch (error) {
+      console.error('콘텐츠 삭제 오류:', error)
+      alert('콘텐츠 삭제에 실패했습니다.')
+    }
   }
 
   if (loading) {
@@ -275,6 +342,160 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
                     </div>
                     <p className="text-gray-900">{question.text}</p>
                   </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* 콘텐츠 공유 섹션 */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">
+            콘텐츠 공유 ({sharedContents.length}개)
+          </h2>
+          <Button
+            onClick={() => setShowContentForm(!showContentForm)}
+            variant={showContentForm ? "outline" : "default"}
+          >
+            {showContentForm ? '취소' : '+ 콘텐츠 공유'}
+          </Button>
+        </div>
+
+        {/* 콘텐츠 추가 폼 */}
+        {showContentForm && (
+          <Card className="p-4 mb-6 bg-gray-50">
+            <form onSubmit={handleShareContent} className="space-y-4">
+              <div>
+                <label htmlFor="contentTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                  제목
+                </label>
+                <input
+                  type="text"
+                  id="contentTitle"
+                  required
+                  value={contentForm.title}
+                  onChange={(e) => setContentForm(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="예: 수업 자료, 참고 링크 등"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="contentType" className="block text-sm font-medium text-gray-700 mb-1">
+                  유형
+                </label>
+                <select
+                  id="contentType"
+                  value={contentForm.type}
+                  onChange={(e) => setContentForm(prev => ({ ...prev, type: e.target.value as 'text' | 'link' | 'instruction' }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="text">📄 텍스트</option>
+                  <option value="link">🔗 링크</option>
+                  <option value="instruction">📋 안내사항</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="contentText" className="block text-sm font-medium text-gray-700 mb-1">
+                  내용
+                </label>
+                <textarea
+                  id="contentText"
+                  required
+                  rows={4}
+                  value={contentForm.content}
+                  onChange={(e) => setContentForm(prev => ({ ...prev, content: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder={
+                    contentForm.type === 'link' 
+                      ? "https://example.com" 
+                      : contentForm.type === 'instruction'
+                      ? "학생들에게 전달할 안내사항을 입력하세요"
+                      : "공유할 텍스트 내용을 입력하세요"
+                  }
+                />
+              </div>
+
+              <div className="flex space-x-3">
+                <Button type="submit" size="sm">
+                  공유하기
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowContentForm(false)}
+                >
+                  취소
+                </Button>
+              </div>
+            </form>
+          </Card>
+        )}
+
+        {/* 공유된 콘텐츠 목록 */}
+        {sharedContents.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="mb-4">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              공유된 콘텐츠가 없습니다
+            </h3>
+            <p className="text-gray-600">
+              학생들과 공유할 자료나 안내사항을 추가해보세요.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sharedContents.map((content) => (
+              <div
+                key={content.contentId}
+                className="border border-gray-200 rounded-lg p-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-lg">
+                        {content.type === 'text' ? '📄' : content.type === 'link' ? '🔗' : '📋'}
+                      </span>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {content.title}
+                      </h3>
+                      <span className="text-xs text-gray-500">
+                        {new Date(content.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-3 rounded-md">
+                      {content.type === 'link' ? (
+                        <a
+                          href={content.content}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-500 break-all"
+                        >
+                          {content.content}
+                        </a>
+                      ) : (
+                        <p className="text-gray-900 whitespace-pre-wrap">{content.content}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteContent(content.contentId)}
+                    className="ml-4 text-red-600 hover:text-red-700"
+                  >
+                    삭제
+                  </Button>
                 </div>
               </div>
             ))}
