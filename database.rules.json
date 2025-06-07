@@ -5,12 +5,13 @@
       "$sessionId": {
         ".read": "auth != null && (data.child('teacherId').val() == auth.uid || root.child('sessions').child($sessionId).child('isPublic').val() == true)",
         ".write": "auth != null && (data.child('teacherId').val() == auth.uid || !data.exists())",
-        ".validate": "newData.hasChildren(['title', 'accessCode', 'sessionType', 'teacherId', 'createdAt'])"
+        ".validate": "newData.exists() ? newData.hasChildren(['title', 'accessCode', 'sessionType', 'teacherId', 'createdAt']) : true"
       }
     },
     "questions": {
       "$sessionId": {
         ".read": "auth != null || root.child('sessions').child($sessionId).child('isPublic').val() == true",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$questionId": {
           ".write": "auth != null"
         }
@@ -19,6 +20,7 @@
     "sharedContents": {
       "$sessionId": {
         ".read": "auth != null || root.child('sessions').child($sessionId).child('isPublic').val() == true",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$contentId": {
           ".write": "auth != null && (newData.child('teacherId').val() == auth.uid || root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid)"
         }
@@ -27,45 +29,50 @@
     "feedbackRequests": {
       "$sessionId": {
         ".read": "auth != null",
-        ".write": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$requestId": {
-          ".validate": "newData.hasChildren(['requestId', 'sessionId', 'createdAt'])"
+          ".write": "auth != null",
+          ".validate": "newData.exists() ? newData.hasChildren(['requestId', 'sessionId', 'createdAt']) : true"
         }
       }
     },
     "feedbackResponses": {
       "$sessionId": {
         ".read": "auth != null",
-        ".write": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$responseId": {
-          ".validate": "newData.hasChildren(['responseId', 'requestId', 'sessionId', 'createdAt'])"
+          ".write": "auth != null",
+          ".validate": "newData.exists() ? newData.hasChildren(['responseId', 'requestId', 'sessionId', 'createdAt']) : true"
         }
       }
     },
     "mentorshipProfiles": {
       "$sessionId": {
         ".read": "auth != null",
-        ".write": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$profileId": {
-          ".validate": "newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt'])"
+          ".write": "auth != null",
+          ".validate": "newData.exists() ? newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt']) : true"
         }
       }
     },
     "mentorshipMatches": {
       "$sessionId": {
         ".read": "auth != null",
-        ".write": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$matchId": {
-          ".validate": "newData.hasChildren(['matchId', 'sessionId', 'mentorId', 'menteeId', 'createdAt'])"
+          ".write": "auth != null",
+          ".validate": "newData.exists() ? newData.hasChildren(['matchId', 'sessionId', 'mentorId', 'menteeId', 'createdAt']) : true"
         }
       }
     },
     "feedbackAnalyses": {
       "$sessionId": {
         ".read": "auth != null",
-        ".write": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$analysisId": {
-          ".validate": "newData.hasChildren(['analysisId', 'sessionId', 'createdAt'])"
+          ".write": "auth != null",
+          ".validate": "newData.exists() ? newData.hasChildren(['analysisId', 'sessionId', 'createdAt']) : true"
         }
       }
     },

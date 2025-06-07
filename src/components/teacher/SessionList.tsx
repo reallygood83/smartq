@@ -64,23 +64,38 @@ export default function SessionList() {
 
       console.log('세션 삭제 시작:', sessionId)
 
+      let deletionErrors = []
+      
       // 순차적으로 삭제 실행
       for (const operation of deleteOperations) {
         try {
           const deleteRef = ref(database, operation.path)
           await remove(deleteRef)
           console.log(`${operation.name} 삭제 완료:`, operation.path)
+          
+          // 작은 딜레이로 Firebase 동기화 시간 확보
+          await new Promise(resolve => setTimeout(resolve, 100))
         } catch (error) {
-          console.warn(`${operation.name} 삭제 중 오류 (계속 진행):`, error)
-          // 개별 삭제 실패는 전체 프로세스를 중단하지 않음
+          console.error(`${operation.name} 삭제 실패:`, error)
+          deletionErrors.push(`${operation.name}: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
         }
       }
 
-      console.log('모든 데이터 삭제 완료:', sessionId)
-      alert('세션이 성공적으로 삭제되었습니다.')
+      if (deletionErrors.length > 0) {
+        console.warn('일부 삭제 작업 실패:', deletionErrors)
+        alert(`세션 삭제 중 일부 오류가 발생했습니다:\n${deletionErrors.join('\n')}`)
+      } else {
+        console.log('모든 데이터 삭제 완료:', sessionId)
+        alert('세션이 성공적으로 삭제되었습니다.')
+      }
       
-      // 세션 목록 즉시 업데이트
+      // 세션 목록에서 즉시 제거 (낙관적 업데이트)
       setSessions(prevSessions => prevSessions.filter(s => s.sessionId !== sessionId))
+      
+      // Firebase 실시간 리스너로 인해 자동으로 업데이트되지만, 확실히 하기 위해 추가 체크
+      setTimeout(() => {
+        setSessions(prevSessions => prevSessions.filter(s => s.sessionId !== sessionId))
+      }, 1000)
       
     } catch (error) {
       console.error('세션 삭제 오류:', error)
