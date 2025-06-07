@@ -158,7 +158,7 @@ export const elementaryTheme: Theme = {
       error: '#F56565',
       info: '#4299E1'
     },
-    border: 'rgba(255, 107, 107, 0.15)',
+    border: '#E2E8F0',
     shadow: 'rgba(255, 107, 107, 0.1)'
   },
   typography: {
@@ -771,13 +771,62 @@ export const adultLearnerThemes: Record<AdultLearnerType, Partial<Theme>> = {
   }
 }
 
-// 교육 레벨별 테마 매핑
+// 브랜드 통일 색상 (SmartQ 파란색 유지)
+const BRAND_COLORS = {
+  primary: '#3B82F6', // SmartQ 블루
+  primaryLight: '#93C5FD',
+  primaryDark: '#1D4ED8',
+  surface: '#FFFFFF',
+  background: '#F8FAFC'
+}
+
+// 교육 레벨별 테마 매핑 (브랜드 색상 통일)
 export const levelThemes: Record<EducationLevel, Theme> = {
-  [EducationLevel.ELEMENTARY]: elementaryTheme,
-  [EducationLevel.MIDDLE]: middleTheme,
-  [EducationLevel.HIGH]: highTheme,
-  [EducationLevel.UNIVERSITY]: universityTheme,
-  [EducationLevel.ADULT]: adultTheme
+  [EducationLevel.ELEMENTARY]: {
+    ...elementaryTheme,
+    colors: {
+      ...elementaryTheme.colors,
+      primary: BRAND_COLORS.primary,
+      primaryLight: BRAND_COLORS.primaryLight,
+      primaryDark: BRAND_COLORS.primaryDark,
+      surface: BRAND_COLORS.surface,
+      background: BRAND_COLORS.background
+    }
+  },
+  [EducationLevel.MIDDLE]: {
+    ...middleTheme,
+    colors: {
+      ...middleTheme.colors,
+      primary: BRAND_COLORS.primary,
+      primaryLight: BRAND_COLORS.primaryLight,
+      primaryDark: BRAND_COLORS.primaryDark,
+      surface: BRAND_COLORS.surface,
+      background: BRAND_COLORS.background
+    }
+  },
+  [EducationLevel.HIGH]: highTheme, // 이미 브랜드 색상 사용
+  [EducationLevel.UNIVERSITY]: {
+    ...universityTheme,
+    colors: {
+      ...universityTheme.colors,
+      primary: BRAND_COLORS.primary,
+      primaryLight: BRAND_COLORS.primaryLight,
+      primaryDark: BRAND_COLORS.primaryDark,
+      surface: BRAND_COLORS.surface,
+      background: BRAND_COLORS.background
+    }
+  },
+  [EducationLevel.ADULT]: {
+    ...adultTheme,
+    colors: {
+      ...adultTheme.colors,
+      primary: BRAND_COLORS.primary,
+      primaryLight: BRAND_COLORS.primaryLight,
+      primaryDark: BRAND_COLORS.primaryDark,
+      surface: BRAND_COLORS.surface,
+      background: BRAND_COLORS.background
+    }
+  }
 }
 
 // 테마 조합 함수

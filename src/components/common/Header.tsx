@@ -49,7 +49,7 @@ function Header() {
               <div 
                 className="text-white flex items-center justify-center font-bold mr-3 transition-all duration-300"
                 style={{
-                  backgroundColor: theme.colors.primary,
+                  backgroundColor: '#3B82F6', // 브랜드 색상 고정
                   width: theme.layout.header.height === '4rem' ? '2.5rem' : '2rem',
                   height: theme.layout.header.height === '4rem' ? '2.5rem' : '2rem',
                   borderRadius: theme.borders.radius.md,

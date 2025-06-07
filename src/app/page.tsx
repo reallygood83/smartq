@@ -51,25 +51,14 @@ export default function HomePage() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-        {/* Education Level Selector */}
-        <div className="text-center mb-8">
-          <button
-            onClick={() => setShowLevelSelector(true)}
-            className="inline-flex items-center space-x-3 px-6 py-3 rounded-full border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 bg-white"
-            style={{ color: getTheme().primaryColor }}
-          >
-            <LevelSelector showModal={false} />
-            <span className="text-sm text-gray-500">변경하기</span>
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
 
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="flex justify-center mb-6">
-            <div className="bg-blue-600 text-white w-20 h-20 rounded-full flex items-center justify-center text-4xl font-bold">
+            <div 
+              className="text-white w-20 h-20 rounded-full flex items-center justify-center text-4xl font-bold transition-all duration-300 hover:scale-110"
+              style={{ backgroundColor: '#3B82F6' }}
+            >
               Q
             </div>
           </div>
@@ -82,13 +71,18 @@ export default function HomePage() {
           <p className="text-lg text-gray-500 mb-2">
             {adapt(`AI 기반 다교과 ${term('question')} 분석 및 ${term('activity')} 추천 서비스`)}
           </p>
-          <div 
-            className="inline-block px-4 py-2 rounded-full text-white font-medium"
-            style={{ backgroundColor: getTheme().primaryColor }}
+          <button
+            onClick={() => setShowLevelSelector(true)}
+            className="inline-flex items-center space-x-2 px-6 py-3 rounded-full text-white font-medium hover:shadow-lg transition-all duration-200 hover:scale-105"
+            style={{ backgroundColor: theme.colors.primary }}
           >
-            {levelConfig.displayName} • {levelConfig.ageRange}
-          </div>
-          <p className="text-sm text-gray-500 mt-2 mb-8">
+            <span className="text-lg">{levelConfig.displayName === '초등교육' ? '🎨' : levelConfig.displayName === '중등교육' ? '📚' : levelConfig.displayName === '고등교육' ? '🎓' : levelConfig.displayName === '대학교육' ? '🏛️' : '💼'}</span>
+            <span>{levelConfig.displayName} • {levelConfig.ageRange}</span>
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <p className="text-sm text-gray-500 mt-3 mb-8">
             {levelConfig.description}
           </p>
           
