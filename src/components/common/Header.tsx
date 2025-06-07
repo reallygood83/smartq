@@ -27,7 +27,6 @@ function Header() {
       className="transition-all duration-300"
       style={{ 
         backgroundColor: theme.colors.surface,
-        height: theme.layout.header.height,
         boxShadow: theme.shadows.sm,
         borderBottom: `1px solid ${theme.colors.border}`
       }}
@@ -35,13 +34,16 @@ function Header() {
       <div 
         className="mx-auto px-4 sm:px-6 lg:px-8"
         style={{ 
-          maxWidth: theme.layout.container.maxWidth,
-          padding: theme.layout.container.padding
+          maxWidth: theme.layout.container.maxWidth
         }}
       >
         <div 
           className="flex justify-between items-center"
-          style={{ height: theme.layout.header.height }}
+          style={{ 
+            height: theme.layout.header.height,
+            paddingTop: theme.spacing.sm,
+            paddingBottom: theme.spacing.sm
+          }}
         >
           {/* Logo */}
           <div className="flex-shrink-0">
