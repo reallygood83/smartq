@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import PeerFeedbackSystem from '@/components/feedback/PeerFeedbackSystem'
 import FeedbackQualityDashboard from '@/components/feedback/FeedbackQualityDashboard'
+import AIAnalysisPanel from './AIAnalysisPanel'
 
 interface SessionManagerProps {
   sessionId: string
@@ -511,8 +512,17 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
         )}
       </Card>
 
-      {/* AI 분석 시스템 */}
-      <Card className="p-6">
+      {/* AI 분석 시스템 통합 패널 */}
+      {session && (
+        <AIAnalysisPanel 
+          session={session}
+          questions={questions}
+          sessionId={sessionId}
+        />
+      )}
+
+      {/* 기존 AI 분석 시스템 카드 - 주석 처리 */}
+      {/* <Card className="p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">🤖 AI 분석 시스템</h2>
         
         {!getStoredApiKey() ? (
@@ -612,7 +622,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
             </Link>
           </div>
         )}
-      </Card>
+      </Card> */}
 
       {/* AI 분석 결과 표시 영역 - 더 이상 여기서 렌더링하지 않음 */}
       {/* 실제 분석은 각각의 전용 페이지에서 수행됨 */}
