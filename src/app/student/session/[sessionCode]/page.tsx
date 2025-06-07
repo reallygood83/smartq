@@ -10,6 +10,7 @@ import { database } from '@/lib/firebase'
 import { ref, query, orderByChild, equalTo, onValue } from 'firebase/database'
 import QuestionInput from '@/components/student/QuestionInput'
 import QuestionList from '@/components/student/QuestionList'
+import MentorshipAccess from '@/components/student/MentorshipAccess'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, getYouTubeEmbedUrl } from '@/lib/utils'
 import { useEducationLevel, useSmartTerminology, useFullTheme } from '@/contexts/EducationLevelContext'
 import { EducationLevel } from '@/types/education'
@@ -334,6 +335,16 @@ export default function StudentSessionPage() {
           </h2>
           <QuestionList sessionId={session.sessionId} session={session} />
         </Card>
+
+        {/* 멘토-멘티 매칭 시스템 - 대학생/성인 세션용 */}
+        {isAdultEducationSession && session && (
+          <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
+              🤝 {adapt('멘토-멘티 매칭', '전문가 네트워킹', '동료 학습 시스템')}
+            </h2>
+            <MentorshipAccess sessionId={session.sessionId} />
+          </Card>
+        )}
 
         {/* AI 분석 결과 - 교육 레벨 적응형 */}
         {analysisResult && (

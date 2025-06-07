@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Session } from '@/lib/utils'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor } from '@/lib/utils'
 import { database } from '@/lib/firebase'
-import { ref, query, orderByChild, equalTo, onValue } from 'firebase/database'
+import { ref, query, orderByChild, equalTo, onValue, remove } from 'firebase/database'
 import { Button } from '@/components/common/Button'
 import Link from 'next/link'
 
@@ -13,6 +13,7 @@ export default function SessionList() {
   const { user } = useAuth()
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -35,6 +36,43 @@ export default function SessionList() {
 
     return () => unsubscribe()
   }, [user])
+
+  const handleDeleteSession = async (sessionId: string, sessionTitle: string) => {
+    if (!confirm(`정말로 "${sessionTitle}" 세션을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 모든 질문과 분석 결과가 함께 삭제됩니다.`)) {
+      return
+    }
+
+    setDeletingSessionId(sessionId)
+
+    try {
+      // 세션 삭제
+      const sessionRef = ref(database, `sessions/${sessionId}`)
+      await remove(sessionRef)
+
+      // 관련 질문들 삭제
+      const questionsRef = ref(database, `questions/${sessionId}`)
+      await remove(questionsRef)
+
+      // 관련 공유 콘텐츠 삭제
+      const sharedContentsRef = ref(database, `sharedContents/${sessionId}`)
+      await remove(sharedContentsRef)
+
+      // 관련 피드백 요청 삭제
+      const feedbackRequestsRef = ref(database, `feedbackRequests/${sessionId}`)
+      await remove(feedbackRequestsRef)
+
+      // 관련 피드백 응답 삭제
+      const feedbackResponsesRef = ref(database, `feedbackResponses/${sessionId}`)
+      await remove(feedbackResponsesRef)
+
+      alert('세션이 성공적으로 삭제되었습니다.')
+    } catch (error) {
+      console.error('세션 삭제 오류:', error)
+      alert('세션 삭제에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setDeletingSessionId(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -116,9 +154,53 @@ export default function SessionList() {
 
               {/* 키워드 */}
               {session.keywords && session.keywords.length > 0 && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 mb-3">
                   <span className="font-medium">키워드:</span> {session.keywords.join(', ')}
                 </p>
+              )}
+
+              {/* 성인 교육 세션 추가 정보 */}
+              {session.isAdultEducation && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    {session.targetAudience && (
+                      <div>
+                        <span className="font-medium text-gray-700">대상:</span>
+                        <span className="ml-1 text-gray-600">{session.targetAudience}</span>
+                      </div>
+                    )}
+                    {session.difficultyLevel && (
+                      <div>
+                        <span className="font-medium text-gray-700">난이도:</span>
+                        <span className={`ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                          session.difficultyLevel === 'beginner' ? 'bg-green-100 text-green-800' :
+                          session.difficultyLevel === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                          session.difficultyLevel === 'advanced' ? 'bg-orange-100 text-orange-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {session.difficultyLevel === 'beginner' ? '초급' :
+                           session.difficultyLevel === 'intermediate' ? '중급' :
+                           session.difficultyLevel === 'advanced' ? '고급' : '전문가'}
+                        </span>
+                      </div>
+                    )}
+                    {session.duration && (
+                      <div>
+                        <span className="font-medium text-gray-700">시간:</span>
+                        <span className="ml-1 text-gray-600">{session.duration}</span>
+                      </div>
+                    )}
+                    {session.deliveryFormat && (
+                      <div>
+                        <span className="font-medium text-gray-700">진행:</span>
+                        <span className="ml-1 text-gray-600">
+                          {session.deliveryFormat === 'in-person' ? '대면' :
+                           session.deliveryFormat === 'online' ? '온라인' : '하이브리드'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
@@ -143,6 +225,15 @@ export default function SessionList() {
                 }}
               >
                 링크 복사
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleDeleteSession(session.sessionId, session.title)}
+                disabled={deletingSessionId === session.sessionId}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+              >
+                {deletingSessionId === session.sessionId ? '삭제 중...' : '세션 삭제'}
               </Button>
             </div>
           </div>

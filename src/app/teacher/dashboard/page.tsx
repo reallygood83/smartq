@@ -183,6 +183,42 @@ export default function TeacherDashboardPage() {
           </Card>
         </div>
 
+        {/* 멘토-멘티 매칭 시스템 */}
+        {sessions.some(session => session.isAdultEducation) && (
+          <Card className="p-6 mb-6 bg-purple-50 border-purple-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-purple-900 mb-2">
+                  🤝 멘토-멘티 매칭 시스템
+                </h3>
+                <p className="text-purple-800 text-sm mb-3">
+                  성인 교육 세션의 멘토-멘티 매칭을 관리하고 분석하세요.
+                </p>
+                <div className="text-xs text-purple-700">
+                  • AI 기반 최적 매칭 • 피드백 품질 분석 • 성장 추적 대시보드
+                </div>
+              </div>
+              <div className="space-y-2">
+                {sessions
+                  .filter(session => session.isAdultEducation)
+                  .slice(0, 2)
+                  .map(session => (
+                    <Link key={session.sessionId} href={`/teacher/mentorship/${session.sessionId}`}>
+                      <Button size="sm" variant="outline" className="block w-full text-left">
+                        {session.title}
+                      </Button>
+                    </Link>
+                  ))}
+                {sessions.filter(session => session.isAdultEducation).length > 2 && (
+                  <div className="text-xs text-purple-600 text-center">
+                    +{sessions.filter(session => session.isAdultEducation).length - 2}개 더
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* 세션 목록 */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
