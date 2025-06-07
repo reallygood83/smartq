@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       sessionType, 
       adultLearnerType,
       userApiKey,
-      educationLevel = 'elementary',
+      educationLevel,
       sessionData
     } = await request.json();
 
@@ -43,6 +43,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 성인 학습자 타입이 있으면 자동으로 adult 레벨 설정
+    const effectiveEducationLevel = adultLearnerType ? 'adult' : (educationLevel || 'elementary');
+
     const genAI = new GoogleGenerativeAI(userApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
@@ -54,17 +57,17 @@ export async function POST(request: NextRequest) {
     );
 
     const levelPrompts = getEducationLevelPrompts(
-      educationLevel as EducationLevel, 
+      effectiveEducationLevel as EducationLevel, 
       adultLearnerType as AdultLearnerType,
       sessionType as SessionType
     );
 
-    const terminology = getTerminology('teacher', educationLevel as EducationLevel);
+    const terminology = getTerminology('teacher', effectiveEducationLevel as EducationLevel);
 
     const prompt = `
 ${levelPrompts.systemPrompt}
 
-당신은 교육 전문가이자 ${terminology}입니다. 다음 세션에서 ${getTerminology('student', educationLevel as EducationLevel)}들이 제출한 질문을 바탕으로 교육 효과성을 종합적으로 분석해주세요.
+당신은 교육 전문가이자 ${terminology}입니다. 다음 세션에서 ${getTerminology('student', effectiveEducationLevel as EducationLevel)}들이 제출한 질문을 바탕으로 교육 효과성을 종합적으로 분석해주세요.
 
 ${instructorPrompt}
 
@@ -85,7 +88,7 @@ ${questions.map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}
 
 1. **목표 달성도 평가**
    - 설정된 학습 목표와 질문 내용의 연관성
-   - ${getTerminology('student', educationLevel as EducationLevel)}들의 이해 수준 파악
+   - ${getTerminology('student', effectiveEducationLevel as EducationLevel)}들의 이해 수준 파악
    - 핵심 개념 습득 정도
 
 2. **참여도 및 몰입도 분석**
@@ -100,7 +103,7 @@ ${questions.map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}
 
 4. **교수법 효과성**
    - 현재 교수법의 강점과 약점
-   - ${getTerminology('student', educationLevel as EducationLevel)} 반응 분석
+   - ${getTerminology('student', effectiveEducationLevel as EducationLevel)} 반응 분석
    - 개선 필요 영역 식별
 
 JSON 형식으로 응답해주세요:

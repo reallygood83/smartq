@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       sessionType, 
       adultLearnerType,
       userApiKey,
-      educationLevel = 'elementary',
+      educationLevel,
       sessionData,
       realTimeData
     } = await request.json();
@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 성인 학습자 타입이 있으면 자동으로 adult 레벨 설정
+    const effectiveEducationLevel = adultLearnerType ? 'adult' : (educationLevel || 'elementary');
+
     const genAI = new GoogleGenerativeAI(userApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
@@ -55,12 +58,12 @@ export async function POST(request: NextRequest) {
     );
 
     const levelPrompts = getEducationLevelPrompts(
-      educationLevel as EducationLevel, 
+      effectiveEducationLevel as EducationLevel, 
       adultLearnerType as AdultLearnerType,
       sessionType as SessionType
     );
 
-    const terminology = getTerminology('teacher', educationLevel as EducationLevel);
+    const terminology = getTerminology('teacher', effectiveEducationLevel as EducationLevel);
 
     const prompt = `
 ${levelPrompts.systemPrompt}

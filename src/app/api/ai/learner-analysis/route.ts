@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       sessionType, 
       adultLearnerType,
       userApiKey,
-      educationLevel = 'elementary',
+      educationLevel,
       sessionData
     } = await request.json();
 
@@ -43,6 +43,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 성인 학습자 타입이 있으면 자동으로 adult 레벨 설정
+    const effectiveEducationLevel = adultLearnerType ? 'adult' : (educationLevel || 'elementary');
+
     const genAI = new GoogleGenerativeAI(userApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
@@ -54,17 +57,17 @@ export async function POST(request: NextRequest) {
     );
 
     const levelPrompts = getEducationLevelPrompts(
-      educationLevel as EducationLevel, 
+      effectiveEducationLevel as EducationLevel, 
       adultLearnerType as AdultLearnerType,
       sessionType as SessionType
     );
 
-    const terminology = getTerminology('student', educationLevel as EducationLevel);
+    const terminology = getTerminology('student', effectiveEducationLevel as EducationLevel);
 
     const prompt = `
 ${levelPrompts.systemPrompt}
 
-당신은 학습 상담 전문가입니다. 다음 세션에서 ${getTerminology('student', educationLevel as EducationLevel)}이 제출한 질문을 바탕으로 학습자의 성과와 향후 학습 방향을 분석해주세요.
+당신은 학습 상담 전문가입니다. 다음 세션에서 ${getTerminology('student', effectiveEducationLevel as EducationLevel)}이 제출한 질문을 바탕으로 학습자의 성과와 향후 학습 방향을 분석해주세요.
 
 ${learnerPrompt}
 
