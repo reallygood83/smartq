@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Session, Question } from '@/lib/utils'
-import { getStoredApiKey } from '@/lib/encryption'
+import { getStoredApiKey, hasStoredApiKey } from '@/lib/encryption'
 
 interface AIAnalysisPanelProps {
   session: Session
@@ -16,10 +17,34 @@ interface AIAnalysisPanelProps {
 type AnalysisType = 'quick' | 'detailed'
 
 export default function AIAnalysisPanel({ session, questions, sessionId }: AIAnalysisPanelProps) {
+  const { user } = useAuth()
   const [isExpanded, setIsExpanded] = useState(true)
+  const [apiKeyExists, setApiKeyExists] = useState(false)
+  const [currentApiKey, setCurrentApiKey] = useState<string | null>(null)
 
-  const hasApiKey = !!getStoredApiKey()
-  const canAnalyze = hasApiKey && questions.length > 0
+  useEffect(() => {
+    const checkApiKey = async () => {
+      if (!user) return
+
+      const stored = hasStoredApiKey()
+      setApiKeyExists(stored)
+
+      if (stored) {
+        try {
+          const key = getStoredApiKey(user.uid)
+          setCurrentApiKey(key)
+        } catch (error) {
+          console.error('API 키 확인 실패:', error)
+          setApiKeyExists(false)
+          setCurrentApiKey(null)
+        }
+      }
+    }
+
+    checkApiKey()
+  }, [user])
+
+  const canAnalyze = apiKeyExists && currentApiKey && questions.length > 0
 
 
   return (
@@ -36,7 +61,7 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
               <p className="text-sm text-gray-600">
                 {canAnalyze 
                   ? '질문을 분석하여 교육 인사이트를 제공합니다'
-                  : !hasApiKey 
+                  : !apiKeyExists 
                     ? 'API 키 설정이 필요합니다' 
                     : '질문이 제출되면 분석할 수 있습니다'
                 }
@@ -64,12 +89,24 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
             >
               <div className="mt-6">
                 {/* API 키 미설정 경고 */}
-                {!hasApiKey && (
+                {!apiKeyExists && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                     <p className="text-sm text-yellow-800">
                       AI 분석을 사용하려면 Gemini API 키가 필요합니다.
                       <a href="/teacher/settings" className="ml-2 font-medium underline">
                         설정하기 →
+                      </a>
+                    </p>
+                  </div>
+                )}
+                
+                {/* API 키는 있지만 불러오기 실패한 경우 */}
+                {apiKeyExists && !currentApiKey && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-orange-800">
+                      저장된 API 키를 불러올 수 없습니다. 키를 다시 설정해주세요.
+                      <a href="/teacher/settings" className="ml-2 font-medium underline">
+                        다시 설정하기 →
                       </a>
                     </p>
                   </div>
