@@ -70,11 +70,28 @@ export default function SessionList() {
       for (const operation of deleteOperations) {
         try {
           const deleteRef = ref(database, operation.path)
+          
+          // 삭제 전 데이터 존재 여부 확인
+          const { get } = await import('firebase/database')
+          const snapshot = await get(deleteRef)
+          const existsBefore = snapshot.exists()
+          console.log(`${operation.name} 삭제 전 존재 여부:`, existsBefore)
+          
           await remove(deleteRef)
+          
+          // 삭제 후 데이터 존재 여부 재확인
+          const snapshotAfter = await get(deleteRef)
+          const existsAfter = snapshotAfter.exists()
+          console.log(`${operation.name} 삭제 후 존재 여부:`, existsAfter)
+          
+          if (existsAfter && existsBefore) {
+            throw new Error(`${operation.name} 삭제가 실제로 실행되지 않았습니다. 권한 문제일 수 있습니다.`)
+          }
+          
           console.log(`${operation.name} 삭제 완료:`, operation.path)
           
           // 작은 딜레이로 Firebase 동기화 시간 확보
-          await new Promise(resolve => setTimeout(resolve, 100))
+          await new Promise(resolve => setTimeout(resolve, 200))
         } catch (error) {
           console.error(`${operation.name} 삭제 실패:`, error)
           deletionErrors.push(`${operation.name}: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
