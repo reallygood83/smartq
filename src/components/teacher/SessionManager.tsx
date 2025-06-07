@@ -12,6 +12,8 @@ import { analyzeQuestionsMultiSubject } from '@/lib/gemini'
 import { getStoredApiKey } from '@/lib/encryption'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import AdultSessionAnalysis from './AdultSessionAnalysis'
+import { AdultLearnerType } from '@/types/education'
 
 interface SessionManagerProps {
   sessionId: string
@@ -554,6 +556,20 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           </div>
         )}
       </Card>
+
+      {/* 성인 교육 전용 AI 분석 */}
+      {session?.isAdultEducation && questions.length > 0 && (
+        <AdultSessionAnalysis
+          questions={questions.map(q => q.text)}
+          sessionType={session.sessionType}
+          adultLearnerType={session.adultLearnerType || AdultLearnerType.PROFESSIONAL}
+          userApiKey={getStoredApiKey() || ''}
+          industryFocus={session.industryFocus}
+          difficultyLevel={session.difficultyLevel}
+          participantCount={session.participantCount}
+          duration={session.duration}
+        />
+      )}
 
       {/* AI 분석 결과 */}
       {analysisResult && (

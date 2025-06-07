@@ -1,8 +1,14 @@
 // SmartQ - Gemini AI Integration with User API Keys
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { SessionType, Subject, QuestionCluster, ActivityRecommendation, TermDefinition } from './utils';
-import { EducationLevel, AdultSessionType } from '@/types/education';
-import { getEducationLevelPrompts, getTerminology } from './aiPrompts';
+import { EducationLevel, AdultLearnerType } from '@/types/education';
+import { 
+  getEducationLevelPrompts, 
+  getTerminology, 
+  getAdultEducationAnalysisPrompt,
+  getBidirectionalAnalysisPrompt,
+  getQualityMonitoringPrompt 
+} from './aiPrompts';
 
 // Subject-specific prompts for different educational contexts
 const SUBJECT_PROMPTS = {
@@ -67,13 +73,14 @@ export async function clusterQuestions(
   questions: string[], 
   userApiKey: string,
   educationLevel: EducationLevel = 'elementary',
-  adultSessionType?: AdultSessionType
+  adultLearnerType?: AdultLearnerType,
+  sessionType?: SessionType
 ): Promise<{ clusters: QuestionCluster[] }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-    const levelPrompts = getEducationLevelPrompts(educationLevel, adultSessionType);
+    const levelPrompts = getEducationLevelPrompts(educationLevel, adultLearnerType, sessionType);
     const terminology = getTerminology('student', educationLevel);
     
     const prompt = `
@@ -129,7 +136,9 @@ export async function analyzeQuestionsMultiSubject(
   userApiKey: string,
   keywords: string[] = [],
   educationLevel: EducationLevel = 'elementary',
-  adultSessionType?: AdultSessionType
+  adultLearnerType?: AdultLearnerType,
+  industryFocus?: string,
+  difficultyLevel?: string
 ): Promise<{
   clusteredQuestions: QuestionCluster[];
   recommendedActivities: ActivityRecommendation[];
@@ -141,10 +150,10 @@ export async function analyzeQuestionsMultiSubject(
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // First, cluster the questions
-    const clusteringResult = await clusterQuestions(questions, userApiKey, educationLevel, adultSessionType)
+    const clusteringResult = await clusterQuestions(questions, userApiKey, educationLevel, adultLearnerType, sessionType)
     
     // Extract key concepts from questions
-    const conceptDefinitions = await extractConceptsFromQuestions(questions, sessionType, subjects, userApiKey, educationLevel, adultSessionType);
+    const conceptDefinitions = await extractConceptsFromQuestions(questions, sessionType, subjects, userApiKey, educationLevel, adultLearnerType);
 
     // Get subject-specific or generic prompts
     const subjectPrompts = subjects.map(subject => 
@@ -153,7 +162,7 @@ export async function analyzeQuestionsMultiSubject(
 
     const sessionTypeContext = getSessionTypeContext(sessionType);
     const keywordsText = keywords.length > 0 ? `추가 키워드: ${keywords.join(', ')}` : '';
-    const levelPrompts = getEducationLevelPrompts(educationLevel, adultSessionType);
+    const levelPrompts = getEducationLevelPrompts(educationLevel, adultLearnerType, sessionType);
     const terminology = getTerminology('student', educationLevel);
 
     const prompt = `
@@ -242,6 +251,25 @@ function getSessionTypeContext(sessionType: SessionType): string {
       return '창작 활동 - 상상력과 창의성을 발휘하는 활동';
     case SessionType.DISCUSSION:
       return '토의/의견 나누기 - 서로의 생각을 공유하고 의견을 나누는 활동';
+    // 성인 교육 세션 타입
+    case SessionType.CORPORATE_TRAINING:
+      return '기업 연수 - 조직 성과 향상과 실무 역량 강화를 위한 전문 교육';
+    case SessionType.UNIVERSITY_LECTURE:
+      return '대학 강의 - 학술적 엄밀성과 체계적 지식 전달을 중심으로 한 고등 교육';
+    case SessionType.SEMINAR:
+      return '세미나 - 전문 주제에 대한 심화 학습과 상호 토론을 통한 지식 공유';
+    case SessionType.WORKSHOP:
+      return '워크샵 - 실습과 체험을 통한 직접적 기술 습득과 실무 적용';
+    case SessionType.CONFERENCE:
+      return '컨퍼런스 - 전문가들의 지식 공유와 네트워킹을 통한 업계 동향 파악';
+    case SessionType.PROFESSIONAL_DEV:
+      return '전문 개발 - 개인의 역량 강화와 경력 발전을 위한 맞춤형 교육';
+    case SessionType.CERTIFICATION:
+      return '자격증 과정 - 체계적이고 검증 가능한 전문 역량 인증을 위한 교육';
+    case SessionType.MENTORING:
+      return '멘토링 - 개인 맞춤형 성장과 경험 전수를 통한 전문성 개발';
+    case SessionType.NETWORKING:
+      return '네트워킹 - 전문적 관계 구축과 협업 기회 창출을 위한 소통 활동';
     default:
       return '일반 Q&A - 자유로운 질문과 답변 활동';
   }
@@ -254,7 +282,7 @@ export async function extractConceptsFromQuestions(
   subjects: Subject[],
   userApiKey: string,
   educationLevel: EducationLevel = 'elementary',
-  adultSessionType?: AdultSessionType
+  adultLearnerType?: AdultLearnerType
 ): Promise<TermDefinition[]> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
@@ -262,7 +290,7 @@ export async function extractConceptsFromQuestions(
 
     const subjectContext = subjects.map(s => getSubjectLabel(s)).join(', ');
     const sessionContext = getSessionTypeContext(sessionType);
-    const levelPrompts = getEducationLevelPrompts(educationLevel, adultSessionType);
+    const levelPrompts = getEducationLevelPrompts(educationLevel, adultLearnerType, sessionType);
     const terminology = getTerminology('student', educationLevel);
 
     const prompt = `
@@ -361,4 +389,393 @@ function getSubjectLabel(subject: Subject): string {
     [Subject.MORAL]: '도덕'
   };
   return labels[subject] || subject;
+}
+
+// Adult education specialized analysis
+export async function analyzeAdultEducationSession(
+  questions: string[],
+  sessionType: SessionType,
+  adultLearnerType: AdultLearnerType,
+  userApiKey: string,
+  industryFocus?: string,
+  difficultyLevel?: string,
+  participantCount?: string,
+  duration?: string
+): Promise<{
+  instructorAnalysis: any;
+  learnerAnalysis: any;
+  qualityMetrics: any;
+}> {
+  try {
+    const genAI = new GoogleGenerativeAI(userApiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    // Get specialized prompts
+    const instructorPrompt = getBidirectionalAnalysisPrompt('instructor', sessionType, adultLearnerType);
+    const learnerPrompt = getBidirectionalAnalysisPrompt('learner', sessionType, adultLearnerType);
+    const qualityPrompt = getQualityMonitoringPrompt(sessionType, participantCount || '미지정', duration || '미지정');
+    const analysisPrompt = getAdultEducationAnalysisPrompt(sessionType, adultLearnerType, industryFocus, difficultyLevel);
+
+    // Instructor perspective analysis
+    const instructorResult = await model.generateContent(`
+      ${instructorPrompt}
+      
+      ${analysisPrompt}
+      
+      참여자 질문들:
+      ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+      
+      JSON 형식으로 응답해주세요:
+      {
+        "sessionEffectiveness": {
+          "goalAchievement": "목표 달성도 평가",
+          "participantEngagement": "참여자 몰입도",
+          "practicalApplication": "실무 적용 가능성"
+        },
+        "improvementAreas": ["개선점1", "개선점2"],
+        "nextSteps": ["후속 활동1", "후속 활동2"]
+      }
+    `);
+
+    // Learner perspective analysis  
+    const learnerResult = await model.generateContent(`
+      ${learnerPrompt}
+      
+      ${analysisPrompt}
+      
+      참여자 질문들:
+      ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+      
+      JSON 형식으로 응답해주세요:
+      {
+        "personalGrowth": {
+          "knowledgeGained": "습득한 지식",
+          "skillImprovement": "향상된 기술",
+          "careerRelevance": "경력 연관성"
+        },
+        "practicalValue": {
+          "immediateApplication": "즉시 적용 가능한 내용",
+          "longTermBenefit": "장기적 효익"
+        },
+        "learningPath": ["추천 학습 경로1", "추천 학습 경로2"]
+      }
+    `);
+
+    // Quality monitoring analysis
+    const qualityResult = await model.generateContent(`
+      ${qualityPrompt}
+      
+      참여자 질문들:
+      ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+      
+      JSON 형식으로 응답해주세요:
+      {
+        "participationMetrics": {
+          "questionQuality": "질문 품질 점수 (1-10)",
+          "engagementLevel": "참여도 수준 (1-10)",
+          "comprehensionRate": "이해도 (1-10)"
+        },
+        "satisfactionIndicators": {
+          "contentRelevance": "콘텐츠 적절성 (1-10)",
+          "deliveryMethod": "진행 방식 만족도 (1-10)"
+        },
+        "recommendations": ["즉시 개선 방안1", "즉시 개선 방안2"]
+      }
+    `);
+
+    return {
+      instructorAnalysis: parseJsonResponse(instructorResult.response.text()),
+      learnerAnalysis: parseJsonResponse(learnerResult.response.text()),
+      qualityMetrics: parseJsonResponse(qualityResult.response.text())
+    };
+
+  } catch (error) {
+    console.error('Adult education analysis error:', error);
+    return {
+      instructorAnalysis: null,
+      learnerAnalysis: null,
+      qualityMetrics: null
+    };
+  }
+}
+
+// Helper function to parse JSON responses
+function parseJsonResponse(text: string): any {
+  try {
+    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/({[\s\S]*})/);
+    const jsonStr = jsonMatch ? jsonMatch[1] : text;
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    console.error('JSON parsing error:', e);
+    return null;
+  }
+}
+
+// 실무 중심 질문 분석 시스템
+export async function analyzePracticalQuestions(
+  questions: string[],
+  sessionType: SessionType,
+  adultLearnerType: AdultLearnerType,
+  userApiKey: string,
+  industryFocus?: string,
+  difficultyLevel?: string
+): Promise<{
+  practicalInsights: any;
+  immediateActions: string[];
+  skillGaps: string[];
+  businessImpact: any;
+}> {
+  try {
+    const genAI = new GoogleGenerativeAI(userApiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const analysisPrompt = getAdultEducationAnalysisPrompt(sessionType, adultLearnerType, industryFocus, difficultyLevel);
+    const terminology = getTerminology('student', 'adult');
+
+    const prompt = `
+${analysisPrompt}
+
+다음 ${terminology}들의 질문을 실무 중심 관점에서 심층 분석해주세요.
+
+**분석 목표:**
+1. 실무 적용 가능성과 즉시 활용도 평가
+2. 현재 업무에서의 활용 방안 도출
+3. 기술/지식 격차 (Skill Gap) 식별
+4. 비즈니스 임팩트 및 ROI 예측
+
+**질문 목록:**
+${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+**분석 기준:**
+- 실무 연관성: 실제 업무 상황과의 연결성
+- 적용 긴급도: 즉시 적용 가능한 정도
+- 학습 전이: 다른 업무 영역으로의 확장 가능성
+- 조직 기여도: 팀/조직 성과에 미치는 영향
+
+JSON 형식으로 응답해주세요:
+{
+  "practicalInsights": {
+    "keyFindings": ["핵심 발견사항1", "핵심 발견사항2"],
+    "realWorldApplication": "실무 적용 종합 평가",
+    "learningPriority": "학습 우선순위 분석",
+    "transferability": "학습 전이 가능성"
+  },
+  "immediateActions": [
+    "즉시 실행 가능한 액션1",
+    "즉시 실행 가능한 액션2"
+  ],
+  "skillGaps": [
+    "식별된 기술 격차1",
+    "식별된 기술 격차2"
+  ],
+  "businessImpact": {
+    "productivityGain": "생산성 향상 예상 효과",
+    "qualityImprovement": "업무 품질 개선 예상",
+    "collaborationBenefit": "협업 효과 예상",
+    "roi": "투자 대비 효과 예측"
+  }
+}
+`;
+
+    const result = await model.generateContent(prompt);
+    return parseJsonResponse(result.response.text()) || {
+      practicalInsights: { keyFindings: [], realWorldApplication: "", learningPriority: "", transferability: "" },
+      immediateActions: [],
+      skillGaps: [],
+      businessImpact: { productivityGain: "", qualityImprovement: "", collaborationBenefit: "", roi: "" }
+    };
+
+  } catch (error) {
+    console.error('Practical question analysis error:', error);
+    return {
+      practicalInsights: { keyFindings: [], realWorldApplication: "", learningPriority: "", transferability: "" },
+      immediateActions: [],
+      skillGaps: [],
+      businessImpact: { productivityGain: "", qualityImprovement: "", collaborationBenefit: "", roi: "" }
+    };
+  }
+}
+
+// 경험 기반 학습 활동 추천 엔진
+export async function recommendExperienceBasedActivities(
+  questions: string[],
+  sessionType: SessionType,
+  adultLearnerType: AdultLearnerType,
+  userApiKey: string,
+  participantCount?: string,
+  duration?: string,
+  industryFocus?: string
+): Promise<{
+  activities: any[];
+  scaffolding: any;
+  assessment: any;
+}> {
+  try {
+    const genAI = new GoogleGenerativeAI(userApiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const terminology = getTerminology('student', 'adult');
+    const sessionContext = getSessionTypeContext(sessionType);
+
+    const prompt = `
+당신은 성인 교육 전문가입니다. ${terminology}들의 질문을 바탕으로 경험 기반 학습 활동을 설계해주세요.
+
+**세션 정보:**
+- 세션 유형: ${sessionContext}
+- 학습자 유형: ${adultLearnerType}
+- 참여자 수: ${participantCount || '미지정'}
+- 진행 시간: ${duration || '미지정'}
+${industryFocus ? `- 산업 분야: ${industryFocus}` : ''}
+
+**${terminology} 질문들:**
+${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+**설계 원칙:**
+1. 성인 학습자의 경험을 활용한 학습 설계
+2. 문제 중심 학습 (Problem-Based Learning) 접근
+3. 실무 시뮬레이션과 케이스 스터디 활용
+4. 동료 학습과 지식 공유 촉진
+5. 즉시 적용 가능한 실행 계획 수립
+
+JSON 형식으로 응답해주세요:
+{
+  "activities": [
+    {
+      "activityId": "act_001",
+      "title": "활동 제목",
+      "type": "case_study|simulation|workshop|discussion|project",
+      "description": "활동 상세 설명",
+      "experienceLevel": "개인 경험 활용 방법",
+      "practicalConnection": "실무 연결점",
+      "timeRequired": "소요 시간",
+      "groupSize": "권장 그룹 크기",
+      "materials": ["필요 자료1", "필요 자료2"],
+      "facilitationTips": "진행 팁",
+      "expectedOutcome": "기대 성과"
+    }
+  ],
+  "scaffolding": {
+    "preparationPhase": "사전 준비 단계 가이드",
+    "executionPhase": "실행 단계 가이드", 
+    "reflectionPhase": "성찰 단계 가이드",
+    "supportStrategies": ["학습 지원 전략1", "학습 지원 전략2"]
+  },
+  "assessment": {
+    "formativeAssessment": "형성 평가 방법",
+    "summativeAssessment": "총합 평가 방법",
+    "selfAssessment": "자기 평가 도구",
+    "peerAssessment": "동료 평가 방법"
+  }
+}
+`;
+
+    const result = await model.generateContent(prompt);
+    return parseJsonResponse(result.response.text()) || {
+      activities: [],
+      scaffolding: { preparationPhase: "", executionPhase: "", reflectionPhase: "", supportStrategies: [] },
+      assessment: { formativeAssessment: "", summativeAssessment: "", selfAssessment: "", peerAssessment: "" }
+    };
+
+  } catch (error) {
+    console.error('Experience-based activity recommendation error:', error);
+    return {
+      activities: [],
+      scaffolding: { preparationPhase: "", executionPhase: "", reflectionPhase: "", supportStrategies: [] },
+      assessment: { formativeAssessment: "", summativeAssessment: "", selfAssessment: "", peerAssessment: "" }
+    };
+  }
+}
+
+// 전문성 수준별 맞춤 설명 생성기
+export async function generateExpertiseLevelExplanations(
+  concepts: string[],
+  targetLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert',
+  sessionType: SessionType,
+  adultLearnerType: AdultLearnerType,
+  userApiKey: string,
+  industryFocus?: string
+): Promise<{
+  explanations: any[];
+  progressionPath: any;
+  resources: any[];
+}> {
+  try {
+    const genAI = new GoogleGenerativeAI(userApiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const terminology = getTerminology('student', 'adult');
+    const levelDescriptions = {
+      beginner: '초급자 - 기초 개념과 입문 수준의 실무 적용',
+      intermediate: '중급자 - 기본 경험을 바탕으로 한 심화 학습',
+      advanced: '고급자 - 전문성을 바탕으로 한 응용과 최적화',
+      expert: '전문가 - 혁신과 지식 창조 수준의 고도화'
+    };
+
+    const prompt = `
+당신은 성인 교육 전문가입니다. 다음 개념들을 ${levelDescriptions[targetLevel]} 수준에 맞춰 설명해주세요.
+
+**대상 정보:**
+- 전문성 수준: ${levelDescriptions[targetLevel]}
+- 학습자 유형: ${adultLearnerType}
+- 세션 유형: ${sessionType}
+${industryFocus ? `- 산업 분야: ${industryFocus}` : ''}
+
+**설명할 개념들:**
+${concepts.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+**설명 원칙:**
+1. 대상자의 경험 수준에 맞는 적절한 깊이
+2. 실무 상황과 연결된 구체적 예시
+3. 단계별 학습 진행 경로 제시
+4. 즉시 적용 가능한 실행 방법
+5. 추가 학습 자료 및 리소스 안내
+
+JSON 형식으로 응답해주세요:
+{
+  "explanations": [
+    {
+      "concept": "개념명",
+      "basicDefinition": "기본 정의",
+      "levelAppropriateExplanation": "수준별 맞춤 설명",
+      "practicalExample": "실무 적용 예시",
+      "commonMistakes": "흔한 실수나 주의점",
+      "keyTakeaways": ["핵심 포인트1", "핵심 포인트2"],
+      "applicationScenarios": ["적용 시나리오1", "적용 시나리오2"]
+    }
+  ],
+  "progressionPath": {
+    "currentLevel": "${targetLevel}",
+    "nextLevel": "다음 단계 학습 목표",
+    "prerequisites": ["필요한 사전 지식1", "필요한 사전 지식2"],
+    "milestones": ["성취 지표1", "성취 지표2"],
+    "timeEstimate": "예상 학습 기간"
+  },
+  "resources": [
+    {
+      "type": "book|article|course|tool|community",
+      "title": "리소스 제목",
+      "description": "리소스 설명",
+      "difficulty": "적합한 난이도",
+      "format": "형태 (온라인/오프라인/혼합)",
+      "estimatedTime": "예상 소요 시간"
+    }
+  ]
+}
+`;
+
+    const result = await model.generateContent(prompt);
+    return parseJsonResponse(result.response.text()) || {
+      explanations: [],
+      progressionPath: { currentLevel: targetLevel, nextLevel: "", prerequisites: [], milestones: [], timeEstimate: "" },
+      resources: []
+    };
+
+  } catch (error) {
+    console.error('Expertise level explanation generation error:', error);
+    return {
+      explanations: [],
+      progressionPath: { currentLevel: targetLevel, nextLevel: "", prerequisites: [], milestones: [], timeEstimate: "" },
+      resources: []
+    };
+  }
 }

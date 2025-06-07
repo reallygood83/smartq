@@ -60,6 +60,19 @@ export default function AdultSessionForm() {
     networkingOpportunities: false
   })
 
+  // 콘텐츠 공유 상태
+  const [sharedContents, setSharedContents] = useState<Array<{
+    id: string
+    title: string
+    content: string
+    type: 'text' | 'link' | 'youtube' | 'instruction'
+  }>>([])
+  const [newContent, setNewContent] = useState({
+    title: '',
+    content: '',
+    type: 'text' as 'text' | 'link' | 'youtube' | 'instruction'
+  })
+
   const handleInputChange = (field: keyof AdultSessionFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -91,6 +104,24 @@ export default function AdultSessionForm() {
     setFormData(prev => ({ ...prev, keywords: updated }))
   }
 
+  const handleAddContent = () => {
+    if (!newContent.title.trim() || !newContent.content.trim()) return
+
+    const content = {
+      id: Date.now().toString(),
+      title: newContent.title.trim(),
+      content: newContent.content.trim(),
+      type: newContent.type
+    }
+
+    setSharedContents(prev => [...prev, content])
+    setNewContent({ title: '', content: '', type: 'text' })
+  }
+
+  const handleRemoveContent = (id: string) => {
+    setSharedContents(prev => prev.filter(c => c.id !== id))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user || !database) return
@@ -108,9 +139,33 @@ export default function AdultSessionForm() {
         educationLevel: currentLevel
       }
 
+      // 세션 생성
       const sessionsRef = ref(database, 'sessions')
-      await push(sessionsRef, sessionData)
-      router.push('/teacher/dashboard')
+      const newSessionRef = await push(sessionsRef, sessionData)
+      const newSessionId = newSessionRef.key
+
+      // 콘텐츠가 있으면 함께 저장
+      if (sharedContents.length > 0 && newSessionId) {
+        const sharedContentsRef = ref(database, `sharedContents/${newSessionId}`)
+        
+        for (const content of sharedContents) {
+          const contentData = {
+            contentId: content.id,
+            title: content.title,
+            content: content.content,
+            type: content.type,
+            createdAt: Date.now(),
+            sessionId: newSessionId,
+            teacherId: user.uid
+          }
+          
+          const contentRef = ref(database, `sharedContents/${newSessionId}/${content.id}`)
+          await set(contentRef, contentData)
+        }
+      }
+
+      // 세션 관리 페이지로 이동
+      router.push(`/teacher/session/${newSessionId}`)
     } catch (error) {
       console.error('세션 생성 실패:', error)
       alert('세션 생성에 실패했습니다. 다시 시도해주세요.')
@@ -478,6 +533,130 @@ export default function AdultSessionForm() {
                 placeholder="세션에 필요한 자료, 도구, 플랫폼 등을 설명하세요"
               />
             </div>
+          </div>
+        </Card>
+
+        {/* 콘텐츠 공유 */}
+        <Card>
+          <h2 className="text-xl font-semibold mb-6" style={{ color: theme.colors.text.primary }}>
+            📚 콘텐츠 공유 (선택사항)
+          </h2>
+          
+          <div className="space-y-6">
+            {/* 콘텐츠 추가 폼 */}
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <h3 className="text-lg font-medium mb-4" style={{ color: theme.colors.text.primary }}>
+                새 콘텐츠 추가
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.text.primary }}>
+                      제목
+                    </label>
+                    <input
+                      type="text"
+                      value={newContent.title}
+                      onChange={(e) => setNewContent(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      style={{ borderColor: theme.colors.border }}
+                      placeholder="콘텐츠 제목"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.text.primary }}>
+                      유형
+                    </label>
+                    <select
+                      value={newContent.type}
+                      onChange={(e) => setNewContent(prev => ({ ...prev, type: e.target.value as any }))}
+                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      style={{ borderColor: theme.colors.border }}
+                    >
+                      <option value="text">📄 텍스트</option>
+                      <option value="link">🔗 링크</option>
+                      <option value="youtube">🎬 유튜브</option>
+                      <option value="instruction">📋 안내사항</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.text.primary }}>
+                    내용
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={newContent.content}
+                    onChange={(e) => setNewContent(prev => ({ ...prev, content: e.target.value }))}
+                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    style={{ borderColor: theme.colors.border }}
+                    placeholder={
+                      newContent.type === 'link' 
+                        ? "https://example.com" 
+                        : newContent.type === 'youtube'
+                        ? "https://youtube.com/watch?v=... 또는 https://youtu.be/..."
+                        : newContent.type === 'instruction'
+                        ? "참여자들에게 전달할 안내사항"
+                        : "공유할 텍스트 내용"
+                    }
+                  />
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    type="button" 
+                    onClick={handleAddContent}
+                    variant="outline"
+                    disabled={!newContent.title.trim() || !newContent.content.trim()}
+                  >
+                    콘텐츠 추가
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* 추가된 콘텐츠 목록 */}
+            {sharedContents.length > 0 && (
+              <div>
+                <h3 className="text-lg font-medium mb-4" style={{ color: theme.colors.text.primary }}>
+                  추가된 콘텐츠 ({sharedContents.length}개)
+                </h3>
+                
+                <div className="space-y-3">
+                  {sharedContents.map((content) => (
+                    <div key={content.id} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                      <div className="flex-1">
+                        <div className="flex items-center mb-2">
+                          <span className="text-lg mr-2">
+                            {content.type === 'text' ? '📄' : 
+                             content.type === 'link' ? '🔗' : 
+                             content.type === 'youtube' ? '🎬' : '📋'}
+                          </span>
+                          <h4 className="font-medium" style={{ color: theme.colors.text.primary }}>
+                            {content.title}
+                          </h4>
+                        </div>
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {content.content}
+                        </p>
+                      </div>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleRemoveContent(content.id)}
+                        className="ml-4 text-red-600 hover:text-red-700"
+                      >
+                        삭제
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 

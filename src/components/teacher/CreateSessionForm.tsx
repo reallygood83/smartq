@@ -72,6 +72,29 @@ export default function CreateSessionForm() {
       
       await set(newSessionRef, sessionData)
       
+      // 학습 자료가 있으면 콘텐츠로 변환하여 저장
+      if (materials.length > 0) {
+        const sharedContentsRef = ref(database, `sharedContents/${sessionData.sessionId}`)
+        
+        for (let i = 0; i < materials.length; i++) {
+          const material = materials[i]
+          const contentId = `${Date.now()}_${i}`
+          
+          const contentData = {
+            contentId,
+            title: material.linkTitle || `학습 자료 ${i + 1}`,
+            content: material.content || material.url || '',
+            type: material.type === 'youtube' ? 'youtube' : material.type === 'link' ? 'link' : 'text',
+            createdAt: Date.now(),
+            sessionId: sessionData.sessionId,
+            teacherId: user.uid
+          }
+          
+          const contentRef = ref(database, `sharedContents/${sessionData.sessionId}/${contentId}`)
+          await set(contentRef, contentData)
+        }
+      }
+      
       router.push(`/teacher/session/${sessionData.sessionId}`)
     } catch (error) {
       console.error('세션 생성 실패:', error)
