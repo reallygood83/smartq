@@ -1,4 +1,5 @@
 // SmartQ - Utility Types and Functions
+import { AdultLearnerType } from '@/types/education'
 
 export enum SessionType {
   // 기본 교육용 세션 타입
@@ -56,6 +57,20 @@ export interface Session {
   materials?: Material[];
   keywords?: string[];
   aiAnalysisResult?: MultiSubjectAnalysisResult;
+  
+  // Adult education specific fields
+  isAdultEducation?: boolean;
+  adultLearnerType?: AdultLearnerType;
+  targetAudience?: string;
+  prerequisites?: string;
+  duration?: string;
+  participantCount?: string;
+  industryFocus?: string;
+  difficultyLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  deliveryFormat?: 'in-person' | 'online' | 'hybrid';
+  certificationOffered?: boolean;
+  networkingOpportunities?: boolean;
+  updatedAt?: number;
 }
 
 export interface Material {

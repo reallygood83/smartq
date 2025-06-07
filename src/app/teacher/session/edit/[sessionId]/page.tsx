@@ -8,7 +8,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { database } from '@/lib/firebase'
 import { ref, get, update } from 'firebase/database'
-import { Session, SessionType, Subject } from '@/lib/utils'
+import { Session, SessionType, Subject, getSessionTypeLabel, getSessionTypeIcon, ADULT_SESSION_TYPES } from '@/lib/utils'
+import { AdultLearnerType } from '@/types/education'
 import { redirect } from 'next/navigation'
 
 export default function EditSessionPage() {
@@ -24,7 +25,18 @@ export default function EditSessionPage() {
     subjects: [] as Subject[],
     learningGoals: '',
     keywords: [] as string[],
-    keywordsInput: ''
+    keywordsInput: '',
+    // Adult education fields
+    adultLearnerType: AdultLearnerType.PROFESSIONAL,
+    targetAudience: '',
+    prerequisites: '',
+    duration: '',
+    participantCount: '',
+    industryFocus: '',
+    difficultyLevel: 'intermediate' as 'beginner' | 'intermediate' | 'advanced' | 'expert',
+    deliveryFormat: 'in-person' as 'in-person' | 'online' | 'hybrid',
+    certificationOffered: false,
+    networkingOpportunities: false
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -55,7 +67,18 @@ export default function EditSessionPage() {
             subjects: sessionData.subjects || [],
             learningGoals: sessionData.learningGoals || '',
             keywords: sessionData.keywords || [],
-            keywordsInput: (sessionData.keywords || []).join(', ')
+            keywordsInput: (sessionData.keywords || []).join(', '),
+            // Adult education fields
+            adultLearnerType: sessionData.adultLearnerType || AdultLearnerType.PROFESSIONAL,
+            targetAudience: sessionData.targetAudience || '',
+            prerequisites: sessionData.prerequisites || '',
+            duration: sessionData.duration || '',
+            participantCount: sessionData.participantCount || '',
+            industryFocus: sessionData.industryFocus || '',
+            difficultyLevel: sessionData.difficultyLevel || 'intermediate',
+            deliveryFormat: sessionData.deliveryFormat || 'in-person',
+            certificationOffered: sessionData.certificationOffered || false,
+            networkingOpportunities: sessionData.networkingOpportunities || false
           })
         } else {
           alert('세션을 찾을 수 없습니다.')
@@ -117,13 +140,27 @@ export default function EditSessionPage() {
         .filter(k => k.length > 0)
 
       // 세션 업데이트 데이터
-      const updateData = {
+      const updateData: any = {
         title: formData.title,
         sessionType: formData.sessionType,
         subjects: formData.subjects,
         learningGoals: formData.learningGoals,
         keywords: keywords,
         updatedAt: Date.now()
+      }
+
+      // 성인 교육 세션인 경우 추가 필드 포함
+      if (session?.isAdultEducation) {
+        updateData.adultLearnerType = formData.adultLearnerType
+        updateData.targetAudience = formData.targetAudience
+        updateData.prerequisites = formData.prerequisites
+        updateData.duration = formData.duration
+        updateData.participantCount = formData.participantCount
+        updateData.industryFocus = formData.industryFocus
+        updateData.difficultyLevel = formData.difficultyLevel
+        updateData.deliveryFormat = formData.deliveryFormat
+        updateData.certificationOffered = formData.certificationOffered
+        updateData.networkingOpportunities = formData.networkingOpportunities
       }
 
       const sessionRef = ref(database, `sessions/${sessionId}`)
@@ -145,7 +182,18 @@ export default function EditSessionPage() {
     { value: SessionType.INQUIRY, label: '🔬 탐구 활동' },
     { value: SessionType.PROBLEM, label: '🧮 문제 해결' },
     { value: SessionType.CREATIVE, label: '🎨 창작 활동' },
-    { value: SessionType.DISCUSSION, label: '💭 토의/의견 나누기' }
+    { value: SessionType.DISCUSSION, label: '💭 토의/의견 나누기' },
+    
+    // Adult education session types
+    { value: SessionType.CORPORATE_TRAINING, label: '🏢 기업 연수' },
+    { value: SessionType.UNIVERSITY_LECTURE, label: '🎓 대학 강의' },
+    { value: SessionType.SEMINAR, label: '📊 세미나' },
+    { value: SessionType.WORKSHOP, label: '🔧 워크샵' },
+    { value: SessionType.CONFERENCE, label: '🎤 컨퍼런스' },
+    { value: SessionType.PROFESSIONAL_DEV, label: '📈 전문 개발' },
+    { value: SessionType.CERTIFICATION, label: '🏆 자격증 과정' },
+    { value: SessionType.MENTORING, label: '👨‍🏫 멘토링' },
+    { value: SessionType.NETWORKING, label: '🤝 네트워킹' }
   ]
 
   const subjects = [
@@ -272,6 +320,195 @@ export default function EditSessionPage() {
                 AI가 질문을 분석할 때 참고할 키워드를 입력하세요
               </p>
             </div>
+
+            {/* 성인 교육 세션 추가 필드 */}
+            {session?.isAdultEducation && (
+              <>
+                {/* 성인 학습자 유형 */}
+                <div>
+                  <label htmlFor="adultLearnerType" className="block text-sm font-medium text-gray-700 mb-2">
+                    학습자 유형 *
+                  </label>
+                  <select
+                    id="adultLearnerType"
+                    name="adultLearnerType"
+                    value={formData.adultLearnerType}
+                    onChange={(e) => setFormData(prev => ({ ...prev, adultLearnerType: e.target.value as AdultLearnerType }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value={AdultLearnerType.PROFESSIONAL}>현업 전문가</option>
+                    <option value={AdultLearnerType.RESKILLING}>재교육 대상자</option>
+                    <option value={AdultLearnerType.UPSKILLING}>역량 강화 대상자</option>
+                    <option value={AdultLearnerType.DEGREE_COMPLETION}>학위 완성 과정</option>
+                    <option value={AdultLearnerType.LIFELONG_LEARNING}>평생학습자</option>
+                  </select>
+                </div>
+
+                {/* 대상 청중 */}
+                <div>
+                  <label htmlFor="targetAudience" className="block text-sm font-medium text-gray-700 mb-2">
+                    대상 청중
+                  </label>
+                  <input
+                    type="text"
+                    id="targetAudience"
+                    name="targetAudience"
+                    value={formData.targetAudience}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="예: 중간 관리자, 신입 개발자, 창업 희망자"
+                  />
+                </div>
+
+                {/* 선수 요건 */}
+                <div>
+                  <label htmlFor="prerequisites" className="block text-sm font-medium text-gray-700 mb-2">
+                    선수 요건
+                  </label>
+                  <textarea
+                    id="prerequisites"
+                    name="prerequisites"
+                    rows={2}
+                    value={formData.prerequisites}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="참여에 필요한 사전 지식이나 경험을 입력하세요"
+                  />
+                </div>
+
+                {/* 지속 시간과 참가자 수 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
+                      소요 시간
+                    </label>
+                    <select
+                      id="duration"
+                      name="duration"
+                      value={formData.duration}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">선택하세요</option>
+                      <option value="30분">30분</option>
+                      <option value="1시간">1시간</option>
+                      <option value="2시간">2시간</option>
+                      <option value="반나절">반나절 (4시간)</option>
+                      <option value="하루">하루 (8시간)</option>
+                      <option value="2일">2일</option>
+                      <option value="3일">3일</option>
+                      <option value="1주">1주</option>
+                      <option value="기타">기타</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="participantCount" className="block text-sm font-medium text-gray-700 mb-2">
+                      참가자 수
+                    </label>
+                    <select
+                      id="participantCount"
+                      name="participantCount"
+                      value={formData.participantCount}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">선택하세요</option>
+                      <option value="5-10명">5-10명</option>
+                      <option value="10-20명">10-20명</option>
+                      <option value="20-50명">20-50명</option>
+                      <option value="50-100명">50-100명</option>
+                      <option value="100명 이상">100명 이상</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* 산업 분야와 난이도 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="industryFocus" className="block text-sm font-medium text-gray-700 mb-2">
+                      산업 분야
+                    </label>
+                    <input
+                      type="text"
+                      id="industryFocus"
+                      name="industryFocus"
+                      value={formData.industryFocus}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="예: IT, 제조업, 금융, 의료"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="difficultyLevel" className="block text-sm font-medium text-gray-700 mb-2">
+                      난이도
+                    </label>
+                    <select
+                      id="difficultyLevel"
+                      name="difficultyLevel"
+                      value={formData.difficultyLevel}
+                      onChange={(e) => setFormData(prev => ({ ...prev, difficultyLevel: e.target.value as 'beginner' | 'intermediate' | 'advanced' | 'expert' }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="beginner">초급</option>
+                      <option value="intermediate">중급</option>
+                      <option value="advanced">고급</option>
+                      <option value="expert">전문가</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* 진행 방식 */}
+                <div>
+                  <label htmlFor="deliveryFormat" className="block text-sm font-medium text-gray-700 mb-2">
+                    진행 방식
+                  </label>
+                  <select
+                    id="deliveryFormat"
+                    name="deliveryFormat"
+                    value={formData.deliveryFormat}
+                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryFormat: e.target.value as 'in-person' | 'online' | 'hybrid' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="in-person">대면</option>
+                    <option value="online">온라인</option>
+                    <option value="hybrid">하이브리드</option>
+                  </select>
+                </div>
+
+                {/* 추가 옵션 */}
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="certificationOffered"
+                      name="certificationOffered"
+                      checked={formData.certificationOffered}
+                      onChange={(e) => setFormData(prev => ({ ...prev, certificationOffered: e.target.checked }))}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="certificationOffered" className="ml-2 block text-sm text-gray-700">
+                      수료증 제공
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="networkingOpportunities"
+                      name="networkingOpportunities"
+                      checked={formData.networkingOpportunities}
+                      onChange={(e) => setFormData(prev => ({ ...prev, networkingOpportunities: e.target.checked }))}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="networkingOpportunities" className="ml-2 block text-sm text-gray-700">
+                      네트워킹 기회 제공
+                    </label>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* 세션 정보 */}
             <div className="bg-gray-50 p-4 rounded-lg">

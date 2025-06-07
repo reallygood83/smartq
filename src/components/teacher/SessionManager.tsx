@@ -16,6 +16,7 @@ import AdultSessionAnalysis from './AdultSessionAnalysis'
 import InstructorAnalysisDashboard from './InstructorAnalysisDashboard'
 import LearnerAnalysisDashboard from './LearnerAnalysisDashboard'
 import QualityMonitoringDashboard from './QualityMonitoringDashboard'
+import PeerFeedbackSystem from '@/components/feedback/PeerFeedbackSystem'
 import { AdultLearnerType } from '@/types/education'
 
 interface SessionManagerProps {
@@ -631,6 +632,14 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
             avgResponseTime: 45, // 기본값
             sessionDuration: Math.floor((Date.now() - session.createdAt) / (1000 * 60)) // 세션 시작부터 현재까지의 시간
           }}
+        />
+      )}
+
+      {/* 전문적 피드백 시스템 */}
+      {session?.isAdultEducation && (
+        <PeerFeedbackSystem
+          sessionId={sessionId}
+          sessionTitle={session.title}
         />
       )}
 

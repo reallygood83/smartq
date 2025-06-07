@@ -9,14 +9,48 @@ import SessionList from '@/components/teacher/SessionList'
 import { redirect } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { database } from '@/lib/firebase'
+import { ref, query, orderByChild, equalTo, onValue } from 'firebase/database'
+import { Session } from '@/lib/utils'
 
 export default function TeacherDashboardPage() {
   const { user, loading } = useAuth()
   const [mounted, setMounted] = useState(false)
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [latestSessionWithAnalysis, setLatestSessionWithAnalysis] = useState<Session | null>(null)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // 세션 목록 로드
+  useEffect(() => {
+    if (!user) return
+
+    const sessionsRef = ref(database, 'sessions')
+    const userSessionsQuery = query(sessionsRef, orderByChild('teacherId'), equalTo(user.uid))
+
+    const unsubscribe = onValue(userSessionsQuery, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const sessionsList = Object.values(data) as Session[]
+        // 최신순으로 정렬
+        sessionsList.sort((a, b) => b.createdAt - a.createdAt)
+        setSessions(sessionsList)
+        
+        // AI 분석 결과가 있는 가장 최근 세션 찾기
+        const sessionWithAnalysis = sessionsList.find(session => session.aiAnalysisResult)
+        setLatestSessionWithAnalysis(sessionWithAnalysis || null)
+      } else {
+        setSessions([])
+        setLatestSessionWithAnalysis(null)
+      }
+      setSessionsLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [user])
 
   if (!mounted) {
     return (
@@ -123,9 +157,29 @@ export default function TeacherDashboardPage() {
             <p className="text-gray-600 text-sm mb-4">
               학생 질문들을 AI가 분석한 결과를 확인하세요.
             </p>
-            <Button variant="outline" size="sm" disabled>
-              세션 필요
-            </Button>
+            {sessionsLoading ? (
+              <Button variant="outline" size="sm" disabled>
+                로딩 중...
+              </Button>
+            ) : sessions.length > 0 ? (
+              latestSessionWithAnalysis ? (
+                <Link href={`/teacher/session/${latestSessionWithAnalysis.sessionId}`}>
+                  <Button variant="outline" size="sm">
+                    최근 분석 보기
+                  </Button>
+                </Link>
+              ) : (
+                <Link href={`/teacher/session/${sessions[0].sessionId}`}>
+                  <Button variant="outline" size="sm">
+                    세션 관리
+                  </Button>
+                </Link>
+              )
+            ) : (
+              <Button variant="outline" size="sm" disabled>
+                세션 필요
+              </Button>
+            )}
           </Card>
         </div>
 

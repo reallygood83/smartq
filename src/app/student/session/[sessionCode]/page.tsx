@@ -11,14 +11,25 @@ import { ref, query, orderByChild, equalTo, onValue } from 'firebase/database'
 import QuestionInput from '@/components/student/QuestionInput'
 import QuestionList from '@/components/student/QuestionList'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, getYouTubeEmbedUrl } from '@/lib/utils'
+import { useEducationLevel, useSmartTerminology, useFullTheme } from '@/contexts/EducationLevelContext'
+import { EducationLevel } from '@/types/education'
 
 export default function StudentSessionPage() {
   const { sessionCode } = useParams()
+  const { currentLevel } = useEducationLevel()
+  const { term, adapt } = useSmartTerminology()
+  const theme = useFullTheme()
+  
   const [session, setSession] = useState<Session | null>(null)
   const [sharedContents, setSharedContents] = useState<SharedContent[]>([])
   const [analysisResult, setAnalysisResult] = useState<MultiSubjectAnalysisResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  
+  // Detect if this is an adult education session based on session type or isAdultEducation flag
+  const isAdultEducationSession = session?.isAdultEducation || 
+    [currentLevel].includes(EducationLevel.UNIVERSITY) || 
+    [currentLevel].includes(EducationLevel.ADULT)
 
   useEffect(() => {
     if (!sessionCode || typeof sessionCode !== 'string') {
@@ -183,11 +194,13 @@ export default function StudentSessionPage() {
           )}
         </Card>
 
-        {/* 선생님 공유 자료 */}
+        {/* 공유 자료 - 교육 레벨에 따른 적응형 제목 */}
         {sharedContents.length > 0 && (
-          <Card className="p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              📢 선생님 공유 자료 ({sharedContents.length}개)
+          <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
+              📢 {isAdultEducationSession 
+                ? adapt('강의자료', '교수자료', '전문자료') 
+                : adapt('선생님 공유 자료', '선생님 수업자료', '교사 학습자료')} ({sharedContents.length}개)
             </h2>
             <div className="space-y-4">
               {sharedContents.map((content) => (
@@ -302,33 +315,41 @@ export default function StudentSessionPage() {
           </Card>
         )}
 
-        {/* 질문 입력 */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            질문하기
+        {/* 질문 입력 - 교육 레벨 적응형 */}
+        <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
+          <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
+            {isAdultEducationSession 
+              ? adapt('질문 및 토론', '질의응답', '전문적 질문') 
+              : adapt('질문하기', '궁금한 것 물어보기', '질문 작성')}
           </h2>
           <QuestionInput sessionId={session.sessionId} sessionType={session.sessionType} />
         </Card>
 
-        {/* 질문 목록 */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            💬 우리들의 질문 대화
+        {/* 질문 목록 - 교육 레벨 적응형 */}
+        <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
+          <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
+            💬 {isAdultEducationSession 
+              ? adapt('참여자 질의응답', '토론 및 질의', '전문적 대화') 
+              : adapt('우리들의 질문 대화', '친구들과 질문 나누기', '학습자 질문 공간')}
           </h2>
-          <QuestionList sessionId={session.sessionId} />
+          <QuestionList sessionId={session.sessionId} session={session} />
         </Card>
 
-        {/* AI 분석 결과 - 학생용 */}
+        {/* AI 분석 결과 - 교육 레벨 적응형 */}
         {analysisResult && (
           <>
             {/* 질문 그룹화 결과 */}
             {analysisResult.clusteredQuestions && analysisResult.clusteredQuestions.length > 0 && (
-              <Card className="p-6 mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  🧩 우리 질문들의 주제별 정리
+              <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
+                <h2 className="text-xl font-semibold mb-6" style={{ color: theme.colors.text.primary }}>
+                  🧩 {isAdultEducationSession 
+                    ? adapt('질문 주제별 분석', '토론 주제 분류', '전문 영역별 정리') 
+                    : adapt('우리 질문들의 주제별 정리', '질문 묶어보기', '학습 주제 구분')}
                 </h2>
-                <p className="text-gray-600 mb-6 text-sm">
-                  선생님이 여러분의 질문들을 비슷한 주제끼리 묶어서 정리해주셨어요!
+                <p className="mb-6 text-sm" style={{ color: theme.colors.text.secondary }}>
+                  {isAdultEducationSession 
+                    ? adapt('제출된 질문들을 관련 주제별로 분류하여 체계적으로 정리했습니다.', '토론 주제를 영역별로 구분하여 분석했습니다.', '전문 영역별로 질문을 분류했습니다.')
+                    : adapt('선생님이 여러분의 질문들을 비슷한 주제끼리 묶어서 정리해주셨어요!', '질문들을 비슷한 내용끼리 모아서 정리했어요!', '학습 주제별로 질문을 나누어 보았어요!')}
                 </p>
                 <div className="space-y-4">
                   {analysisResult.clusteredQuestions.map((cluster) => (
