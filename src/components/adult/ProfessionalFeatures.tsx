@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { database } from '@/lib/firebase';
+import { ref, onValue, push, set, serverTimestamp } from 'firebase/database';
 
 interface ProfessionalFeaturesProps {
   sessionId: string;
@@ -116,49 +118,234 @@ function BreakoutRooms({ sessionId }: { sessionId: string }) {
 
 // 실시간 투표 컴포넌트
 function LivePolling({ sessionId }: { sessionId: string }) {
-  const [polls] = useState([
-    {
-      id: '1',
-      question: '오늘 세션에서 가장 유익했던 부분은?',
-      options: [
-        { text: '이론적 설명', votes: 12 },
-        { text: '실습 활동', votes: 18 },
-        { text: '토론 시간', votes: 15 },
-        { text: 'Q&A 세션', votes: 8 }
-      ]
+  const [polls, setPolls] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newPoll, setNewPoll] = useState({ question: '', options: ['', ''] });
+
+  // Firebase에서 투표 데이터 실시간 구독
+  useEffect(() => {
+    const pollsRef = ref(database, `polls/${sessionId}`);
+    
+    const unsubscribe = onValue(pollsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const pollsArray = Object.entries(data).map(([id, poll]: [string, any]) => ({
+          id,
+          ...poll
+        }));
+        setPolls(pollsArray);
+      } else {
+        setPolls([]);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [sessionId]);
+
+  // 새 투표 생성
+  const createPoll = async () => {
+    if (!newPoll.question.trim() || newPoll.options.some(opt => !opt.trim())) {
+      alert('질문과 모든 선택지를 입력해주세요.');
+      return;
     }
-  ]);
+
+    const pollsRef = ref(database, `polls/${sessionId}`);
+    const newPollRef = push(pollsRef);
+    
+    const pollData = {
+      question: newPoll.question,
+      options: newPoll.options.filter(opt => opt.trim()).map(text => ({
+        text: text.trim(),
+        votes: 0
+      })),
+      createdAt: serverTimestamp(),
+      active: true
+    };
+
+    try {
+      await set(newPollRef, pollData);
+      setNewPoll({ question: '', options: ['', ''] });
+      setShowCreateForm(false);
+    } catch (error) {
+      console.error('투표 생성 실패:', error);
+      alert('투표 생성에 실패했습니다.');
+    }
+  };
+
+  // 투표하기
+  const vote = async (pollId: string, optionIndex: number) => {
+    const voteRef = ref(database, `polls/${sessionId}/${pollId}/options/${optionIndex}/votes`);
+    const currentPoll = polls.find(p => p.id === pollId);
+    
+    if (currentPoll) {
+      const currentVotes = currentPoll.options[optionIndex].votes || 0;
+      try {
+        await set(voteRef, currentVotes + 1);
+      } catch (error) {
+        console.error('투표 실패:', error);
+        alert('투표에 실패했습니다.');
+      }
+    }
+  };
+
+  // 선택지 추가
+  const addOption = () => {
+    if (newPoll.options.length < 6) {
+      setNewPoll(prev => ({
+        ...prev,
+        options: [...prev.options, '']
+      }));
+    }
+  };
+
+  // 선택지 제거
+  const removeOption = (index: number) => {
+    if (newPoll.options.length > 2) {
+      setNewPoll(prev => ({
+        ...prev,
+        options: prev.options.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-4">투표 정보를 불러오는 중...</div>;
+  }
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">실시간 투표</h3>
-      {polls.map(poll => (
-        <div key={poll.id} className="mb-6">
-          <h4 className="font-medium mb-3">{poll.question}</h4>
-          {poll.options.map((option, index) => {
-            const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
-            const percentage = (option.votes / totalVotes) * 100;
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">실시간 투표</h3>
+        <button 
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+        >
+          {showCreateForm ? '취소' : '새 투표 만들기'}
+        </button>
+      </div>
+
+      {/* 새 투표 생성 폼 */}
+      {showCreateForm && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-gray-50 rounded-lg p-4 mb-6"
+        >
+          <h4 className="font-medium mb-3">새 투표 만들기</h4>
+          <input
+            type="text"
+            placeholder="투표 질문을 입력하세요"
+            value={newPoll.question}
+            onChange={(e) => setNewPoll(prev => ({ ...prev, question: e.target.value }))}
+            className="w-full p-2 border rounded mb-3"
+          />
+          
+          <div className="space-y-2 mb-3">
+            <label className="text-sm font-medium text-gray-700">선택지:</label>
+            {newPoll.options.map((option, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder={`선택지 ${index + 1}`}
+                  value={option}
+                  onChange={(e) => {
+                    const newOptions = [...newPoll.options];
+                    newOptions[index] = e.target.value;
+                    setNewPoll(prev => ({ ...prev, options: newOptions }));
+                  }}
+                  className="flex-1 p-2 border rounded"
+                />
+                {newPoll.options.length > 2 && (
+                  <button
+                    onClick={() => removeOption(index)}
+                    className="px-3 py-2 text-red-500 hover:bg-red-50 rounded"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex gap-2">
+            {newPoll.options.length < 6 && (
+              <button
+                onClick={addOption}
+                className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              >
+                + 선택지 추가
+              </button>
+            )}
+            <button
+              onClick={createPoll}
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+            >
+              투표 생성
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* 기존 투표 목록 */}
+      {polls.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <p>아직 진행 중인 투표가 없습니다.</p>
+          <p className="text-sm mt-1">첫 번째 투표를 만들어보세요!</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {polls.map(poll => {
+            const totalVotes = poll.options.reduce((sum: number, opt: any) => sum + (opt.votes || 0), 0);
             
             return (
-              <div key={index} className="mb-2">
-                <div className="flex justify-between text-sm mb-1">
-                  <span>{option.text}</span>
-                  <span>{option.votes}표 ({percentage.toFixed(1)}%)</span>
+              <div key={poll.id} className="border rounded-lg p-4">
+                <h4 className="font-medium mb-3">{poll.question}</h4>
+                <div className="space-y-3">
+                  {poll.options.map((option: any, index: number) => {
+                    const votes = option.votes || 0;
+                    const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+                    
+                    return (
+                      <div key={index}>
+                        <div className="flex justify-between items-center text-sm mb-1">
+                          <span>{option.text}</span>
+                          <span className="text-gray-600">
+                            {votes}표 ({percentage.toFixed(1)}%)
+                          </span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <div className="flex-1 bg-gray-200 rounded-full h-3">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${percentage}%` }}
+                              transition={{ duration: 0.5 }}
+                              className="bg-green-500 h-3 rounded-full"
+                            />
+                          </div>
+                          <button
+                            onClick={() => vote(poll.id, index)}
+                            className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                          >
+                            투표
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
+                {totalVotes > 0 && (
+                  <div className="mt-3 pt-3 border-t text-sm text-gray-600">
+                    총 {totalVotes}명이 투표에 참여했습니다.
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-      ))}
-      <button className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-        새 투표 만들기
-      </button>
+      )}
     </div>
   );
 }
