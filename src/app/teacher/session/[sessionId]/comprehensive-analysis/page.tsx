@@ -84,7 +84,11 @@ export default function ComprehensiveAnalysisPage() {
         session.sessionType,
         session.subjects,
         apiKey,
-        session.keywords
+        session.keywords,
+        session.isAdultEducation ? 'adult' : 'elementary',
+        session.adultLearnerType,
+        session.industryFocus,
+        session.difficultyLevel
       )
 
       // 분석 결과를 Firebase용으로 정리

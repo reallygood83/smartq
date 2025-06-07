@@ -4,7 +4,17 @@ import { SessionType, Subject } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
-    const { questions, sessionType, subjects, userApiKey, keywords } = await request.json()
+    const { 
+      questions, 
+      sessionType, 
+      subjects, 
+      userApiKey, 
+      keywords,
+      educationLevel,
+      adultLearnerType,
+      industryFocus,
+      difficultyLevel
+    } = await request.json()
 
     // 입력 검증
     if (!questions || !Array.isArray(questions) || questions.length === 0) {
@@ -28,13 +38,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 성인 학습자 타입이 있으면 자동으로 adult 레벨 설정
+    const effectiveEducationLevel = adultLearnerType ? 'adult' : (educationLevel || 'elementary');
+
     // AI 분석 실행
     const result = await analyzeQuestionsMultiSubject(
       questions,
       sessionType as SessionType,
       subjects as Subject[],
       userApiKey,
-      keywords || []
+      keywords || [],
+      effectiveEducationLevel as any,
+      adultLearnerType as any,
+      industryFocus,
+      difficultyLevel
     )
 
     return NextResponse.json(result)

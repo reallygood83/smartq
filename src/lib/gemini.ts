@@ -83,6 +83,19 @@ export async function clusterQuestions(
     const levelPrompts = getEducationLevelPrompts(educationLevel, adultLearnerType, sessionType);
     const terminology = getTerminology('student', educationLevel);
     
+    let analysisContext = levelPrompts.questionAnalysisPrompt;
+    
+    // 성인 교육의 경우 특별한 지침 추가
+    if (educationLevel === 'adult') {
+      analysisContext += `
+
+**중요 지침:**
+- 초등학교, 중학교, 고등학교 교육 관점이 아닌 성인 실무 관점에서 분석
+- "학생", "선생님" 대신 "참여자", "진행자" 용어 사용
+- 실무 적용과 전문성 향상 관점에서 질문 그룹화
+- 경험 기반 학습과 동료 학습 기회 고려`;
+    }
+
     const prompt = `
 ${levelPrompts.systemPrompt}
 
@@ -90,7 +103,7 @@ ${levelPrompts.systemPrompt}
 이 질문들을 내용의 유사성에 따라 3-5개 그룹으로 묶고, 
 각 그룹의 핵심 내용을 요약한 뒤, '이 그룹의 질문들은 내용이 유사하여 함께 논의하거나 하나의 활동으로 연결할 수 있습니다.'라는 안내를 추가해주세요.
 
-${levelPrompts.questionAnalysisPrompt}
+${analysisContext}
 
 응답은 JSON 형식으로 다음 구조를 따라주세요:
 {
@@ -155,17 +168,68 @@ export async function analyzeQuestionsMultiSubject(
     // Extract key concepts from questions
     const conceptDefinitions = await extractConceptsFromQuestions(questions, sessionType, subjects, userApiKey, educationLevel, adultLearnerType);
 
-    // Get subject-specific or generic prompts
-    const subjectPrompts = subjects.map(subject => 
-      SUBJECT_PROMPTS[subject] || GENERIC_PROMPTS
-    );
-
+    // 성인 교육 여부에 따라 완전히 다른 프롬프트 사용
     const sessionTypeContext = getSessionTypeContext(sessionType);
     const keywordsText = keywords.length > 0 ? `추가 키워드: ${keywords.join(', ')}` : '';
     const levelPrompts = getEducationLevelPrompts(educationLevel, adultLearnerType, sessionType);
     const terminology = getTerminology('student', educationLevel);
 
-    const prompt = `
+    let prompt: string;
+
+    if (educationLevel === 'adult') {
+      // 성인 교육 전용 프롬프트 - 교과목 개념을 완전히 배제
+      prompt = `
+${levelPrompts.systemPrompt}
+
+당신은 성인 교육 전문가입니다. 다음 정보를 바탕으로 ${terminology}들의 질문을 분석하고 실무 중심 활동을 제안해주세요.
+
+${levelPrompts.topicRecommendationPrompt}
+
+세션 유형: ${sessionTypeContext}
+${industryFocus ? `산업 분야: ${industryFocus}` : ''}
+${difficultyLevel ? `난이도 수준: ${difficultyLevel}` : ''}
+${keywordsText}
+
+${terminology} 질문 그룹 분석 결과:
+${JSON.stringify(clusteringResult.clusters, null, 2)}
+
+**중요한 지침:**
+- 초등학교, 중학교, 고등학교 교육 활동은 절대 추천하지 마세요
+- "학생", "선생님", "수업", "숙제", "시험"과 같은 학교 관련 용어 사용 금지
+- 대신 "참여자", "진행자", "세션", "실습 과제", "평가"와 같은 성인 교육 용어 사용
+- 놀이나 게임 중심 활동보다는 실무 적용과 전문성 향상에 초점
+- 케이스 스터디, 시뮬레이션, 워크샵, 프로젝트 기반 학습 활동 위주로 추천
+
+다음 형식으로 응답해주세요:
+{
+  "recommendedActivities": [
+    {
+      "activityId": "1",
+      "activityTitle": "실무 중심 활동 제목",
+      "activityType": "실무 활동 유형 (예: 케이스 스터디, 시뮬레이션, 워크샵, 프로젝트 등)",
+      "subject": "professional_skill", 
+      "description": "성인 참여자를 위한 실무 중심 활동 상세 설명",
+      "materials": ["실무 자료1", "실무 자료2"],
+      "timeRequired": "예상 소요 시간",
+      "difficulty": "beginner/intermediate/advanced",
+      "relatedQuestions": ["관련 질문들"],
+      "reason": "실무 적용 관점에서 이 활동을 추천하는 이유"
+    }
+  ],
+  "extractedTerms": [
+    {
+      "term": "실무 중요 용어",
+      "description": "실무 관점에서 이 용어가 중요한 이유"
+    }
+  ]
+}`;
+    } else {
+      // 기존 학교 교육용 프롬프트
+      const subjectPrompts = subjects.map(subject => 
+        SUBJECT_PROMPTS[subject] || GENERIC_PROMPTS
+      );
+
+      prompt = `
 ${levelPrompts.systemPrompt}
 
 당신은 교육 전문가입니다. 다음 정보를 바탕으로 ${terminology}들의 질문을 분석하고 교육 활동을 제안해주세요.
@@ -186,7 +250,7 @@ ${JSON.stringify(clusteringResult.clusters, null, 2)}
       "activityId": "1",
       "activityTitle": "활동 제목",
       "activityType": "활동 유형 (예: 토의, 실험, 창작 등)",
-      "subject": "${subjects[0]}", 
+      "subject": "${subjects[0] || 'general'}", 
       "description": "활동 상세 설명",
       "materials": ["필요한 자료1", "필요한 자료2"],
       "timeRequired": "예상 소요 시간",
@@ -201,8 +265,8 @@ ${JSON.stringify(clusteringResult.clusters, null, 2)}
       "description": "이 용어가 중요한 이유"
     }
   ]
-}
-`;
+}`;
+    }
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
