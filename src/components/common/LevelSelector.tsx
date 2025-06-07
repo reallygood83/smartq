@@ -141,7 +141,7 @@ export default function LevelSelector({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                   {Object.values(EducationLevel).map((level) => {
                     const config = EDUCATION_LEVEL_CONFIGS[level]
                     const isSelected = selectedLevel === level
@@ -158,7 +158,7 @@ export default function LevelSelector({
                         onClick={() => allowLevelChange || isCurrent ? handleLevelSelect(level) : undefined}
                       >
                         <Card
-                          className={`p-6 h-full border-2 transition-all duration-200 ${
+                          className={`p-4 h-full border-2 transition-all duration-200 ${
                             isSelected || isCurrent
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-200 hover:border-gray-300'
@@ -168,37 +168,42 @@ export default function LevelSelector({
                           }}
                         >
                           <div className="text-center">
-                            <div className="text-6xl mb-4">
+                            <div className="text-4xl mb-3">
                               {getLevelIcon(level)}
                             </div>
                             
-                            <h3 className="text-xl font-bold mb-2" style={{ color: config.theme.primaryColor }}>
+                            <h3 className="text-lg font-bold mb-2" style={{ color: config.theme.primaryColor }}>
                               {config.displayName}
                             </h3>
                             
-                            <p className="text-sm text-gray-600 mb-3">
+                            <p className="text-xs text-gray-600 mb-2">
                               {config.ageRange}
                             </p>
                             
-                            <p className="text-sm text-gray-700 mb-4">
+                            <p className="text-xs text-gray-700 mb-3 leading-relaxed">
                               {config.description}
                             </p>
                             
                             <div className="space-y-1">
-                              {config.characteristics.map((char, index) => (
+                              {config.characteristics.slice(0, 2).map((char, index) => (
                                 <div 
                                   key={index}
-                                  className="text-xs bg-white bg-opacity-70 rounded-full px-3 py-1 inline-block mr-1 mb-1"
+                                  className="text-xs bg-white bg-opacity-70 rounded-full px-2 py-1 inline-block mr-1 mb-1"
                                 >
                                   {char}
                                 </div>
                               ))}
+                              {config.characteristics.length > 2 && (
+                                <div className="text-xs text-gray-500">
+                                  +{config.characteristics.length - 2}개 더
+                                </div>
+                              )}
                             </div>
 
                             {isCurrent && (
-                              <div className="mt-4">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                  ✓ 현재 선택됨
+                              <div className="mt-3">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  ✓ 현재
                                 </span>
                               </div>
                             )}

@@ -13,6 +13,7 @@ import { useEducationLevel } from '@/contexts/EducationLevelContext'
 
 export default function HomePage() {
   const [sessionCode, setSessionCode] = useState('')
+  const [showLevelSelector, setShowLevelSelector] = useState(false)
   const { levelConfig, currentLevel, getTerminology, getTheme } = useEducationLevel()
 
   const sessionTypes = [
@@ -46,6 +47,21 @@ export default function HomePage() {
     <>
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        {/* Education Level Selector */}
+        <div className="text-center mb-8">
+          <button
+            onClick={() => setShowLevelSelector(true)}
+            className="inline-flex items-center space-x-3 px-6 py-3 rounded-full border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 bg-white"
+            style={{ color: getTheme().primaryColor }}
+          >
+            <LevelSelector showModal={false} />
+            <span className="text-sm text-gray-500">변경하기</span>
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
 
         {/* Hero Section */}
         <div className="text-center mb-16">
@@ -228,6 +244,13 @@ export default function HomePage() {
       </div>
       
       <Footer />
+
+      {/* Level Selector Modal */}
+      <LevelSelector 
+        showModal={showLevelSelector}
+        onClose={() => setShowLevelSelector(false)}
+        allowLevelChange={true}
+      />
     </>
   )
 }
