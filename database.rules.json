@@ -1,0 +1,79 @@
+{
+  "rules": {
+    "sessions": {
+      ".indexOn": ["teacherId"],
+      "$sessionId": {
+        ".read": "auth != null && (data.child('teacherId').val() == auth.uid || root.child('sessions').child($sessionId).child('isPublic').val() == true)",
+        ".write": "auth != null && (data.child('teacherId').val() == auth.uid || !data.exists())",
+        ".validate": "newData.hasChildren(['title', 'accessCode', 'sessionType', 'teacherId', 'createdAt'])"
+      }
+    },
+    "questions": {
+      "$sessionId": {
+        ".read": "auth != null || root.child('sessions').child($sessionId).child('isPublic').val() == true",
+        "$questionId": {
+          ".write": "auth != null"
+        }
+      }
+    },
+    "sharedContents": {
+      "$sessionId": {
+        ".read": "auth != null || root.child('sessions').child($sessionId).child('isPublic').val() == true",
+        "$contentId": {
+          ".write": "auth != null && (newData.child('teacherId').val() == auth.uid || root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid)"
+        }
+      }
+    },
+    "feedbackRequests": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$requestId": {
+          ".validate": "newData.hasChildren(['requestId', 'sessionId', 'createdAt'])"
+        }
+      }
+    },
+    "feedbackResponses": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$responseId": {
+          ".validate": "newData.hasChildren(['responseId', 'requestId', 'sessionId', 'createdAt'])"
+        }
+      }
+    },
+    "mentorshipProfiles": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$profileId": {
+          ".validate": "newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt'])"
+        }
+      }
+    },
+    "mentorshipMatches": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$matchId": {
+          ".validate": "newData.hasChildren(['matchId', 'sessionId', 'mentorId', 'menteeId', 'createdAt'])"
+        }
+      }
+    },
+    "feedbackAnalyses": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$analysisId": {
+          ".validate": "newData.hasChildren(['analysisId', 'sessionId', 'createdAt'])"
+        }
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    }
+  }
+}

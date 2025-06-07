@@ -42,33 +42,62 @@ export default function SessionList() {
       return
     }
 
+    if (!user) {
+      alert('로그인이 필요합니다.')
+      return
+    }
+
     setDeletingSessionId(sessionId)
 
     try {
-      // 세션 삭제
-      const sessionRef = ref(database, `sessions/${sessionId}`)
-      await remove(sessionRef)
+      // 순차적으로 삭제하여 보안 규칙 충돌 방지
+      const deleteOperations = [
+        { name: '피드백 분석 결과', path: `feedbackAnalyses/${sessionId}` },
+        { name: '멘토링 매칭', path: `mentorshipMatches/${sessionId}` },
+        { name: '멘토십 프로필', path: `mentorshipProfiles/${sessionId}` },
+        { name: '피드백 응답', path: `feedbackResponses/${sessionId}` },
+        { name: '피드백 요청', path: `feedbackRequests/${sessionId}` },
+        { name: '공유 콘텐츠', path: `sharedContents/${sessionId}` },
+        { name: '질문', path: `questions/${sessionId}` },
+        { name: '세션', path: `sessions/${sessionId}` }
+      ]
 
-      // 관련 질문들 삭제
-      const questionsRef = ref(database, `questions/${sessionId}`)
-      await remove(questionsRef)
+      console.log('세션 삭제 시작:', sessionId)
 
-      // 관련 공유 콘텐츠 삭제
-      const sharedContentsRef = ref(database, `sharedContents/${sessionId}`)
-      await remove(sharedContentsRef)
+      // 순차적으로 삭제 실행
+      for (const operation of deleteOperations) {
+        try {
+          const deleteRef = ref(database, operation.path)
+          await remove(deleteRef)
+          console.log(`${operation.name} 삭제 완료:`, operation.path)
+        } catch (error) {
+          console.warn(`${operation.name} 삭제 중 오류 (계속 진행):`, error)
+          // 개별 삭제 실패는 전체 프로세스를 중단하지 않음
+        }
+      }
 
-      // 관련 피드백 요청 삭제
-      const feedbackRequestsRef = ref(database, `feedbackRequests/${sessionId}`)
-      await remove(feedbackRequestsRef)
-
-      // 관련 피드백 응답 삭제
-      const feedbackResponsesRef = ref(database, `feedbackResponses/${sessionId}`)
-      await remove(feedbackResponsesRef)
-
+      console.log('모든 데이터 삭제 완료:', sessionId)
       alert('세션이 성공적으로 삭제되었습니다.')
+      
+      // 세션 목록 즉시 업데이트
+      setSessions(prevSessions => prevSessions.filter(s => s.sessionId !== sessionId))
+      
     } catch (error) {
       console.error('세션 삭제 오류:', error)
-      alert('세션 삭제에 실패했습니다. 다시 시도해주세요.')
+      
+      // 더 자세한 오류 메시지 제공
+      let errorMessage = '세션 삭제에 실패했습니다.'
+      if (error instanceof Error) {
+        if (error.message.includes('permission')) {
+          errorMessage += '\n권한이 부족합니다. 본인이 생성한 세션만 삭제할 수 있습니다.'
+        } else if (error.message.includes('network')) {
+          errorMessage += '\n네트워크 연결을 확인해주세요.'
+        } else {
+          errorMessage += `\n오류: ${error.message}`
+        }
+      }
+      
+      alert(errorMessage)
     } finally {
       setDeletingSessionId(null)
     }

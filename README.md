@@ -81,6 +81,55 @@ npm run dev
 
 http://localhost:3000 에서 SmartQ를 확인하세요!
 
+## 🔧 개발 및 배포
+
+### 로컬 개발
+```bash
+npm run dev
+```
+
+### 빌드
+```bash
+npm run build
+```
+
+### Firebase 보안 규칙 배포
+```bash
+# Firebase CLI 설치 (필요한 경우)
+npm install -g firebase-tools
+
+# Firebase 로그인
+firebase login
+
+# 보안 규칙 배포
+firebase deploy --only database
+
+# 전체 Firebase 설정 배포
+firebase deploy
+```
+
+### Firebase 설정 상세
+
+#### 필수 환경 변수
+다음 환경 변수들을 `.env.local` 파일에 설정해주세요:
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=your_database_url
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
+
+#### 보안 규칙 업데이트
+데이터베이스 보안 규칙이 `database.rules.json` 파일에 정의되어 있습니다. 변경 사항이 있을 때마다 다음 명령어로 배포해주세요:
+
+```bash
+firebase deploy --only database
+```
+
 ## 📁 프로젝트 구조
 
 ```
