@@ -11,30 +11,33 @@
 import CryptoJS from 'crypto-js';
 
 /**
- * 사용자 세션 기반 암호화 키 생성
- * @param userSession - 사용자 세션 ID (Firebase UID 등)
+ * 기본 암호화 키 (고정값 사용으로 단순화)
  */
-function getEncryptionKey(userSession?: string): string {
-  const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent : 'server';
-  const sessionKey = userSession || 'anonymous';
-  
-  // 더 안전한 키 생성을 위해 여러 요소 조합
-  return CryptoJS.SHA256(userAgent + sessionKey + 'smartq_2025').toString();
+function getEncryptionKey(): string {
+  // 고정 키를 사용하여 복호화 오류 방지
+  return 'smartq_gemini_api_key_2025_secure';
 }
 
 /**
- * API 키 암호화
+ * API 키 암호화 (사용자별 구분을 위해 userId 포함)
  * @param apiKey - 암호화할 Gemini API 키
- * @param userSession - 사용자 세션 ID
+ * @param userId - 사용자 ID
  */
-export function encryptApiKey(apiKey: string, userSession?: string): string {
+export function encryptApiKey(apiKey: string, userId?: string): string {
   try {
     if (!apiKey.trim()) {
       throw new Error('API 키가 비어있습니다');
     }
 
-    const key = getEncryptionKey(userSession);
-    return CryptoJS.AES.encrypt(apiKey, key).toString();
+    const key = getEncryptionKey();
+    // 사용자 ID와 함께 저장
+    const dataToEncrypt = JSON.stringify({
+      apiKey: apiKey.trim(),
+      userId: userId || 'anonymous',
+      timestamp: Date.now()
+    });
+    
+    return CryptoJS.AES.encrypt(dataToEncrypt, key).toString();
   } catch (error) {
     console.error('API 키 암호화 실패:', error);
     throw new Error('API 키 암호화에 실패했습니다');
@@ -44,19 +47,26 @@ export function encryptApiKey(apiKey: string, userSession?: string): string {
 /**
  * API 키 복호화
  * @param encryptedKey - 암호화된 API 키
- * @param userSession - 사용자 세션 ID
+ * @param userId - 사용자 ID (검증용)
  */
-export function decryptApiKey(encryptedKey: string, userSession?: string): string {
+export function decryptApiKey(encryptedKey: string, userId?: string): string {
   try {
-    const key = getEncryptionKey(userSession);
+    const key = getEncryptionKey();
     const bytes = CryptoJS.AES.decrypt(encryptedKey, key);
-    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    const decryptedStr = bytes.toString(CryptoJS.enc.Utf8);
     
-    if (!decrypted) {
+    if (!decryptedStr) {
       throw new Error('복호화된 키가 비어있습니다');
     }
     
-    return decrypted;
+    const data = JSON.parse(decryptedStr);
+    
+    // 사용자 ID 검증 (다른 사용자의 키 접근 방지)
+    if (userId && data.userId !== userId && data.userId !== 'anonymous') {
+      throw new Error('권한이 없습니다');
+    }
+    
+    return data.apiKey;
   } catch (error) {
     console.error('API 키 복호화 실패:', error);
     throw new Error('API 키 복호화에 실패했습니다. 다시 설정해주세요.');
@@ -66,15 +76,21 @@ export function decryptApiKey(encryptedKey: string, userSession?: string): strin
 /**
  * 암호화된 API 키를 localStorage에 저장
  * @param apiKey - 저장할 API 키
- * @param userSession - 사용자 세션 ID
+ * @param userId - 사용자 ID
  */
-export function storeApiKey(apiKey: string, userSession?: string): void {
+export function storeApiKey(apiKey: string, userId?: string): void {
   try {
-    const encrypted = encryptApiKey(apiKey, userSession);
-    localStorage.setItem('smartq_gemini_api_key', encrypted);
+    if (!apiKey.trim()) {
+      throw new Error('API 키가 비어있습니다');
+    }
     
-    // 저장 시간도 함께 기록 (만료 체크용)
-    localStorage.setItem('smartq_api_key_stored_at', Date.now().toString());
+    const encrypted = encryptApiKey(apiKey, userId);
+    const storageKey = `smartq_api_key_${userId || 'default'}`;
+    
+    localStorage.setItem(storageKey, encrypted);
+    localStorage.setItem(`${storageKey}_stored_at`, Date.now().toString());
+    
+    console.log('API 키 저장 성공:', storageKey);
   } catch (error) {
     console.error('API 키 저장 실패:', error);
     throw new Error('API 키 저장에 실패했습니다');
@@ -83,51 +99,67 @@ export function storeApiKey(apiKey: string, userSession?: string): void {
 
 /**
  * localStorage에서 암호화된 API 키를 가져와서 복호화
- * @param userSession - 사용자 세션 ID
+ * @param userId - 사용자 ID
  */
-export function getStoredApiKey(userSession?: string): string | null {
+export function getStoredApiKey(userId?: string): string | null {
   try {
     if (typeof window === 'undefined') return null;
     
-    const encrypted = localStorage.getItem('smartq_gemini_api_key');
-    if (!encrypted) return null;
+    const storageKey = `smartq_api_key_${userId || 'default'}`;
+    const encrypted = localStorage.getItem(storageKey);
+    
+    if (!encrypted) {
+      console.log('저장된 API 키 없음:', storageKey);
+      return null;
+    }
 
     // 저장된 지 너무 오래된 키는 무효화 (30일)
-    const storedAt = localStorage.getItem('smartq_api_key_stored_at');
+    const storedAtKey = `${storageKey}_stored_at`;
+    const storedAt = localStorage.getItem(storedAtKey);
     if (storedAt) {
       const daysSinceStored = (Date.now() - parseInt(storedAt)) / (1000 * 60 * 60 * 24);
       if (daysSinceStored > 30) {
-        removeStoredApiKey();
+        console.log('API 키 만료됨:', storageKey);
+        removeStoredApiKey(userId);
         return null;
       }
     }
     
-    return decryptApiKey(encrypted, userSession);
+    const decrypted = decryptApiKey(encrypted, userId);
+    console.log('API 키 복호화 성공:', storageKey, decrypted ? '키 있음' : '키 없음');
+    return decrypted;
   } catch (error) {
     console.error('저장된 API 키 가져오기 실패:', error);
     // 복호화 실패 시 저장된 키 삭제
-    removeStoredApiKey();
+    removeStoredApiKey(userId);
     return null;
   }
 }
 
 /**
  * 저장된 API 키 삭제
+ * @param userId - 사용자 ID
  */
-export function removeStoredApiKey(): void {
+export function removeStoredApiKey(userId?: string): void {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('smartq_gemini_api_key');
-    localStorage.removeItem('smartq_api_key_stored_at');
+    const storageKey = `smartq_api_key_${userId || 'default'}`;
+    localStorage.removeItem(storageKey);
+    localStorage.removeItem(`${storageKey}_stored_at`);
     localStorage.removeItem('smartq_api_usage'); // 사용량 정보도 함께 삭제
+    console.log('API 키 삭제 완료:', storageKey);
   }
 }
 
 /**
  * API 키가 저장되어 있는지 확인 (복호화하지 않고)
+ * @param userId - 사용자 ID
  */
-export function hasStoredApiKey(): boolean {
+export function hasStoredApiKey(userId?: string): boolean {
   if (typeof window === 'undefined') return false;
-  return !!localStorage.getItem('smartq_gemini_api_key');
+  const storageKey = `smartq_api_key_${userId || 'default'}`;
+  const exists = !!localStorage.getItem(storageKey);
+  console.log('API 키 존재 확인:', storageKey, exists);
+  return exists;
 }
 
 /**

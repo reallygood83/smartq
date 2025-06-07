@@ -42,7 +42,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
     try {
       if (!user) return
 
-      const stored = hasStoredApiKey()
+      const stored = hasStoredApiKey(user.uid)
       setIsStored(stored)
 
       if (stored) {
@@ -142,7 +142,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
     }
 
     try {
-      removeStoredApiKey()
+      removeStoredApiKey(user.uid)
       setIsStored(false)
       setCurrentKey('')
       setIsValid(false)
