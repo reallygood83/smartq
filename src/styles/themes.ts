@@ -158,7 +158,7 @@ export const elementaryTheme: Theme = {
       error: '#F56565',
       info: '#4299E1'
     },
-    border: '#E2E8F0',
+    border: 'rgba(255, 107, 107, 0.15)',
     shadow: 'rgba(255, 107, 107, 0.1)'
   },
   typography: {
@@ -223,10 +223,10 @@ export const elementaryTheme: Theme = {
     }
   },
   shadows: {
-    sm: '0 2px 4px rgba(255, 107, 107, 0.1)',
-    md: '0 4px 8px rgba(255, 107, 107, 0.15)',
-    lg: '0 8px 16px rgba(255, 107, 107, 0.2)',
-    xl: '0 12px 24px rgba(255, 107, 107, 0.25)'
+    sm: '0 1px 3px rgba(255, 107, 107, 0.08)',
+    md: '0 4px 8px rgba(255, 107, 107, 0.12)',
+    lg: '0 8px 16px rgba(255, 107, 107, 0.15)',
+    xl: '0 12px 24px rgba(255, 107, 107, 0.2)'
   },
   animations: {
     duration: {

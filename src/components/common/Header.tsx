@@ -24,11 +24,12 @@ function Header() {
 
   return (
     <header 
-      className="shadow-sm border-b transition-all duration-300"
+      className="transition-all duration-300"
       style={{ 
         backgroundColor: theme.colors.surface,
-        borderColor: theme.colors.border,
-        height: theme.layout.header.height
+        height: theme.layout.header.height,
+        boxShadow: theme.shadows.sm,
+        borderBottom: `1px solid ${theme.colors.border}`
       }}
     >
       <div 
