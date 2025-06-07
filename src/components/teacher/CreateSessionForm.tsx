@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/common/Button'
 import { Card } from '@/components/common/Card'
-import { SessionType, Subject, Session, Material, generateSessionCode } from '@/lib/utils'
+import { SessionType, Subject, Session, Material, generateSessionCode, getSubjectLabel, getSubjectColor } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { database } from '@/lib/firebase'
 import { ref, push, set } from 'firebase/database'
@@ -148,32 +148,92 @@ export default function CreateSessionForm() {
 
           {/* 교과목 선택 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              교과목 (다중 선택 가능)
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              교과목 선택 (다중 선택 가능)
             </label>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {Object.values(Subject).map((subject) => (
-                <label key={subject} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={subjects.includes(subject)}
-                    onChange={(e) => handleSubjectChange(subject, e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {subject === Subject.KOREAN && '국어'}
-                    {subject === Subject.MATH && '수학'}
-                    {subject === Subject.SCIENCE && '과학'}
-                    {subject === Subject.SOCIAL && '사회'}
-                    {subject === Subject.ENGLISH && '영어'}
-                    {subject === Subject.ART && '미술'}
-                    {subject === Subject.MUSIC && '음악'}
-                    {subject === Subject.PE && '체육'}
-                    {subject === Subject.PRACTICAL && '실과'}
-                    {subject === Subject.MORAL && '도덕'}
-                  </span>
-                </label>
-              ))}
+            <div className="space-y-4">
+              {/* 선택된 교과목 표시 */}
+              {subjects.length > 0 && (
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">
+                    선택된 교과목 ({subjects.length}개)
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {subjects.map((subject) => (
+                      <span
+                        key={subject}
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getSubjectColor(subject)}`}
+                      >
+                        {getSubjectLabel(subject)}
+                        <button
+                          type="button"
+                          onClick={() => handleSubjectChange(subject, false)}
+                          className="ml-2 text-current hover:text-gray-600"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* 교과목 선택 체크박스 */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {Object.values(Subject).map((subject) => {
+                  const isSelected = subjects.includes(subject)
+                  return (
+                    <label 
+                      key={subject} 
+                      className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => handleSubjectChange(subject, e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-700'}`}>
+                        {getSubjectLabel(subject)}
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+              
+              {/* 교과목 추천 */}
+              {subjects.length === 0 && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">💡 추천 조합</h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <button
+                      type="button"
+                      onClick={() => setSubjects([Subject.KOREAN, Subject.SOCIAL])}
+                      className="block w-full text-left px-3 py-2 rounded hover:bg-white transition-colors"
+                    >
+                      📚 국어 + 사회 (통합 교과 토론)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSubjects([Subject.MATH, Subject.SCIENCE])}
+                      className="block w-full text-left px-3 py-2 rounded hover:bg-white transition-colors"
+                    >
+                      🔬 수학 + 과학 (STEM 활동)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSubjects([Subject.KOREAN, Subject.ART])}
+                      className="block w-full text-left px-3 py-2 rounded hover:bg-white transition-colors"
+                    >
+                      🎨 국어 + 미술 (창작 활동)
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

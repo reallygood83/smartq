@@ -1,5 +1,5 @@
 import { EducationLevel, AdultLearnerType } from '@/types/education';
-import { SessionType } from './utils';
+import { SessionType, Subject } from './utils';
 
 interface PromptConfig {
   systemPrompt: string;
@@ -334,4 +334,190 @@ function getAdultLearnerTypeLabel(adultLearnerType: AdultLearnerType): string {
     [AdultLearnerType.LIFELONG_LEARNING]: '평생 학습자'
   };
   return labels[adultLearnerType];
+}
+
+// 교과목별 특화 프롬프트 시스템
+export function getSubjectSpecificPrompts(subjects: Subject[], sessionType: SessionType): string {
+  if (subjects.length === 0) {
+    return '일반적인 교육 관점에서 접근해주세요.';
+  }
+
+  const subjectPrompts = subjects.map(subject => getSubjectPrompt(subject)).join('\n\n');
+  
+  if (subjects.length === 1) {
+    return `${getSubjectPrompt(subjects[0])}`;
+  } else {
+    return `다교과 통합 접근:
+    
+${subjectPrompts}
+
+이들 교과를 통합적으로 연결하여 분석해주세요:
+- 교과 간 연관성과 융합 가능성 탐색
+- 통합 교육과정 관점에서의 학습 효과
+- 실생활 문제 해결에서의 교과 융합 활용
+- 창의적 사고와 비판적 사고 동시 함양`;
+  }
+}
+
+function getSubjectPrompt(subject: Subject): string {
+  const prompts = {
+    [Subject.KOREAN]: `국어 교과 관점:
+- 언어 사용 능력과 문학적 감수성 함양
+- 비판적 읽기와 창의적 쓰기 능력 개발
+- 의사소통 역량과 문화적 소양 확장
+- 텍스트 분석과 논리적 사고 향상
+- 국어의 아름다움과 창조적 표현 추구`,
+
+    [Subject.MATH]: `수학 교과 관점:
+- 논리적 사고와 문제 해결 능력 중심
+- 수학적 개념과 원리의 체계적 이해
+- 패턴 인식과 추론 능력 개발
+- 실생활 연결성과 수학적 모델링
+- 정확성과 논리성을 바탕으로 한 사고 훈련`,
+
+    [Subject.SCIENCE]: `과학 교과 관점:
+- 과학적 탐구 과정과 실험적 사고
+- 자연 현상에 대한 호기심과 탐구심 자극
+- 가설 설정, 실험 설계, 결과 분석 과정
+- 과학적 증거와 논리적 추론 중시
+- 일상생활 속 과학 원리 발견과 적용`,
+
+    [Subject.SOCIAL]: `사회 교과 관점:
+- 사회 현상에 대한 비판적 이해
+- 역사적 사고와 시민 의식 함양
+- 다양한 관점과 가치 존중
+- 사회 문제 인식과 해결 방안 모색
+- 공동체 의식과 참여적 시민성 개발`,
+
+    [Subject.ENGLISH]: `영어 교과 관점:
+- 글로벌 의사소통 능력 향상
+- 영어권 문화와 다문화 이해
+- 언어 학습 전략과 자기주도적 학습
+- 실용적 영어 활용과 창의적 표현
+- 국제적 감각과 세계 시민 의식`,
+
+    [Subject.ART]: `미술 교과 관점:
+- 시각적 사고와 창의적 표현력
+- 미적 감수성과 예술적 소양 함양
+- 다양한 매체와 기법을 통한 자기표현
+- 문화 예술에 대한 이해와 감상 능력
+- 상상력과 독창성을 바탕으로 한 창작`,
+
+    [Subject.MUSIC]: `음악 교과 관점:
+- 음악적 감수성과 표현 능력
+- 소리와 리듬을 통한 감정 표현
+- 음악 문화의 다양성과 역사적 이해
+- 협력적 연주와 공감 능력 개발
+- 창의적 음악 활동과 즐거운 참여`,
+
+    [Subject.PE]: `체육 교과 관점:
+- 신체 활동과 건강 관리 능력
+- 협력과 경쟁을 통한 사회성 발달
+- 운동 기능과 체력 향상
+- 스포츠 정신과 페어플레이 정신
+- 평생 스포츠 참여와 건강한 생활`,
+
+    [Subject.PRACTICAL]: `실과 교과 관점:
+- 실생활 문제 해결과 실용적 기술
+- 창의적 만들기와 설계 능력
+- 기술 활용과 정보 처리 능력
+- 생활 자립과 진로 탐색
+- 실무적 경험과 노작 활동의 가치`,
+
+    [Subject.MORAL]: `도덕 교과 관점:
+- 올바른 가치관과 윤리적 판단력
+- 인성 교육과 품성 함양
+- 자아 정체성과 도덕적 성찰
+- 타인 배려와 공동체 의식
+- 인권 존중과 정의로운 사회 추구`
+  };
+
+  return prompts[subject] || '해당 교과목의 특성을 고려하여 접근해주세요.';
+}
+
+// 다교과 질문 분석을 위한 특화 프롬프트
+export function getMultiSubjectAnalysisPrompt(
+  subjects: Subject[],
+  sessionType: SessionType,
+  learningGoals?: string
+): string {
+  const subjectList = subjects.map(s => getSubjectLabel(s)).join(', ');
+  const subjectContext = getSubjectSpecificPrompts(subjects, sessionType);
+  
+  return `다교과 통합 분석 (${subjectList}):
+
+${subjectContext}
+
+${learningGoals ? `\n학습 목표: ${learningGoals}\n` : ''}
+
+질문을 분석할 때 다음 사항들을 중점적으로 검토해주세요:
+
+1. **교과 융합 관점**
+   - 각 교과의 핵심 개념들이 어떻게 연결되는가?
+   - 통합적 사고를 통해 얻을 수 있는 새로운 인사이트는?
+   - 실생활 문제 해결에서의 융합 교육 효과는?
+
+2. **학습자 중심 분석**
+   - 각 교과별 학습자의 이해 수준과 관심도
+   - 교과 간 연계를 통한 학습 동기 향상 방안
+   - 개별 학습자의 강점 활용과 약점 보완 전략
+
+3. **교육과정 연계성**
+   - 교육과정 성취기준과의 연관성
+   - 핵심역량 함양을 위한 교과 통합 방향
+   - 평가와 피드백에서의 통합적 접근
+
+4. **창의융합 활동 제안**
+   - 교과 융합을 통한 창의적 문제 해결 활동
+   - 프로젝트 기반 학습과 탐구 활동 아이디어
+   - 실제적이고 의미 있는 학습 경험 설계
+
+각 질문에 대해 단일 교과적 관점과 통합적 관점을 모두 제시하여, 교육적 가치를 극대화할 수 있는 방안을 제안해주세요.`;
+}
+
+// 교과목별 용어 정의를 위한 프롬프트
+export function getSubjectTermDefinitionPrompt(subject: Subject, term: string): string {
+  const subjectContext = getSubjectPrompt(subject);
+  
+  return `${subjectContext}
+
+"${term}"에 대한 교과별 특화 정의:
+
+1. **기본 개념 설명**
+   - ${getSubjectLabel(subject)} 교과에서의 정확한 의미
+   - 핵심 특징과 중요한 속성들
+   - 관련 개념들과의 구분점
+
+2. **교육과정 연계**
+   - 해당 학습 단계에서의 중요성
+   - 선수 학습과 후속 학습과의 연결
+   - 성취기준과의 관련성
+
+3. **실생활 연결**
+   - 일상생활에서 만날 수 있는 예시
+   - 실제 상황에서의 활용 방법
+   - 사회적 의미와 가치
+
+4. **학습 활동 제안**
+   - 개념 이해를 돕는 구체적 활동
+   - 체험과 탐구를 통한 학습 방법
+   - 창의적 표현과 적용 아이디어
+
+학습자가 단순히 암기하는 것이 아니라, 깊이 이해하고 의미 있게 활용할 수 있도록 설명해주세요.`;
+}
+
+function getSubjectLabel(subject: Subject): string {
+  const labels = {
+    [Subject.KOREAN]: '국어',
+    [Subject.MATH]: '수학',
+    [Subject.SCIENCE]: '과학',
+    [Subject.SOCIAL]: '사회',
+    [Subject.ENGLISH]: '영어',
+    [Subject.ART]: '미술',
+    [Subject.MUSIC]: '음악',
+    [Subject.PE]: '체육',
+    [Subject.PRACTICAL]: '실과',
+    [Subject.MORAL]: '도덕'
+  };
+  return labels[subject] || subject;
 }

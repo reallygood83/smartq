@@ -131,7 +131,7 @@ export default function QualityMonitoringPage() {
         </div>
 
         {/* API 키 확인 */}
-        {!getStoredApiKey() ? (
+        {!user || !getStoredApiKey(user.uid) ? (
           <Card className="p-6">
             <div className="text-center py-8">
               <div className="mb-4">
@@ -172,7 +172,7 @@ export default function QualityMonitoringPage() {
             questions={questions.map(q => q.text)}
             sessionType={session.sessionType}
             adultLearnerType={session?.adultLearnerType}
-            userApiKey={getStoredApiKey() || ''}
+            userApiKey={user ? (getStoredApiKey(user.uid) || '') : ''}
             sessionData={{
               title: session.title,
               participantCount: session.participantCount,

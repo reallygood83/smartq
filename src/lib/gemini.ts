@@ -1,55 +1,41 @@
 // SmartQ - Gemini AI Integration with User API Keys
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { SessionType, Subject, QuestionCluster, ActivityRecommendation, TermDefinition } from './utils';
+import { SessionType, Subject, QuestionCluster, ActivityRecommendation, TermDefinition, getSubjectLabel } from './utils';
 import { EducationLevel, AdultLearnerType } from '@/types/education';
 import { 
   getEducationLevelPrompts, 
   getTerminology, 
   getAdultEducationAnalysisPrompt,
   getBidirectionalAnalysisPrompt,
-  getQualityMonitoringPrompt 
+  getQualityMonitoringPrompt,
+  getSubjectSpecificPrompts,
+  getMultiSubjectAnalysisPrompt,
+  getSubjectTermDefinitionPrompt
 } from './aiPrompts';
 
-// Subject-specific prompts for different educational contexts
-const SUBJECT_PROMPTS = {
-  [Subject.KOREAN]: {
-    analyze: `다음은 국어 수업에서 학생들이 제출한 질문들입니다. 이 질문들을 독해력, 표현력, 문학적 이해력 관점에서 분석해주세요.
-    학생들의 언어 사용 능력, 텍스트 이해 수준, 창의적 사고력을 파악하여 주요 키워드와 학습 포인트를 도출해주세요.`,
-    suggest: `국어 수업에서 이 질문들을 활용할 수 있는 읽기, 쓰기, 말하기, 듣기 활동을 제안해주세요.
-    문학 작품 감상, 토의·토론, 창작 활동 등 다양한 국어 교육 활동을 구체적으로 제시해주세요.`
-  },
-  [Subject.MATH]: {
-    analyze: `다음은 수학 수업에서 학생들이 제출한 질문들입니다. 이 질문들에서 나타나는 수학적 개념 이해도, 
-    문제해결 과정에서의 어려움, 수학적 오개념을 분석해주세요.`,
-    suggest: `수학 문제해결 활동, 탐구 활동, 수학적 모델링 등으로 발전시킬 수 있는 구체적인 방법을 제안해주세요.
-    학생들의 수학적 사고력을 기를 수 있는 활동을 중심으로 제시해주세요.`
-  },
-  [Subject.SCIENCE]: {
-    analyze: `다음은 과학 수업에서 학생들이 제출한 질문들입니다. 과학적 탐구 능력, 가설 설정 수준, 
-    관찰 및 실험에 대한 이해도를 분석해주세요.`,
-    suggest: `실험 설계, 관찰 활동, 탐구 프로젝트 등으로 발전시킬 수 있는 구체적인 과학 활동을 제안해주세요.
-    학생들의 과학적 사고력과 탐구 능력을 기를 수 있는 활동을 중심으로 제시해주세요.`
-  },
-  [Subject.SOCIAL]: {
-    analyze: `다음은 사회 수업에서 학생들이 제출한 질문들입니다. 사회 현상에 대한 이해도, 
-    비판적 사고력, 다양한 관점에서의 분석 능력을 파악해주세요.`,
-    suggest: `사회 탐구 활동, 토의·토론, 프로젝트 학습 등으로 발전시킬 수 있는 구체적인 활동을 제안해주세요.
-    학생들의 사회적 사고력과 시민 의식을 기를 수 있는 활동을 중심으로 제시해주세요.`
-  },
-  [Subject.ENGLISH]: {
-    analyze: `다음은 영어 수업에서 학생들이 제출한 질문들입니다. 영어 의사소통 능력, 
-    언어 구조에 대한 이해도, 문화적 맥락 파악 능력을 분석해주세요.`,
-    suggest: `영어 의사소통 활동, 언어 게임, 문화 탐구 프로젝트 등으로 발전시킬 수 있는 구체적인 활동을 제안해주세요.
-    학생들의 영어 실력과 국제적 소양을 기를 수 있는 활동을 중심으로 제시해주세요.`
-  }
-};
+// Helper function to get subject and session type context
+function getSessionTypeContext(sessionType: SessionType): string {
+  const contexts = {
+    [SessionType.DEBATE]: '토론/논제 발굴 - 다양한 관점에서 토론할 수 있는 주제를 찾는 활동',
+    [SessionType.INQUIRY]: '탐구 활동 - 궁금한 점을 스스로 조사하고 탐구하는 활동',
+    [SessionType.PROBLEM]: '문제 해결 - 주어진 문제를 논리적으로 해결하는 활동',
+    [SessionType.CREATIVE]: '창작 활동 - 상상력과 창의성을 발휘하는 활동',
+    [SessionType.DISCUSSION]: '토의/의견 나누기 - 서로의 생각을 공유하고 의견을 나누는 활동',
+    [SessionType.GENERAL]: '일반 Q&A - 자유로운 질문과 답변 활동',
+    // 성인 교육 세션 타입
+    [SessionType.CORPORATE_TRAINING]: '기업 연수 - 조직 성과 향상과 실무 역량 강화를 위한 전문 교육',
+    [SessionType.UNIVERSITY_LECTURE]: '대학 강의 - 학술적 엄밀성과 체계적 지식 전달을 중심으로 한 고등 교육',
+    [SessionType.SEMINAR]: '세미나 - 전문 주제에 대한 심화 학습과 상호 토론을 통한 지식 공유',
+    [SessionType.WORKSHOP]: '워크샵 - 실습과 체험을 통한 직접적 기술 습득과 실무 적용',
+    [SessionType.CONFERENCE]: '컨퍼런스 - 전문가들의 지식 공유와 네트워킹을 통한 업계 동향 파악',
+    [SessionType.PROFESSIONAL_DEV]: '전문 개발 - 개인의 역량 강화와 경력 발전을 위한 맞춤형 교육',
+    [SessionType.CERTIFICATION]: '자격증 과정 - 체계적이고 검증 가능한 전문 역량 인증을 위한 교육',
+    [SessionType.MENTORING]: '멘토링 - 개인 맞춤형 성장과 경험 전수를 통한 전문성 개발',
+    [SessionType.NETWORKING]: '네트워킹 - 전문적 관계 구축과 협업 기회 창출을 위한 소통 활동'
+  };
+  return contexts[sessionType] || '일반적인 학습 활동';
+}
 
-// Generic prompts for subjects not specifically defined
-const GENERIC_PROMPTS = {
-  analyze: `다음은 학생들이 수업에서 제출한 질문들입니다. 이 질문들에서 나타나는 학습자의 이해 수준, 
-  관심사, 학습 요구를 분석해주세요.`,
-  suggest: `이 질문들을 바탕으로 학생들의 학습을 촉진할 수 있는 구체적인 교육 활동을 제안해주세요.`
-};
 
 // Validate API key by making a test call
 export async function validateApiKey(apiKey: string): Promise<boolean> {
@@ -224,20 +210,15 @@ ${JSON.stringify(clusteringResult.clusters, null, 2)}
   ]
 }`;
     } else {
-      // 기존 학교 교육용 프롬프트
-      const subjectPrompts = subjects.map(subject => 
-        SUBJECT_PROMPTS[subject] || GENERIC_PROMPTS
-      );
-
+      // 일반 교육용 다교과 통합 분석 프롬프트
+      const multiSubjectAnalysisPrompt = getMultiSubjectAnalysisPrompt(subjects, sessionType);
+      
       prompt = `
 ${levelPrompts.systemPrompt}
 
-당신은 교육 전문가입니다. 다음 정보를 바탕으로 ${terminology}들의 질문을 분석하고 교육 활동을 제안해주세요.
-
-${levelPrompts.topicRecommendationPrompt}
+${multiSubjectAnalysisPrompt}
 
 세션 유형: ${sessionTypeContext}
-교과목: ${subjects.map(s => getSubjectLabel(s)).join(', ')}
 ${keywordsText}
 
 ${terminology} 질문 그룹 분석 결과:
@@ -249,20 +230,20 @@ ${JSON.stringify(clusteringResult.clusters, null, 2)}
     {
       "activityId": "1",
       "activityTitle": "활동 제목",
-      "activityType": "활동 유형 (예: 토의, 실험, 창작 등)",
+      "activityType": "활동 유형 (예: 토의, 실험, 창작, 융합 탐구 등)",
       "subject": "${subjects[0] || 'general'}", 
-      "description": "활동 상세 설명",
+      "description": "교과 융합 관점을 포함한 활동 상세 설명",
       "materials": ["필요한 자료1", "필요한 자료2"],
       "timeRequired": "예상 소요 시간",
       "difficulty": "easy/medium/hard",
       "relatedQuestions": ["관련 질문들"],
-      "reason": "이 활동을 추천하는 이유"
+      "reason": "교과 융합 교육 관점에서 이 활동을 추천하는 이유"
     }
   ],
   "extractedTerms": [
     {
       "term": "중요 용어",
-      "description": "이 용어가 중요한 이유"
+      "description": "교과별 관점에서 이 용어가 중요한 이유"
     }
   ]
 }`;
@@ -303,42 +284,6 @@ ${JSON.stringify(clusteringResult.clusters, null, 2)}
   }
 }
 
-function getSessionTypeContext(sessionType: SessionType): string {
-  switch (sessionType) {
-    case SessionType.DEBATE:
-      return '토론/논제 발굴 - 다양한 관점에서 토론할 수 있는 주제를 찾는 활동';
-    case SessionType.INQUIRY:
-      return '탐구 활동 - 궁금한 점을 스스로 조사하고 탐구하는 활동';
-    case SessionType.PROBLEM:
-      return '문제 해결 - 주어진 문제를 논리적으로 해결하는 활동';
-    case SessionType.CREATIVE:
-      return '창작 활동 - 상상력과 창의성을 발휘하는 활동';
-    case SessionType.DISCUSSION:
-      return '토의/의견 나누기 - 서로의 생각을 공유하고 의견을 나누는 활동';
-    // 성인 교육 세션 타입
-    case SessionType.CORPORATE_TRAINING:
-      return '기업 연수 - 조직 성과 향상과 실무 역량 강화를 위한 전문 교육';
-    case SessionType.UNIVERSITY_LECTURE:
-      return '대학 강의 - 학술적 엄밀성과 체계적 지식 전달을 중심으로 한 고등 교육';
-    case SessionType.SEMINAR:
-      return '세미나 - 전문 주제에 대한 심화 학습과 상호 토론을 통한 지식 공유';
-    case SessionType.WORKSHOP:
-      return '워크샵 - 실습과 체험을 통한 직접적 기술 습득과 실무 적용';
-    case SessionType.CONFERENCE:
-      return '컨퍼런스 - 전문가들의 지식 공유와 네트워킹을 통한 업계 동향 파악';
-    case SessionType.PROFESSIONAL_DEV:
-      return '전문 개발 - 개인의 역량 강화와 경력 발전을 위한 맞춤형 교육';
-    case SessionType.CERTIFICATION:
-      return '자격증 과정 - 체계적이고 검증 가능한 전문 역량 인증을 위한 교육';
-    case SessionType.MENTORING:
-      return '멘토링 - 개인 맞춤형 성장과 경험 전수를 통한 전문성 개발';
-    case SessionType.NETWORKING:
-      return '네트워킹 - 전문적 관계 구축과 협업 기회 창출을 위한 소통 활동';
-    default:
-      return '일반 Q&A - 자유로운 질문과 답변 활동';
-  }
-}
-
 // Extract and define key concepts from student questions
 export async function extractConceptsFromQuestions(
   questions: string[],
@@ -357,8 +302,15 @@ export async function extractConceptsFromQuestions(
     const levelPrompts = getEducationLevelPrompts(educationLevel, adultLearnerType, sessionType);
     const terminology = getTerminology('student', educationLevel);
 
+    // 교과목별 특화 용어 정의 프롬프트 생성
+    const subjectSpecificContext = subjects.length > 0 
+      ? getSubjectSpecificPrompts(subjects, sessionType)
+      : '일반적인 교육 관점에서 접근해주세요.';
+
     const prompt = `
 ${levelPrompts.systemPrompt}
+
+${subjectSpecificContext}
 
 다음 ${terminology}들의 질문에서 중요한 개념들을 찾아내고, ${educationLevel === 'adult' ? '실무에 적용할 수 있도록' : '이해하기 쉽게'} 설명해주세요.
 
@@ -439,21 +391,6 @@ ${educationLevel === 'adult' ? `
   }
 }
 
-function getSubjectLabel(subject: Subject): string {
-  const labels = {
-    [Subject.KOREAN]: '국어',
-    [Subject.MATH]: '수학',
-    [Subject.SCIENCE]: '과학',
-    [Subject.SOCIAL]: '사회',
-    [Subject.ENGLISH]: '영어',
-    [Subject.ART]: '미술',
-    [Subject.MUSIC]: '음악',
-    [Subject.PE]: '체육',
-    [Subject.PRACTICAL]: '실과',
-    [Subject.MORAL]: '도덕'
-  };
-  return labels[subject] || subject;
-}
 
 // Adult education specialized analysis
 export async function analyzeAdultEducationSession(

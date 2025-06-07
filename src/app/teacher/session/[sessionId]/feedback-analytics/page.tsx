@@ -256,7 +256,7 @@ export default function FeedbackAnalyticsPage() {
             <FeedbackHistoryDashboard 
               userId={selectedParticipant}
               userType="all"
-              userApiKey={getStoredApiKey() || ''}
+              userApiKey={user ? (getStoredApiKey(user.uid) || '') : ''}
             />
           </div>
         ) : (

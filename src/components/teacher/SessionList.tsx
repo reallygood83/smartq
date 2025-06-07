@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { Session } from '@/lib/utils'
+import { Session, Subject } from '@/lib/utils'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor } from '@/lib/utils'
 import { database } from '@/lib/firebase'
 import { ref, query, orderByChild, equalTo, onValue, remove } from 'firebase/database'
@@ -14,6 +14,8 @@ export default function SessionList() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
+  const [selectedSubjects, setSelectedSubjects] = useState<Subject[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -36,6 +38,42 @@ export default function SessionList() {
 
     return () => unsubscribe()
   }, [user])
+
+  // 세션 필터링
+  const filteredSessions = sessions.filter((session) => {
+    // 검색어 필터링
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      const matchesTitle = session.title.toLowerCase().includes(query)
+      const matchesGoals = session.learningGoals?.toLowerCase().includes(query)
+      const matchesKeywords = session.keywords?.some(keyword => 
+        keyword.toLowerCase().includes(query)
+      )
+      if (!matchesTitle && !matchesGoals && !matchesKeywords) {
+        return false
+      }
+    }
+
+    // 교과목 필터링
+    if (selectedSubjects.length > 0) {
+      const hasMatchingSubject = selectedSubjects.some(subject =>
+        session.subjects?.includes(subject)
+      )
+      if (!hasMatchingSubject) {
+        return false
+      }
+    }
+
+    return true
+  })
+
+  const handleSubjectFilter = (subject: Subject) => {
+    setSelectedSubjects(prev => 
+      prev.includes(subject) 
+        ? prev.filter(s => s !== subject)
+        : [...prev, subject]
+    )
+  }
 
   const handleDeleteSession = async (sessionId: string, sessionTitle: string) => {
     if (!confirm(`정말로 "${sessionTitle}" 세션을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 모든 질문과 분석 결과가 함께 삭제됩니다.`)) {
@@ -191,8 +229,141 @@ export default function SessionList() {
   }
 
   return (
-    <div className="space-y-4">
-      {sessions.map((session) => (
+    <div className="space-y-6">
+      {/* 검색 및 필터 */}
+      <div className="space-y-4">
+        {/* 검색바 */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="세션 제목, 학습 목표, 키워드로 검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* 교과목 필터 */}
+        <div>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="text-sm font-medium text-gray-700">교과목 필터:</span>
+            {Object.values(Subject).map((subject) => {
+              const isSelected = selectedSubjects.includes(subject)
+              return (
+                <button
+                  key={subject}
+                  onClick={() => handleSubjectFilter(subject)}
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    isSelected 
+                      ? getSubjectColor(subject)
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {getSubjectLabel(subject)}
+                  {isSelected && (
+                    <span className="ml-1">×</span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+          
+          {/* 활성 필터 표시 */}
+          {(selectedSubjects.length > 0 || searchQuery) && (
+            <div className="flex flex-wrap items-center gap-2 p-3 bg-blue-50 rounded-lg">
+              <span className="text-sm font-medium text-blue-900">활성 필터:</span>
+              
+              {searchQuery && (
+                <span className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs">
+                  검색: "{searchQuery}"
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="ml-1 text-blue-600 hover:text-blue-800"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              
+              {selectedSubjects.map((subject) => (
+                <span
+                  key={subject}
+                  className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getSubjectColor(subject)}`}
+                >
+                  {getSubjectLabel(subject)}
+                  <button
+                    onClick={() => handleSubjectFilter(subject)}
+                    className="ml-1 text-current hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              
+              <button
+                onClick={() => {
+                  setSelectedSubjects([])
+                  setSearchQuery('')
+                }}
+                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+              >
+                모든 필터 지우기
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 결과 요약 */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-gray-600">
+          총 {sessions.length}개 세션 중 {filteredSessions.length}개 표시
+        </div>
+        {filteredSessions.length > 0 && (
+          <Link href="/teacher/session/create">
+            <Button size="sm">
+              + 새 세션 만들기
+            </Button>
+          </Link>
+        )}
+      </div>
+
+      {/* 세션 목록 */}
+      {filteredSessions.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="mb-4">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.004-5.824-2.412M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {(selectedSubjects.length > 0 || searchQuery) ? '검색 결과가 없습니다' : '생성된 세션이 없습니다'}
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {(selectedSubjects.length > 0 || searchQuery) ? (
+              <>
+                다른 검색어나 필터를 시도해보세요.
+                <br />
+                또는 새로운 세션을 만들어보세요.
+              </>
+            ) : (
+              '첫 번째 세션을 만들어 학생들과 함께 스마트한 학습을 시작해보세요.'
+            )}
+          </p>
+          <Link href="/teacher/session/create">
+            <Button>
+              {(selectedSubjects.length > 0 || searchQuery) ? '새 세션 만들기' : '첫 세션 만들기'}
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredSessions.map((session) => (
         <div
           key={session.sessionId}
           className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
@@ -322,8 +493,10 @@ export default function SessionList() {
               </Button>
             </div>
           </div>
+          </div>
+        ))}
         </div>
-      ))}
+      )}
     </div>
   )
 }

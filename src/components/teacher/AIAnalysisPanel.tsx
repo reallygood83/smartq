@@ -24,20 +24,28 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
 
   useEffect(() => {
     const checkApiKey = async () => {
-      if (!user) return
+      if (!user) {
+        setApiKeyExists(false)
+        setCurrentApiKey(null)
+        return
+      }
 
-      const stored = hasStoredApiKey()
-      setApiKeyExists(stored)
-
-      if (stored) {
-        try {
-          const key = getStoredApiKey(user.uid)
+      try {
+        // 직접 사용자별 API 키를 가져오기 시도
+        const key = getStoredApiKey(user.uid)
+        if (key && key.trim()) {
+          setApiKeyExists(true)
           setCurrentApiKey(key)
-        } catch (error) {
-          console.error('API 키 확인 실패:', error)
+          console.log('API 키 확인 성공:', key ? '키 있음' : '키 없음')
+        } else {
           setApiKeyExists(false)
           setCurrentApiKey(null)
+          console.log('API 키 없음 또는 빈 문자열')
         }
+      } catch (error) {
+        console.error('API 키 확인 실패:', error)
+        setApiKeyExists(false)
+        setCurrentApiKey(null)
       }
     }
 
@@ -146,6 +154,7 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
                             </div>
                             <Button
                               size="sm"
+                              disabled={!canAnalyze}
                               onClick={() => window.location.href = `/teacher/session/${sessionId}/comprehensive-analysis`}
                             >
                               분석하기
@@ -165,6 +174,7 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
                             <Button
                               size="sm"
                               variant="outline"
+                              disabled={!canAnalyze}
                               onClick={() => window.location.href = `/teacher/session/${sessionId}/real-time-monitoring`}
                             >
                               모니터링
@@ -185,6 +195,7 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
                               <Button
                                 size="sm"
                                 variant="outline"
+                                disabled={!canAnalyze}
                                 onClick={() => window.location.href = `/teacher/session/${sessionId}/instructor-analysis`}
                               >
                                 분석하기

@@ -66,9 +66,9 @@ export default function ComprehensiveAnalysisPage() {
   }, [sessionId])
 
   const handleAnalyzeQuestions = async () => {
-    if (!session || questions.length === 0) return
+    if (!session || questions.length === 0 || !user) return
 
-    const apiKey = getStoredApiKey()
+    const apiKey = getStoredApiKey(user.uid)
     if (!apiKey) {
       if (confirm('AI 분석을 위해 Gemini API 키가 필요합니다. 설정 페이지로 이동하시겠습니까?')) {
         window.open('/teacher/settings', '_blank')
@@ -181,7 +181,7 @@ export default function ComprehensiveAnalysisPage() {
         </div>
 
         {/* API 키 확인 */}
-        {!getStoredApiKey() ? (
+        {!user || !getStoredApiKey(user.uid) ? (
           <Card className="p-6">
             <div className="text-center py-8">
               <div className="mb-4">
@@ -244,7 +244,7 @@ export default function ComprehensiveAnalysisPage() {
                 questions={questions.map(q => q.text)}
                 sessionType={session.sessionType}
                 adultLearnerType={session.adultLearnerType || AdultLearnerType.PROFESSIONAL}
-                userApiKey={getStoredApiKey() || ''}
+                userApiKey={user ? (getStoredApiKey(user.uid) || '') : ''}
                 industryFocus={session.industryFocus}
                 difficultyLevel={session.difficultyLevel}
                 participantCount={session.participantCount}
