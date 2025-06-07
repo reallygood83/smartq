@@ -337,8 +337,7 @@ export default function StudentSessionPage() {
         </Card>
 
         {/* 멘토-멘티 매칭 시스템 - 대학생/성인 세션용 */}
-        {/* 멘토-멘티 매칭 시스템 - 현재 개발 중으로 임시 비활성화 */}
-        {isAdultEducationSession && session && false && (
+        {isAdultEducationSession && session && (
           <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
             <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
               🤝 {adapt('멘토-멘티 매칭', '전문가 네트워킹', '동료 학습 시스템')}
