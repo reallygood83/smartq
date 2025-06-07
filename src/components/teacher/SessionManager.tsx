@@ -621,6 +621,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           </div>
         </CollapsiblePanel>
       )}
+      </div>
 
       {/* AI 분석 결과 - 레거시 분석 결과는 더 이상 여기서 렌더링하지 않음 */}
       {/* 실제 분석은 상단의 AI 분석 패널 또는 각각의 전용 페이지에서 수행됨 */}
