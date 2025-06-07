@@ -183,8 +183,54 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
   }
 
   const renderComprehensiveAnalysis = (data: any) => {
-    if (!data.data) return null
-    const { sessionAnalysis, instructorAnalysis, nextSteps } = data.data
+    console.log('Comprehensive analysis data:', data) // 디버깅용
+    
+    if (!data) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-gray-500">분석 결과를 불러올 수 없습니다.</p>
+        </div>
+      )
+    }
+
+    // data 구조에 따른 유연한 처리
+    const analysisData = data.data || data
+    const { 
+      sessionAnalysis, 
+      practicalAnalysis, 
+      activityRecommendations, 
+      analysisType,
+      // 기존 구조 지원
+      instructorAnalysis, 
+      nextSteps 
+    } = analysisData || {}
+
+    // 데이터가 비어있는 경우
+    if (!sessionAnalysis && !practicalAnalysis && !activityRecommendations && !instructorAnalysis && !nextSteps) {
+      return (
+        <div className="text-center py-8">
+          <div className="mb-4">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            분석 데이터가 없습니다
+          </h3>
+          <p className="text-gray-600 mb-4">
+            질문 데이터가 충분하지 않거나 분석에 실패했을 수 있습니다.
+          </p>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>원시 응답 데이터:</strong>
+            </p>
+            <pre className="text-xs mt-2 bg-white p-2 rounded border overflow-auto max-h-40">
+              {JSON.stringify(data, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )
+    }
 
     return (
       <div className="space-y-6">
@@ -198,22 +244,24 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <span className="text-sm font-medium text-gray-700">목표 달성도:</span>
-                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.goalAchievement}</p>
+                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.goalAchievement || sessionAnalysis.effectiveness || '분석 중...'}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-700">참여자 몰입도:</span>
-                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.participantEngagement}</p>
+                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.participantEngagement || sessionAnalysis.engagement || '분석 중...'}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-700">실무 적용성:</span>
-                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.practicalApplication}</p>
+                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.practicalApplication || sessionAnalysis.applicability || '분석 중...'}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-700">개선 필요 영역:</span>
                   <div className="mt-1">
                     {sessionAnalysis.improvementAreas?.map((area: string, idx: number) => (
                       <div key={idx} className="text-sm text-gray-900">• {area}</div>
-                    ))}
+                    )) || sessionAnalysis.recommendations?.map((rec: string, idx: number) => (
+                      <div key={idx} className="text-sm text-gray-900">• {rec}</div>
+                    )) || <div className="text-sm text-gray-500">분석 중...</div>}
                   </div>
                 </div>
               </div>
@@ -221,7 +269,75 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
           </div>
         )}
 
-        {/* 교수자 분석 */}
+        {/* 실무 분석 결과 */}
+        {practicalAnalysis && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              💼 실무 적용 분석
+            </h4>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="space-y-3">
+                {practicalAnalysis.industry && (
+                  <div>
+                    <span className="text-sm font-medium text-blue-800">산업 관련성:</span>
+                    <p className="text-sm text-blue-700 mt-1">{practicalAnalysis.industry}</p>
+                  </div>
+                )}
+                {practicalAnalysis.applicability && (
+                  <div>
+                    <span className="text-sm font-medium text-blue-800">적용 가능성:</span>
+                    <p className="text-sm text-blue-700 mt-1">{practicalAnalysis.applicability}</p>
+                  </div>
+                )}
+                {practicalAnalysis.recommendations && (
+                  <div>
+                    <span className="text-sm font-medium text-blue-800">실무 추천사항:</span>
+                    <div className="mt-1">
+                      {practicalAnalysis.recommendations.map((rec: string, idx: number) => (
+                        <div key={idx} className="text-sm text-blue-700">• {rec}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 활동 추천 */}
+        {activityRecommendations && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              🎯 추천 활동
+            </h4>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="space-y-3">
+                {Array.isArray(activityRecommendations) ? (
+                  activityRecommendations.map((activity: any, idx: number) => (
+                    <div key={idx} className="border-l-4 border-green-500 pl-4">
+                      <h5 className="font-medium text-green-900">{activity.title || `활동 ${idx + 1}`}</h5>
+                      <p className="text-sm text-green-700 mt-1">{activity.description || activity}</p>
+                      {activity.duration && (
+                        <p className="text-xs text-green-600 mt-1">소요시간: {activity.duration}</p>
+                      )}
+                    </div>
+                  ))
+                ) : typeof activityRecommendations === 'object' ? (
+                  Object.entries(activityRecommendations).map(([key, value], idx) => (
+                    <div key={idx} className="border-l-4 border-green-500 pl-4">
+                      <h5 className="font-medium text-green-900">{key}</h5>
+                      <p className="text-sm text-green-700 mt-1">{String(value)}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-green-800">{activityRecommendations}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 기존 구조 지원 - 교수자 분석 */}
         {instructorAnalysis && (
           <div>
             <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
@@ -246,7 +362,7 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
           </div>
         )}
 
-        {/* 다음 단계 추천 */}
+        {/* 기존 구조 지원 - 다음 단계 추천 */}
         {nextSteps && nextSteps.length > 0 && (
           <div>
             <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
