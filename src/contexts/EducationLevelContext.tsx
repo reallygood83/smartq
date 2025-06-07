@@ -2,6 +2,18 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { EducationLevel, EducationLevelConfig, getEducationLevelConfig, AdultLearnerType } from '@/types/education'
+import { 
+  getTerminology as getSmartTerminology, 
+  getToneSettings, 
+  adaptSentenceForLevel, 
+  generateEncouragement, 
+  generateQuestionPrompt, 
+  enhancePromptWithTone, 
+  getContextualTerms, 
+  adjustTextComplexity,
+  type TerminologyMapping,
+  type ToneSettings
+} from '@/lib/terminology'
 
 interface EducationLevelContextType {
   currentLevel: EducationLevel
@@ -11,10 +23,20 @@ interface EducationLevelContextType {
   setAdultLearnerType: (type: AdultLearnerType) => void
   isLoading: boolean
   
-  // 헬퍼 함수들
+  // 기본 헬퍼 함수들
   getTerminology: (term: keyof EducationLevelConfig['terminology']) => string
   getTheme: () => EducationLevelConfig['theme']
   getAIModifiers: () => EducationLevelConfig['aiPromptModifiers']
+  
+  // 스마트 용어 변환 함수들
+  getSmartTerm: (term: keyof TerminologyMapping) => string
+  getTone: () => ToneSettings
+  adaptText: (text: string) => string
+  getEncouragement: () => string
+  getQuestionPrompt: () => string
+  enhanceAIPrompt: (prompt: string) => string
+  getContextTerms: (context: 'session' | 'question' | 'feedback' | 'evaluation') => Record<string, string>
+  adjustComplexity: (text: string) => string
 }
 
 const EducationLevelContext = createContext<EducationLevelContextType | undefined>(undefined)
@@ -85,7 +107,7 @@ export function EducationLevelProvider({
     }
   }
 
-  // 헬퍼 함수들
+  // 기본 헬퍼 함수들
   const getTerminology = (term: keyof EducationLevelConfig['terminology']): string => {
     return levelConfig.terminology[term]
   }
@@ -98,6 +120,39 @@ export function EducationLevelProvider({
     return levelConfig.aiPromptModifiers
   }
 
+  // 스마트 용어 변환 함수들
+  const getSmartTerm = (term: keyof TerminologyMapping): string => {
+    return getSmartTerminology(term, currentLevel, adultLearnerType)
+  }
+
+  const getTone = (): ToneSettings => {
+    return getToneSettings(currentLevel)
+  }
+
+  const adaptText = (text: string): string => {
+    return adaptSentenceForLevel(text, currentLevel, adultLearnerType)
+  }
+
+  const getEncouragement = (): string => {
+    return generateEncouragement(currentLevel)
+  }
+
+  const getQuestionPrompt = (): string => {
+    return generateQuestionPrompt(currentLevel)
+  }
+
+  const enhanceAIPrompt = (prompt: string): string => {
+    return enhancePromptWithTone(prompt, currentLevel, adultLearnerType)
+  }
+
+  const getContextTerms = (context: 'session' | 'question' | 'feedback' | 'evaluation'): Record<string, string> => {
+    return getContextualTerms(context, currentLevel, adultLearnerType)
+  }
+
+  const adjustComplexity = (text: string): string => {
+    return adjustTextComplexity(text, currentLevel)
+  }
+
   const contextValue: EducationLevelContextType = {
     currentLevel,
     levelConfig,
@@ -105,9 +160,19 @@ export function EducationLevelProvider({
     setEducationLevel: handleSetEducationLevel,
     setAdultLearnerType: handleSetAdultLearnerType,
     isLoading,
+    // 기본 함수들
     getTerminology,
     getTheme,
-    getAIModifiers
+    getAIModifiers,
+    // 스마트 용어 변환 함수들
+    getSmartTerm,
+    getTone,
+    adaptText,
+    getEncouragement,
+    getQuestionPrompt,
+    enhanceAIPrompt,
+    getContextTerms,
+    adjustComplexity
   }
 
   return (
@@ -193,5 +258,77 @@ export function useLevelAdaptiveComponents() {
              currentLevel === EducationLevel.ADULT ? 'text-sm' : 'text-base',
     Animation: currentLevel === EducationLevel.ELEMENTARY ? 'bounce' :
               currentLevel === EducationLevel.ADULT ? 'none' : 'fade'
+  }
+}
+
+// 스마트 용어 변환 전용 훅
+export function useSmartTerminology() {
+  const { 
+    getSmartTerm, 
+    getTone, 
+    adaptText, 
+    getEncouragement, 
+    getQuestionPrompt, 
+    enhanceAIPrompt, 
+    getContextTerms, 
+    adjustComplexity,
+    currentLevel,
+    adultLearnerType
+  } = useEducationLevel()
+  
+  return {
+    // 기본 용어 변환
+    term: getSmartTerm,
+    tone: getTone(),
+    
+    // 텍스트 변환
+    adapt: adaptText,
+    adjustComplexity,
+    
+    // 동적 생성
+    encouragement: getEncouragement,
+    questionPrompt: getQuestionPrompt,
+    
+    // AI 프롬프트 강화
+    enhancePrompt: enhanceAIPrompt,
+    
+    // 컨텍스트별 용어
+    sessionTerms: getContextTerms('session'),
+    questionTerms: getContextTerms('question'),
+    feedbackTerms: getContextTerms('feedback'),
+    evaluationTerms: getContextTerms('evaluation'),
+    
+    // 메타 정보
+    currentLevel,
+    adultLearnerType,
+    
+    // 유틸리티 함수들
+    getContextTerms,
+    isElementary: currentLevel === EducationLevel.ELEMENTARY,
+    isAdult: currentLevel === EducationLevel.ADULT,
+    isProfessional: currentLevel === EducationLevel.ADULT && adultLearnerType === AdultLearnerType.PROFESSIONAL
+  }
+}
+
+// 레벨별 메시지 생성 훅
+export function useLevelMessages() {
+  const { getEncouragement, getQuestionPrompt, adaptText, currentLevel } = useEducationLevel()
+  
+  return {
+    // 표준 메시지들
+    welcomeMessage: adaptText(`SmartQ에 오신 것을 환영합니다!`),
+    sessionStartMessage: adaptText(`새로운 학습 세션을 시작해보세요.`),
+    questionPromptMessage: getQuestionPrompt(),
+    encouragementMessage: getEncouragement(),
+    
+    // 동적 메시지 생성
+    createWelcome: (name?: string) => adaptText(
+      name ? `${name}님, SmartQ에 오신 것을 환영합니다!` : `SmartQ에 오신 것을 환영합니다!`
+    ),
+    createSuccess: (action: string) => adaptText(`${action}을(를) 성공적으로 완료했습니다! ${getEncouragement()}`),
+    createError: (error: string) => adaptText(`문제가 발생했습니다: ${error}. 다시 시도해보세요.`),
+    
+    // 레벨 정보
+    currentLevel
   }
 }

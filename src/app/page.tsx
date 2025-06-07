@@ -9,12 +9,14 @@ import Card from '@/components/common/Card'
 import LevelSelector from '@/components/common/LevelSelector'
 import { getSessionTypeIcon, getSessionTypeLabel } from '@/lib/utils'
 import { SessionType } from '@/lib/utils'
-import { useEducationLevel } from '@/contexts/EducationLevelContext'
+import { useEducationLevel, useSmartTerminology, useLevelMessages } from '@/contexts/EducationLevelContext'
 
 export default function HomePage() {
   const [sessionCode, setSessionCode] = useState('')
   const [showLevelSelector, setShowLevelSelector] = useState(false)
   const { levelConfig, currentLevel, getTerminology, getTheme } = useEducationLevel()
+  const { term, adapt, encouragement, sessionTerms } = useSmartTerminology()
+  const { welcomeMessage, sessionStartMessage } = useLevelMessages()
 
   const sessionTypes = [
     {
@@ -74,10 +76,10 @@ export default function HomePage() {
             Smart<span className="text-blue-600">Q</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-2">
-            모든 질문이 스마트한 학습이 되는 곳
+            {adapt('모든 질문이 스마트한 학습이 되는 곳')}
           </p>
           <p className="text-lg text-gray-500 mb-2">
-            AI 기반 다교과 질문 분석 및 활동 추천 서비스
+            {adapt(`AI 기반 다교과 ${term('question')} 분석 및 ${term('activity')} 추천 서비스`)}
           </p>
           <div 
             className="inline-block px-4 py-2 rounded-full text-white font-medium"
@@ -93,7 +95,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/teacher/dashboard">
               <Button size="lg" className="px-8 py-4 text-lg">
-                {currentLevel === 'adult' ? `💼 ${getTerminology('teacher')}용 시작하기` : `🍎 ${getTerminology('teacher')}용 시작하기`}
+                {currentLevel === 'adult' ? `💼 ${term('instructor')}용 시작하기` : `🍎 ${term('instructor')}용 시작하기`}
               </Button>
             </Link>
             <Button 
@@ -102,7 +104,7 @@ export default function HomePage() {
               className="px-8 py-4 text-lg"
               onClick={() => document.getElementById('student-access')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              {currentLevel === 'adult' ? `🎯 세션 참여하기` : `📚 ${getTerminology('student')} 세션 참여`}
+              {currentLevel === 'adult' ? `🎯 ${term('class')} 참여하기` : `📚 ${term('participant')} ${term('class')} 참여`}
             </Button>
           </div>
         </div>
@@ -110,7 +112,7 @@ export default function HomePage() {
         {/* Features Grid */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            다양한 학습 활동을 지원합니다
+            {adapt(`다양한 ${term('learning')} ${term('activity')}을(를) 지원합니다`)}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sessionTypes.map((session) => (
@@ -188,9 +190,9 @@ export default function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">AI 기반 스마트 분석</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{adapt('AI 기반 스마트 분석')}</h3>
               <p className="text-gray-600">
-                Gemini AI가 {getTerminology('student')} 질문을 분석하여 맞춤형 학습 활동을 제안합니다
+                {adapt(`Gemini AI가 ${term('participant')} ${term('question')}을(를) 분석하여 맞춤형 ${term('learning')} ${term('activity')}을(를) 제안합니다`)}
               </p>
             </div>
             
