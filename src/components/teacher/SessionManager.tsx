@@ -13,6 +13,9 @@ import { getStoredApiKey } from '@/lib/encryption'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import AdultSessionAnalysis from './AdultSessionAnalysis'
+import InstructorAnalysisDashboard from './InstructorAnalysisDashboard'
+import LearnerAnalysisDashboard from './LearnerAnalysisDashboard'
+import QualityMonitoringDashboard from './QualityMonitoringDashboard'
 import { AdultLearnerType } from '@/types/education'
 
 interface SessionManagerProps {
@@ -568,6 +571,66 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           difficultyLevel={session.difficultyLevel}
           participantCount={session.participantCount}
           duration={session.duration}
+        />
+      )}
+
+      {/* 교수자 관점 교육 효과성 분석 */}
+      {questions.length > 0 && (
+        <InstructorAnalysisDashboard
+          questions={questions.map(q => q.text)}
+          sessionType={session.sessionType}
+          adultLearnerType={session?.adultLearnerType}
+          userApiKey={getStoredApiKey() || ''}
+          sessionData={session ? {
+            title: session.title,
+            participantCount: session.participantCount,
+            duration: session.duration,
+            learningGoals: session.learningGoals,
+            industryFocus: session.industryFocus,
+            difficultyLevel: session.difficultyLevel
+          } : undefined}
+        />
+      )}
+
+      {/* 학습자 관점 성과 분석 */}
+      {questions.length > 0 && (
+        <LearnerAnalysisDashboard
+          questions={questions.map(q => q.text)}
+          sessionType={session.sessionType}
+          adultLearnerType={session?.adultLearnerType}
+          userApiKey={getStoredApiKey() || ''}
+          sessionData={session ? {
+            title: session.title,
+            participantCount: session.participantCount,
+            duration: session.duration,
+            learningGoals: session.learningGoals,
+            industryFocus: session.industryFocus,
+            difficultyLevel: session.difficultyLevel
+          } : undefined}
+        />
+      )}
+
+      {/* 실시간 교육 품질 모니터링 */}
+      {questions.length > 0 && (
+        <QualityMonitoringDashboard
+          questions={questions.map(q => q.text)}
+          sessionType={session.sessionType}
+          adultLearnerType={session?.adultLearnerType}
+          userApiKey={getStoredApiKey() || ''}
+          sessionData={session ? {
+            title: session.title,
+            participantCount: session.participantCount,
+            duration: session.duration,
+            learningGoals: session.learningGoals,
+            industryFocus: session.industryFocus,
+            difficultyLevel: session.difficultyLevel
+          } : undefined}
+          realTimeData={{
+            activeParticipants: questions.length, // 질문을 제출한 참여자 수로 근사치
+            questionSubmissionRate: Math.min(100, (questions.length / parseInt(session?.participantCount?.split('-')[0] || '10')) * 100),
+            avgResponseTime: 45, // 기본값
+            sessionDuration: Math.floor((Date.now() - session.createdAt) / (1000 * 60)) // 세션 시작부터 현재까지의 시간
+          }}
         />
       )}
 
