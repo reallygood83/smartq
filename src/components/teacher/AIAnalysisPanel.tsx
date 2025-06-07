@@ -241,30 +241,42 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
               🎯 세션 분석 결과
             </h4>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">목표 달성도:</span>
-                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.goalAchievement || sessionAnalysis.effectiveness || '분석 중...'}</p>
+              {typeof sessionAnalysis === 'object' ? (
+                <div className="space-y-4">
+                  {Object.entries(sessionAnalysis).map(([key, value], idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <span className="text-sm font-medium text-gray-700">
+                          {key === 'goalAchievement' ? '목표 달성도' :
+                           key === 'participantEngagement' ? '참여자 몰입도' :
+                           key === 'practicalApplication' ? '실무 적용성' :
+                           key === 'improvementAreas' ? '개선 필요 영역' :
+                           key === 'effectiveness' ? '세션 효과성' :
+                           key === 'engagement' ? '몰입도' :
+                           key === 'applicability' ? '적용 가능성' :
+                           key === 'recommendations' ? '추천사항' :
+                           key}:
+                        </span>
+                        <div className="text-sm text-gray-900 mt-1">
+                          {Array.isArray(value) ? (
+                            value.map((item: any, itemIdx: number) => (
+                              <div key={itemIdx} className="mb-1">• {String(item)}</div>
+                            ))
+                          ) : typeof value === 'object' ? (
+                            <pre className="whitespace-pre-wrap text-xs bg-gray-100 p-2 rounded">
+                              {JSON.stringify(value, null, 2)}
+                            </pre>
+                          ) : (
+                            String(value) || '분석 중...'
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">참여자 몰입도:</span>
-                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.participantEngagement || sessionAnalysis.engagement || '분석 중...'}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">실무 적용성:</span>
-                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.practicalApplication || sessionAnalysis.applicability || '분석 중...'}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">개선 필요 영역:</span>
-                  <div className="mt-1">
-                    {sessionAnalysis.improvementAreas?.map((area: string, idx: number) => (
-                      <div key={idx} className="text-sm text-gray-900">• {area}</div>
-                    )) || sessionAnalysis.recommendations?.map((rec: string, idx: number) => (
-                      <div key={idx} className="text-sm text-gray-900">• {rec}</div>
-                    )) || <div className="text-sm text-gray-500">분석 중...</div>}
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <p className="text-sm text-gray-900">{String(sessionAnalysis)}</p>
+              )}
             </div>
           </div>
         )}
@@ -277,27 +289,32 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
             </h4>
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="space-y-3">
-                {practicalAnalysis.industry && (
-                  <div>
-                    <span className="text-sm font-medium text-blue-800">산업 관련성:</span>
-                    <p className="text-sm text-blue-700 mt-1">{practicalAnalysis.industry}</p>
-                  </div>
-                )}
-                {practicalAnalysis.applicability && (
-                  <div>
-                    <span className="text-sm font-medium text-blue-800">적용 가능성:</span>
-                    <p className="text-sm text-blue-700 mt-1">{practicalAnalysis.applicability}</p>
-                  </div>
-                )}
-                {practicalAnalysis.recommendations && (
-                  <div>
-                    <span className="text-sm font-medium text-blue-800">실무 추천사항:</span>
-                    <div className="mt-1">
-                      {practicalAnalysis.recommendations.map((rec: string, idx: number) => (
-                        <div key={idx} className="text-sm text-blue-700">• {rec}</div>
-                      ))}
+                {typeof practicalAnalysis === 'object' ? (
+                  Object.entries(practicalAnalysis).map(([key, value], idx) => (
+                    <div key={idx}>
+                      <span className="text-sm font-medium text-blue-800 capitalize">
+                        {key === 'industry' ? '산업 관련성' : 
+                         key === 'applicability' ? '적용 가능성' :
+                         key === 'recommendations' ? '실무 추천사항' :
+                         key}:
+                      </span>
+                      <div className="text-sm text-blue-700 mt-1">
+                        {Array.isArray(value) ? (
+                          value.map((item: any, itemIdx: number) => (
+                            <div key={itemIdx} className="mb-1">• {String(item)}</div>
+                          ))
+                        ) : typeof value === 'object' ? (
+                          <pre className="whitespace-pre-wrap text-xs bg-blue-100 p-2 rounded">
+                            {JSON.stringify(value, null, 2)}
+                          </pre>
+                        ) : (
+                          String(value)
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-blue-700">{String(practicalAnalysis)}</p>
                 )}
               </div>
             </div>
@@ -315,22 +332,34 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
                 {Array.isArray(activityRecommendations) ? (
                   activityRecommendations.map((activity: any, idx: number) => (
                     <div key={idx} className="border-l-4 border-green-500 pl-4">
-                      <h5 className="font-medium text-green-900">{activity.title || `활동 ${idx + 1}`}</h5>
-                      <p className="text-sm text-green-700 mt-1">{activity.description || activity}</p>
-                      {activity.duration && (
+                      <h5 className="font-medium text-green-900">
+                        {typeof activity === 'object' ? (activity.title || activity.name || `활동 ${idx + 1}`) : `활동 ${idx + 1}`}
+                      </h5>
+                      <p className="text-sm text-green-700 mt-1">
+                        {typeof activity === 'object' ? (activity.description || activity.content || JSON.stringify(activity, null, 2)) : String(activity)}
+                      </p>
+                      {typeof activity === 'object' && activity.duration && (
                         <p className="text-xs text-green-600 mt-1">소요시간: {activity.duration}</p>
                       )}
                     </div>
                   ))
-                ) : typeof activityRecommendations === 'object' ? (
+                ) : typeof activityRecommendations === 'object' && activityRecommendations !== null ? (
                   Object.entries(activityRecommendations).map(([key, value], idx) => (
                     <div key={idx} className="border-l-4 border-green-500 pl-4">
                       <h5 className="font-medium text-green-900">{key}</h5>
-                      <p className="text-sm text-green-700 mt-1">{String(value)}</p>
+                      <div className="text-sm text-green-700 mt-1">
+                        {typeof value === 'object' ? (
+                          <pre className="whitespace-pre-wrap text-xs bg-green-100 p-2 rounded">
+                            {JSON.stringify(value, null, 2)}
+                          </pre>
+                        ) : (
+                          String(value)
+                        )}
+                      </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-green-800">{activityRecommendations}</p>
+                  <p className="text-sm text-green-800">{String(activityRecommendations)}</p>
                 )}
               </div>
             </div>
