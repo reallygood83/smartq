@@ -7,7 +7,7 @@ import Footer from '@/components/common/Footer'
 import Button from '@/components/common/Button'
 import Card from '@/components/common/Card'
 import LevelSelector from '@/components/common/LevelSelector'
-import { getSessionTypeIcon, getSessionTypeLabel } from '@/lib/utils'
+import { getSessionTypeIcon, getSessionTypeLabel, getSessionTypeDescription, getRecommendedSessionTypes } from '@/lib/utils'
 import { SessionType } from '@/lib/utils'
 import { useEducationLevel, useSmartTerminology, useLevelMessages } from '@/contexts/EducationLevelContext'
 
@@ -19,32 +19,14 @@ export default function HomePage() {
   const { welcomeMessage, sessionStartMessage } = useLevelMessages()
   const theme = getCurrentTheme()
 
-  const sessionTypes = [
-    {
-      type: SessionType.GENERAL,
-      description: '자유로운 질문과 답변으로 시작하는 기본 활동'
-    },
-    {
-      type: SessionType.DEBATE,
-      description: '토론 주제를 발굴하고 다양한 관점 탐색'
-    },
-    {
-      type: SessionType.INQUIRY,
-      description: '과학적 탐구와 실험 설계 활동'
-    },
-    {
-      type: SessionType.PROBLEM,
-      description: '수학적 사고와 논리적 문제 해결'
-    },
-    {
-      type: SessionType.CREATIVE,
-      description: '창의적 표현과 상상력 발휘 활동'
-    },
-    {
-      type: SessionType.DISCUSSION,
-      description: '협력적 토의와 의견 공유'
-    }
-  ]
+  // 교육 레벨에 따라 세션 타입 동적 선택
+  const isAdultEducation = currentLevel === 'adult' || currentLevel === 'university'
+  const recommendedTypes = getRecommendedSessionTypes(isAdultEducation)
+  
+  const sessionTypes = recommendedTypes.map(type => ({
+    type,
+    description: getSessionTypeDescription(type)
+  }))
 
   return (
     <>

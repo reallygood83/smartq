@@ -1,12 +1,24 @@
 // SmartQ - Utility Types and Functions
 
 export enum SessionType {
+  // 기본 교육용 세션 타입
   DEBATE = 'debate',        // 토론/논제 발굴
   INQUIRY = 'inquiry',      // 탐구 활동 (과학 실험 등)
   PROBLEM = 'problem',      // 문제 해결 (수학, 논리)
   CREATIVE = 'creative',    // 창작 활동 (국어, 미술)
   GENERAL = 'general',      // 일반 Q&A
-  DISCUSSION = 'discussion' // 토의/의견 나누기
+  DISCUSSION = 'discussion', // 토의/의견 나누기
+  
+  // 성인 교육용 세션 타입
+  CORPORATE_TRAINING = 'corporate_training',  // 기업 연수
+  UNIVERSITY_LECTURE = 'university_lecture',  // 대학 강의
+  SEMINAR = 'seminar',                       // 세미나
+  WORKSHOP = 'workshop',                     // 워크샵
+  CONFERENCE = 'conference',                 // 컨퍼런스
+  PROFESSIONAL_DEV = 'professional_dev',     // 전문 개발
+  CERTIFICATION = 'certification',           // 자격증 과정
+  MENTORING = 'mentoring',                   // 멘토링
+  NETWORKING = 'networking'                  // 네트워킹
 }
 
 export enum Subject {
@@ -138,6 +150,29 @@ export function getSessionTypeLabel(type: SessionType): string {
       return '창작 활동';
     case SessionType.DISCUSSION:
       return '토의/의견 나누기';
+    case SessionType.GENERAL:
+      return '일반 Q&A';
+    
+    // 성인 교육용 세션 타입 라벨
+    case SessionType.CORPORATE_TRAINING:
+      return '기업 연수';
+    case SessionType.UNIVERSITY_LECTURE:
+      return '대학 강의';
+    case SessionType.SEMINAR:
+      return '세미나';
+    case SessionType.WORKSHOP:
+      return '워크샵';
+    case SessionType.CONFERENCE:
+      return '컨퍼런스';
+    case SessionType.PROFESSIONAL_DEV:
+      return '전문 개발';
+    case SessionType.CERTIFICATION:
+      return '자격증 과정';
+    case SessionType.MENTORING:
+      return '멘토링';
+    case SessionType.NETWORKING:
+      return '네트워킹';
+    
     default:
       return '일반 Q&A';
   }
@@ -182,9 +217,105 @@ export function getSessionTypeIcon(type: SessionType): string {
       return '🎨';
     case SessionType.DISCUSSION:
       return '💭';
+    case SessionType.GENERAL:
+      return '❓';
+    
+    // 성인 교육용 세션 타입 아이콘
+    case SessionType.CORPORATE_TRAINING:
+      return '🏢';
+    case SessionType.UNIVERSITY_LECTURE:
+      return '🎓';
+    case SessionType.SEMINAR:
+      return '📊';
+    case SessionType.WORKSHOP:
+      return '🔧';
+    case SessionType.CONFERENCE:
+      return '🎤';
+    case SessionType.PROFESSIONAL_DEV:
+      return '📈';
+    case SessionType.CERTIFICATION:
+      return '🏆';
+    case SessionType.MENTORING:
+      return '👨‍🏫';
+    case SessionType.NETWORKING:
+      return '🤝';
+    
     default:
       return '❓';
   }
+}
+
+export function getSessionTypeDescription(type: SessionType): string {
+  switch (type) {
+    case SessionType.DEBATE:
+      return '토론 주제를 발굴하고 다양한 관점 탐색';
+    case SessionType.INQUIRY:
+      return '과학적 탐구와 실험 설계 활동';
+    case SessionType.PROBLEM:
+      return '수학적 사고와 논리적 문제 해결';
+    case SessionType.CREATIVE:
+      return '창의적 표현과 상상력 발휘 활동';
+    case SessionType.DISCUSSION:
+      return '협력적 토의와 의견 공유';
+    case SessionType.GENERAL:
+      return '자유로운 질문과 답변으로 시작하는 기본 활동';
+    
+    // 성인 교육용 세션 타입 설명
+    case SessionType.CORPORATE_TRAINING:
+      return '기업 내 직무 역량 강화 및 전문성 개발';
+    case SessionType.UNIVERSITY_LECTURE:
+      return '대학 수준의 학술적 강의 및 토론';
+    case SessionType.SEMINAR:
+      return '전문 주제에 대한 심화 학습 및 토론';
+    case SessionType.WORKSHOP:
+      return '실습 중심의 체험형 학습 활동';
+    case SessionType.CONFERENCE:
+      return '전문가들의 지식 공유 및 네트워킹';
+    case SessionType.PROFESSIONAL_DEV:
+      return '개인 경력 개발 및 전문성 향상';
+    case SessionType.CERTIFICATION:
+      return '자격증 취득을 위한 체계적 학습';
+    case SessionType.MENTORING:
+      return '1:1 또는 소그룹 멘토링 세션';
+    case SessionType.NETWORKING:
+      return '업계 전문가들과의 네트워킹 및 정보 교환';
+    
+    default:
+      return '자유로운 질문과 답변으로 시작하는 기본 활동';
+  }
+}
+
+// 기본 교육용 세션 타입
+export const BASIC_SESSION_TYPES: SessionType[] = [
+  SessionType.GENERAL,
+  SessionType.DEBATE,
+  SessionType.INQUIRY,
+  SessionType.PROBLEM,
+  SessionType.CREATIVE,
+  SessionType.DISCUSSION
+]
+
+// 성인 교육용 세션 타입
+export const ADULT_SESSION_TYPES: SessionType[] = [
+  SessionType.CORPORATE_TRAINING,
+  SessionType.UNIVERSITY_LECTURE,
+  SessionType.SEMINAR,
+  SessionType.WORKSHOP,
+  SessionType.CONFERENCE,
+  SessionType.PROFESSIONAL_DEV,
+  SessionType.CERTIFICATION,
+  SessionType.MENTORING,
+  SessionType.NETWORKING
+]
+
+// 교육 레벨에 따른 세션 타입 추천
+export function getRecommendedSessionTypes(isAdultEducation: boolean = false): SessionType[] {
+  return isAdultEducation ? ADULT_SESSION_TYPES : BASIC_SESSION_TYPES
+}
+
+// 세션 타입이 성인용인지 확인
+export function isAdultSessionType(type: SessionType): boolean {
+  return ADULT_SESSION_TYPES.includes(type)
 }
 
 export function getSubjectColor(subject: Subject): string {
