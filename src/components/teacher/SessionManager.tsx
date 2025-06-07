@@ -17,6 +17,7 @@ import InstructorAnalysisDashboard from './InstructorAnalysisDashboard'
 import LearnerAnalysisDashboard from './LearnerAnalysisDashboard'
 import QualityMonitoringDashboard from './QualityMonitoringDashboard'
 import PeerFeedbackSystem from '@/components/feedback/PeerFeedbackSystem'
+import FeedbackQualityDashboard from '@/components/feedback/FeedbackQualityDashboard'
 import { AdultLearnerType } from '@/types/education'
 
 interface SessionManagerProps {
@@ -561,8 +562,91 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
         )}
       </Card>
 
+      {/* AI 분석 시스템 */}
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">🤖 AI 분석 시스템</h2>
+        
+        {!getStoredApiKey() ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center">
+                  <span className="text-lg">⚠️</span>
+                </div>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-yellow-800">API 키 설정 필요</h3>
+                <p className="text-sm text-yellow-700 mt-1">
+                  AI 분석 기능을 사용하려면 Gemini API 키가 필요합니다.
+                </p>
+              </div>
+              <div className="ml-4">
+                <Link href="/teacher/settings">
+                  <Button size="sm" variant="outline" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+                    API 키 설정
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : questions.length === 0 ? (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">📝</span>
+              </div>
+              <h3 className="text-sm font-medium text-blue-800 mb-1">질문 대기 중</h3>
+              <p className="text-sm text-blue-700">
+                학생들이 질문을 제출하면 AI 분석이 활성화됩니다.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              onClick={handleAnalyzeQuestions}
+              disabled={analyzing}
+              className="h-20 flex flex-col items-center justify-center"
+            >
+              <span className="text-2xl mb-1">🧩</span>
+              <span className="text-sm">질문 그룹 분석</span>
+            </Button>
+            
+            <Link href={`/teacher/session/${sessionId}/instructor-analysis`}>
+              <Button 
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center w-full"
+              >
+                <span className="text-2xl mb-1">👨‍🏫</span>
+                <span className="text-sm">교수자 분석</span>
+              </Button>
+            </Link>
+            
+            <Link href={`/teacher/session/${sessionId}/learner-analysis`}>
+              <Button 
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center w-full"
+              >
+                <span className="text-2xl mb-1">🎓</span>
+                <span className="text-sm">학습자 분석</span>
+              </Button>
+            </Link>
+            
+            <Link href={`/teacher/session/${sessionId}/quality-monitoring`}>
+              <Button 
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center w-full"
+              >
+                <span className="text-2xl mb-1">📊</span>
+                <span className="text-sm">품질 모니터링</span>
+              </Button>
+            </Link>
+          </div>
+        )}
+      </Card>
+
       {/* 성인 교육 전용 AI 분석 */}
-      {session?.isAdultEducation && questions.length > 0 && (
+      {session?.isAdultEducation && questions.length > 0 && getStoredApiKey() && (
         <AdultSessionAnalysis
           questions={questions.map(q => q.text)}
           sessionType={session.sessionType}
@@ -576,7 +660,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       )}
 
       {/* 교수자 관점 교육 효과성 분석 */}
-      {questions.length > 0 && (
+      {questions.length > 0 && getStoredApiKey() && (
         <InstructorAnalysisDashboard
           questions={questions.map(q => q.text)}
           sessionType={session.sessionType}
@@ -594,7 +678,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       )}
 
       {/* 학습자 관점 성과 분석 */}
-      {questions.length > 0 && (
+      {questions.length > 0 && getStoredApiKey() && (
         <LearnerAnalysisDashboard
           questions={questions.map(q => q.text)}
           sessionType={session.sessionType}
@@ -612,7 +696,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       )}
 
       {/* 실시간 교육 품질 모니터링 */}
-      {questions.length > 0 && (
+      {questions.length > 0 && getStoredApiKey() && (
         <QualityMonitoringDashboard
           questions={questions.map(q => q.text)}
           sessionType={session.sessionType}
@@ -641,6 +725,33 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           sessionId={sessionId}
           sessionTitle={session.title}
         />
+      )}
+
+      {/* AI 기반 피드백 품질 분석 */}
+      {session?.isAdultEducation && (
+        <FeedbackQualityDashboard
+          sessionId={sessionId}
+          userApiKey={getStoredApiKey() || ''}
+        />
+      )}
+
+      {/* 피드백 성장 분석 링크 */}
+      {session?.isAdultEducation && (
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">📊 피드백 성장 분석</h2>
+              <p className="text-gray-600">
+                참여자별 피드백 품질 성장 과정을 상세히 분석하고 추적합니다.
+              </p>
+            </div>
+            <Link href={`/teacher/session/${sessionId}/feedback-analytics`}>
+              <Button>
+                성장 분석 보기
+              </Button>
+            </Link>
+          </div>
+        </Card>
       )}
 
       {/* AI 분석 결과 */}
