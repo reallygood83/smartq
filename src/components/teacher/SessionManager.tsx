@@ -282,6 +282,15 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
         </div>
       </Card>
 
+      {/* AI 분석 시스템 통합 패널 - 상단으로 이동하여 접근성 향상 */}
+      {session && (
+        <AIAnalysisPanel 
+          session={session}
+          questions={questions}
+          sessionId={sessionId}
+        />
+      )}
+
       {/* 질문 목록 */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
@@ -511,15 +520,6 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           </div>
         )}
       </Card>
-
-      {/* AI 분석 시스템 통합 패널 */}
-      {session && (
-        <AIAnalysisPanel 
-          session={session}
-          questions={questions}
-          sessionId={sessionId}
-        />
-      )}
 
       {/* AI 분석 결과 표시 영역 - 더 이상 여기서 렌더링하지 않음 */}
       {/* 실제 분석은 각각의 전용 페이지에서 수행됨 */}

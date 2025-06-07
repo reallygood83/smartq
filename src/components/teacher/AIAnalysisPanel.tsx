@@ -64,7 +64,7 @@ const ANALYSIS_TABS: TabInfo[] = [
 
 export default function AIAnalysisPanel({ session, questions, sessionId }: AIAnalysisPanelProps) {
   const [activeTab, setActiveTab] = useState<AnalysisTab>('comprehensive')
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true) // 기본적으로 열려있도록 변경
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResults, setAnalysisResults] = useState<Record<AnalysisTab, any>>({
     comprehensive: null,
@@ -330,7 +330,7 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
               <h3 className="text-lg font-semibold text-gray-900">AI 분석 시스템</h3>
               <p className="text-sm text-gray-600">
                 {canAnalyze 
-                  ? '클릭하여 AI 분석 도구를 확인하세요'
+                  ? '실시간 AI 분석으로 교육 효과를 높이세요'
                   : !hasApiKey 
                     ? 'API 키 설정이 필요합니다' 
                     : '질문이 제출되면 분석할 수 있습니다'
