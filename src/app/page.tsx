@@ -13,7 +13,7 @@ import { useEducationLevel } from '@/contexts/EducationLevelContext'
 
 export default function HomePage() {
   const [sessionCode, setSessionCode] = useState('')
-  const { levelConfig, level } = useEducationLevel()
+  const { levelConfig, currentLevel, getTerminology, getTheme } = useEducationLevel()
 
   const sessionTypes = [
     {
@@ -46,10 +46,6 @@ export default function HomePage() {
     <>
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Education Level Selector */}
-        <div className="mb-12">
-          <LevelSelector />
-        </div>
 
         {/* Hero Section */}
         <div className="text-center mb-16">
@@ -67,8 +63,11 @@ export default function HomePage() {
           <p className="text-lg text-gray-500 mb-2">
             AI 기반 다교과 질문 분석 및 활동 추천 서비스
           </p>
-          <div className={`inline-block px-4 py-2 rounded-full text-white font-medium bg-gradient-to-r ${levelConfig.uiTheme.bgGradient}`}>
-            {levelConfig.label} 레벨 • {levelConfig.ageRange}
+          <div 
+            className="inline-block px-4 py-2 rounded-full text-white font-medium"
+            style={{ backgroundColor: getTheme().primaryColor }}
+          >
+            {levelConfig.displayName} • {levelConfig.ageRange}
           </div>
           <p className="text-sm text-gray-500 mt-2 mb-8">
             {levelConfig.description}
@@ -78,7 +77,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/teacher/dashboard">
               <Button size="lg" className="px-8 py-4 text-lg">
-                {level === 'adult' ? '💼 진행자용 시작하기' : '🍎 교사용 시작하기'}
+                {currentLevel === 'adult' ? `💼 ${getTerminology('teacher')}용 시작하기` : `🍎 ${getTerminology('teacher')}용 시작하기`}
               </Button>
             </Link>
             <Button 
@@ -87,7 +86,7 @@ export default function HomePage() {
               className="px-8 py-4 text-lg"
               onClick={() => document.getElementById('student-access')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              {level === 'adult' ? '🎯 세션 참여하기' : '📚 학생 세션 참여'}
+              {currentLevel === 'adult' ? `🎯 세션 참여하기` : `📚 ${getTerminology('student')} 세션 참여`}
             </Button>
           </div>
         </div>
@@ -126,7 +125,7 @@ export default function HomePage() {
                   세션 코드로 참여하기
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  선생님이 제공한 6자리 세션 코드를 입력하여 학습 활동에 참여하세요
+                  {getTerminology('teacher')}이 제공한 6자리 세션 코드를 입력하여 학습 활동에 참여하세요
                 </p>
                 
                 <div className="space-y-4">
@@ -175,7 +174,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">AI 기반 스마트 분석</h3>
               <p className="text-gray-600">
-                Gemini AI가 학생 질문을 분석하여 맞춤형 학습 활동을 제안합니다
+                Gemini AI가 {getTerminology('student')} 질문을 분석하여 맞춤형 학습 활동을 제안합니다
               </p>
             </div>
             
@@ -199,7 +198,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">실시간 협업</h3>
               <p className="text-gray-600">
-                교사와 학생이 실시간으로 소통하며 함께 만들어가는 수업
+                {getTerminology('teacher')}와 {getTerminology('student')}이 실시간으로 소통하며 함께 만들어가는 {getTerminology('class')}
               </p>
             </div>
           </div>
@@ -216,7 +215,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/teacher/dashboard">
               <Button size="lg" className="px-8 py-4">
-                교사용 대시보드
+                {getTerminology('teacher')}용 대시보드
               </Button>
             </Link>
             <Link href="/auth/login">
