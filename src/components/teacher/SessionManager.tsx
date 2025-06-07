@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Session, Question, MultiSubjectAnalysisResult, SharedContent, TermDefinition } from '@/lib/utils'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, isYouTubeUrl, getYouTubeEmbedUrl } from '@/lib/utils'
@@ -14,6 +14,8 @@ import { useRouter } from 'next/navigation'
 import PeerFeedbackSystem from '@/components/feedback/PeerFeedbackSystem'
 import FeedbackQualityDashboard from '@/components/feedback/FeedbackQualityDashboard'
 import AIAnalysisPanel from './AIAnalysisPanel'
+import CollapsiblePanel from './CollapsiblePanel'
+import QuickNavigation from './QuickNavigation'
 
 interface SessionManagerProps {
   sessionId: string
@@ -33,6 +35,49 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
     content: '',
     type: 'text' as 'text' | 'link' | 'instruction' | 'youtube'
   })
+
+  // 패널 참조를 위한 refs
+  const aiAnalysisRef = useRef<HTMLDivElement>(null)
+  const questionsRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const feedbackRef = useRef<HTMLDivElement>(null)
+
+  // 스크롤 이동 함수
+  const scrollToPanel = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  // 빠른 네비게이션 아이템
+  const quickNavItems = [
+    {
+      id: 'ai-analysis',
+      label: 'AI 분석',
+      icon: '🤖',
+      onClick: () => scrollToPanel(aiAnalysisRef)
+    },
+    {
+      id: 'questions',
+      label: '질문 목록',
+      icon: '❓',
+      onClick: () => scrollToPanel(questionsRef)
+    },
+    {
+      id: 'content',
+      label: '콘텐츠 공유',
+      icon: '📄',
+      onClick: () => scrollToPanel(contentRef)
+    },
+    ...(session?.isAdultEducation ? [
+      {
+        id: 'feedback',
+        label: '피드백 시스템',
+        icon: '💬',
+        onClick: () => scrollToPanel(feedbackRef)
+      }
+    ] : [])
+  ]
 
   useEffect(() => {
     // 세션 데이터 로드
@@ -195,6 +240,9 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
 
   return (
     <div className="space-y-6">
+      {/* 빠른 네비게이션 */}
+      <QuickNavigation items={quickNavItems} />
+      
       {/* 세션 정보 헤더 */}
       <Card className="p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -283,21 +331,24 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       </Card>
 
       {/* AI 분석 시스템 통합 패널 - 상단으로 이동하여 접근성 향상 */}
-      {session && (
-        <AIAnalysisPanel 
-          session={session}
-          questions={questions}
-          sessionId={sessionId}
-        />
-      )}
+      <div ref={aiAnalysisRef}>
+        {session && (
+          <AIAnalysisPanel 
+            session={session}
+            questions={questions}
+            sessionId={sessionId}
+          />
+        )}
+      </div>
 
       {/* 질문 목록 */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
-            학생 질문 ({questions.length}개)
-          </h2>
-        </div>
+      <div ref={questionsRef}>
+        <CollapsiblePanel
+          title="학생 질문"
+          icon="❓"
+          badge={questions.length}
+          defaultExpanded={true}
+        >
 
         {questions.length === 0 ? (
           <div className="text-center py-12">
@@ -347,21 +398,26 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
             ))}
           </div>
         )}
-      </Card>
+        </CollapsiblePanel>
+      </div>
 
       {/* 콘텐츠 공유 섹션 */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
-            콘텐츠 공유 ({sharedContents.length}개)
-          </h2>
-          <Button
-            onClick={() => setShowContentForm(!showContentForm)}
-            variant={showContentForm ? "outline" : "default"}
-          >
-            {showContentForm ? '취소' : '+ 콘텐츠 공유'}
-          </Button>
-        </div>
+      <div ref={contentRef}>
+        <CollapsiblePanel
+          title="콘텐츠 공유"
+          icon="📄"
+          badge={sharedContents.length}
+          defaultExpanded={false}
+          headerActions={
+            <Button
+              onClick={() => setShowContentForm(!showContentForm)}
+              variant={showContentForm ? "outline" : "default"}
+              size="sm"
+            >
+              {showContentForm ? '취소' : '+ 콘텐츠 공유'}
+            </Button>
+          }
+        >
 
         {/* 콘텐츠 추가 폼 */}
         {showContentForm && (
@@ -519,206 +575,55 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
             ))}
           </div>
         )}
-      </Card>
+        </CollapsiblePanel>
+      </div>
 
       {/* AI 분석 결과 표시 영역 - 더 이상 여기서 렌더링하지 않음 */}
       {/* 실제 분석은 각각의 전용 페이지에서 수행됨 */}
 
-      {/* 전문적 피드백 시스템 */}
+      {/* 피드백 시스템 (성인 교육 전용) */}
+      <div ref={feedbackRef}>
       {session?.isAdultEducation && (
-        <PeerFeedbackSystem
-          sessionId={sessionId}
-          sessionTitle={session.title}
-        />
-      )}
+        <CollapsiblePanel
+          title="피드백 시스템"
+          icon="💬"
+          defaultExpanded={false}
+        >
+          <div className="space-y-6">
+            {/* 전문적 피드백 시스템 */}
+            <PeerFeedbackSystem
+              sessionId={sessionId}
+              sessionTitle={session.title}
+            />
 
-      {/* AI 기반 피드백 품질 분석 */}
-      {session?.isAdultEducation && (
-        <FeedbackQualityDashboard
-          sessionId={sessionId}
-          userApiKey={getStoredApiKey() || ''}
-        />
-      )}
+            {/* AI 기반 피드백 품질 분석 */}
+            <FeedbackQualityDashboard
+              sessionId={sessionId}
+              userApiKey={getStoredApiKey() || ''}
+            />
 
-      {/* 피드백 성장 분석 링크 */}
-      {session?.isAdultEducation && (
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">📊 피드백 성장 분석</h2>
-              <p className="text-gray-600">
-                참여자별 피드백 품질 성장 과정을 상세히 분석하고 추적합니다.
-              </p>
-            </div>
-            <Link href={`/teacher/session/${sessionId}/feedback-analytics`}>
-              <Button>
-                성장 분석 보기
-              </Button>
-            </Link>
+            {/* 피드백 성장 분석 링크 */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">📊 피드백 성장 분석</h2>
+                  <p className="text-gray-600">
+                    참여자별 피드백 품질 성장 과정을 상세히 분석하고 추적합니다.
+                  </p>
+                </div>
+                <Link href={`/teacher/session/${sessionId}/feedback-analytics`}>
+                  <Button>
+                    성장 분석 보기
+                  </Button>
+                </Link>
+              </div>
+            </Card>
           </div>
-        </Card>
+        </CollapsiblePanel>
       )}
 
-      {/* AI 분석 결과 */}
-      {analysisResult && (
-        <>
-          {/* 질문 그룹화 결과 */}
-          {analysisResult.clusteredQuestions && analysisResult.clusteredQuestions.length > 0 && (
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                질문 그룹 분석
-              </h2>
-              <div className="space-y-6">
-                {analysisResult.clusteredQuestions.map((cluster) => (
-                  <div key={cluster.clusterId} className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {cluster.clusterTitle}
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      {cluster.clusterSummary}
-                    </p>
-                    <div className="bg-gray-50 p-3 rounded-md mb-3">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        포함된 질문들:
-                      </h4>
-                      <ul className="text-sm text-gray-600 space-y-1">
-                        {cluster.questions.map((question, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-gray-400 mr-2">•</span>
-                            <span>{question}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="bg-blue-50 p-3 rounded-md">
-                      <p className="text-sm text-blue-800">
-                        <strong>활용 가이드:</strong> {cluster.combinationGuide}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* 활동 추천 */}
-          {analysisResult.recommendedActivities && analysisResult.recommendedActivities.length > 0 && (
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                추천 교육 활동
-              </h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {analysisResult.recommendedActivities.map((activity) => (
-                  <div key={activity.activityId} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {activity.activityTitle}
-                      </h3>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        activity.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                        activity.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {activity.difficulty === 'easy' ? '쉬움' :
-                         activity.difficulty === 'medium' ? '보통' : '어려움'}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">활동 유형:</span>
-                        <p className="text-sm text-gray-600">{activity.activityType}</p>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">설명:</span>
-                        <p className="text-sm text-gray-600">{activity.description}</p>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">소요 시간:</span>
-                        <p className="text-sm text-gray-600">{activity.timeRequired}</p>
-                      </div>
-                      
-                      {activity.materials && activity.materials.length > 0 && (
-                        <div>
-                          <span className="text-sm font-medium text-gray-700">필요 자료:</span>
-                          <ul className="text-sm text-gray-600 mt-1">
-                            {activity.materials.map((material, index) => (
-                              <li key={index} className="flex items-start">
-                                <span className="text-gray-400 mr-2">•</span>
-                                <span>{material}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      <div className="bg-blue-50 p-3 rounded-md">
-                        <span className="text-sm font-medium text-blue-900">추천 이유:</span>
-                        <p className="text-sm text-blue-800 mt-1">{activity.reason}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* 개념 정의 */}
-          {analysisResult.conceptDefinitions && analysisResult.conceptDefinitions.length > 0 && (
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                📚 주요 개념 설명
-              </h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {analysisResult.conceptDefinitions.map((concept, index) => (
-                  <div key={index} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-                    <div className="flex items-start mb-3">
-                      <div className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mr-3">
-                        📖
-                      </div>
-                      <h3 className="text-lg font-semibold text-blue-900">
-                        {concept.term}
-                      </h3>
-                    </div>
-                    
-                    <div className="space-y-3 ml-11">
-                      <div>
-                        <span className="text-sm font-medium text-blue-800">쉬운 설명:</span>
-                        <p className="text-sm text-blue-700 mt-1">{concept.definition}</p>
-                      </div>
-                      
-                      {concept.description && (
-                        <div>
-                          <span className="text-sm font-medium text-blue-800">예시:</span>
-                          <p className="text-sm text-blue-700 mt-1">{concept.description}</p>
-                        </div>
-                      )}
-                      
-                      <div className="bg-blue-100 p-3 rounded-md">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-blue-600">
-                            💡 <strong>교사 팁:</strong> 이 개념을 학생들에게 설명할 때 위의 예시를 활용해보세요!
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => shareConcept(concept)}
-                            className="text-xs px-2 py-1 h-6"
-                          >
-                            학생에게 공유
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-        </>
-      )}
+      {/* AI 분석 결과 - 레거시 분석 결과는 더 이상 여기서 렌더링하지 않음 */}
+      {/* 실제 분석은 상단의 AI 분석 패널 또는 각각의 전용 페이지에서 수행됨 */}
     </div>
   )
 }
