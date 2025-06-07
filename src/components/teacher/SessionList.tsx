@@ -50,82 +50,106 @@ export default function SessionList() {
     setDeletingSessionId(sessionId)
 
     try {
-      // 순차적으로 삭제하여 보안 규칙 충돌 방지
-      const deleteOperations = [
-        { name: '피드백 분석 결과', path: `feedbackAnalyses/${sessionId}` },
-        { name: '멘토링 매칭', path: `mentorshipMatches/${sessionId}` },
-        { name: '멘토십 프로필', path: `mentorshipProfiles/${sessionId}` },
-        { name: '피드백 응답', path: `feedbackResponses/${sessionId}` },
-        { name: '피드백 요청', path: `feedbackRequests/${sessionId}` },
-        { name: '공유 콘텐츠', path: `sharedContents/${sessionId}` },
-        { name: '질문', path: `questions/${sessionId}` },
-        { name: '세션', path: `sessions/${sessionId}` }
-      ]
+      const { get } = await import('firebase/database')
+      
+      // 먼저 세션이 실제로 존재하는지 확인
+      const sessionRef = ref(database, `sessions/${sessionId}`)
+      const sessionSnapshot = await get(sessionRef)
+      
+      if (!sessionSnapshot.exists()) {
+        console.log('세션이 이미 삭제되었거나 존재하지 않습니다.')
+        // 목록에서 제거하고 종료
+        setSessions(prevSessions => prevSessions.filter(s => s.sessionId !== sessionId))
+        alert('세션이 이미 삭제되었습니다.')
+        return
+      }
+
+      // 세션 데이터 확인 (권한 체크)
+      const sessionData = sessionSnapshot.val()
+      if (sessionData.teacherId !== user.uid) {
+        alert('권한이 없습니다. 본인이 생성한 세션만 삭제할 수 있습니다.')
+        return
+      }
 
       console.log('세션 삭제 시작:', sessionId)
 
+      // 존재하는 데이터만 삭제 (존재 여부 먼저 확인)
+      const deleteOperations = [
+        { name: '질문', path: `questions/${sessionId}` },
+        { name: '공유 콘텐츠', path: `sharedContents/${sessionId}` },
+        { name: '피드백 요청', path: `feedbackRequests/${sessionId}` },
+        { name: '피드백 응답', path: `feedbackResponses/${sessionId}` },
+        { name: '멘토링 매칭', path: `mentorshipMatches/${sessionId}` },
+        { name: '멘토 프로필', path: `mentorProfiles/${sessionId}` },
+        { name: '멘티 프로필', path: `menteeProfiles/${sessionId}` },
+        { name: '피드백 분석 결과', path: `feedbackAnalyses/${sessionId}` },
+        { name: '세션', path: `sessions/${sessionId}` } // 세션은 마지막에 삭제
+      ]
+
       let deletionErrors = []
+      let successfulDeletions = 0
       
-      // 순차적으로 삭제 실행
+      // 순차적으로 삭제 실행 (존재하는 것만)
       for (const operation of deleteOperations) {
         try {
           const deleteRef = ref(database, operation.path)
           
-          // 삭제 전 데이터 존재 여부 확인
-          const { get } = await import('firebase/database')
+          // 데이터 존재 여부 확인
           const snapshot = await get(deleteRef)
-          const existsBefore = snapshot.exists()
-          console.log(`${operation.name} 삭제 전 존재 여부:`, existsBefore)
+          const exists = snapshot.exists()
           
-          await remove(deleteRef)
-          
-          // 삭제 후 데이터 존재 여부 재확인
-          const snapshotAfter = await get(deleteRef)
-          const existsAfter = snapshotAfter.exists()
-          console.log(`${operation.name} 삭제 후 존재 여부:`, existsAfter)
-          
-          if (existsAfter && existsBefore) {
-            throw new Error(`${operation.name} 삭제가 실제로 실행되지 않았습니다. 권한 문제일 수 있습니다.`)
+          if (exists) {
+            console.log(`${operation.name} 삭제 시작:`, operation.path)
+            await remove(deleteRef)
+            
+            // 삭제 후 확인
+            const verifySnapshot = await get(deleteRef)
+            if (verifySnapshot.exists()) {
+              throw new Error(`${operation.name} 삭제가 완료되지 않았습니다.`)
+            }
+            
+            console.log(`${operation.name} 삭제 완료`)
+            successfulDeletions++
+          } else {
+            console.log(`${operation.name} 데이터 없음 - 건너뜀`)
           }
           
-          console.log(`${operation.name} 삭제 완료:`, operation.path)
+          // Firebase 동기화를 위한 약간의 딜레이
+          await new Promise(resolve => setTimeout(resolve, 100))
           
-          // 작은 딜레이로 Firebase 동기화 시간 확보
-          await new Promise(resolve => setTimeout(resolve, 200))
         } catch (error) {
           console.error(`${operation.name} 삭제 실패:`, error)
           deletionErrors.push(`${operation.name}: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
+          
+          // 세션 삭제 실패는 치명적이므로 중단
+          if (operation.name === '세션') {
+            throw error
+          }
         }
       }
 
       if (deletionErrors.length > 0) {
         console.warn('일부 삭제 작업 실패:', deletionErrors)
-        alert(`세션 삭제 중 일부 오류가 발생했습니다:\n${deletionErrors.join('\n')}`)
+        alert(`세션 삭제 중 일부 오류가 발생했습니다:\n${deletionErrors.join('\n')}\n\n${successfulDeletions}개 항목이 성공적으로 삭제되었습니다.`)
       } else {
-        console.log('모든 데이터 삭제 완료:', sessionId)
+        console.log(`세션 삭제 완료: ${successfulDeletions}개 항목 삭제됨`)
         alert('세션이 성공적으로 삭제되었습니다.')
       }
       
-      // 세션 목록에서 즉시 제거 (낙관적 업데이트)
+      // 세션 목록에서 즉시 제거
       setSessions(prevSessions => prevSessions.filter(s => s.sessionId !== sessionId))
-      
-      // Firebase 실시간 리스너로 인해 자동으로 업데이트되지만, 확실히 하기 위해 추가 체크
-      setTimeout(() => {
-        setSessions(prevSessions => prevSessions.filter(s => s.sessionId !== sessionId))
-      }, 1000)
       
     } catch (error) {
       console.error('세션 삭제 오류:', error)
       
-      // 더 자세한 오류 메시지 제공
       let errorMessage = '세션 삭제에 실패했습니다.'
       if (error instanceof Error) {
-        if (error.message.includes('permission')) {
-          errorMessage += '\n권한이 부족합니다. 본인이 생성한 세션만 삭제할 수 있습니다.'
-        } else if (error.message.includes('network')) {
-          errorMessage += '\n네트워크 연결을 확인해주세요.'
+        if (error.message.includes('permission') || error.message.includes('PERMISSION_DENIED')) {
+          errorMessage = '권한이 부족합니다. 본인이 생성한 세션만 삭제할 수 있습니다.'
+        } else if (error.message.includes('network') || error.message.includes('offline')) {
+          errorMessage = '네트워크 연결을 확인해주세요.'
         } else {
-          errorMessage += `\n오류: ${error.message}`
+          errorMessage += `\n\n오류 상세: ${error.message}`
         }
       }
       
