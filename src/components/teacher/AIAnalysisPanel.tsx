@@ -169,6 +169,8 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
 
     // 각 분석 타입별 결과 렌더링
     switch (activeTab) {
+      case 'comprehensive':
+        return renderComprehensiveAnalysis(result)
       case 'instructor':
         return renderInstructorAnalysis(result)
       case 'learner':
@@ -178,6 +180,92 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
       default:
         return <pre className="text-sm">{JSON.stringify(result, null, 2)}</pre>
     }
+  }
+
+  const renderComprehensiveAnalysis = (data: any) => {
+    if (!data.data) return null
+    const { sessionAnalysis, instructorAnalysis, nextSteps } = data.data
+
+    return (
+      <div className="space-y-6">
+        {/* 세션 분석 결과 */}
+        {sessionAnalysis && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              🎯 세션 분석 결과
+            </h4>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm font-medium text-gray-700">목표 달성도:</span>
+                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.goalAchievement}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">참여자 몰입도:</span>
+                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.participantEngagement}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">실무 적용성:</span>
+                  <p className="text-sm text-gray-900 mt-1">{sessionAnalysis.practicalApplication}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">개선 필요 영역:</span>
+                  <div className="mt-1">
+                    {sessionAnalysis.improvementAreas?.map((area: string, idx: number) => (
+                      <div key={idx} className="text-sm text-gray-900">• {area}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 교수자 분석 */}
+        {instructorAnalysis && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              👨‍🏫 교수자 관점 분석
+            </h4>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-medium text-blue-800">세션 효과성:</span>
+                  <p className="text-sm text-blue-700 mt-1">{instructorAnalysis.sessionEffectiveness?.goalAchievement}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-blue-800">참여자 몰입도:</span>
+                  <p className="text-sm text-blue-700 mt-1">{instructorAnalysis.sessionEffectiveness?.participantEngagement}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-blue-800">실무 적용성:</span>
+                  <p className="text-sm text-blue-700 mt-1">{instructorAnalysis.sessionEffectiveness?.practicalApplication}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 다음 단계 추천 */}
+        {nextSteps && nextSteps.length > 0 && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              🚀 추천 다음 단계
+            </h4>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="space-y-2">
+                {nextSteps.map((step: string, idx: number) => (
+                  <div key={idx} className="flex items-start">
+                    <span className="text-green-600 font-bold mr-2">{idx + 1}.</span>
+                    <span className="text-sm text-green-800">{step}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
   }
 
   const renderInstructorAnalysis = (data: any) => {
