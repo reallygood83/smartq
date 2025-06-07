@@ -17,163 +17,10 @@ type AnalysisType = 'quick' | 'detailed'
 
 export default function AIAnalysisPanel({ session, questions, sessionId }: AIAnalysisPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState<any>(null)
-  const [analysisType, setAnalysisType] = useState<AnalysisType>('quick')
 
   const hasApiKey = !!getStoredApiKey()
   const canAnalyze = hasApiKey && questions.length > 0
 
-  const handleAnalysis = async (type: AnalysisType) => {
-    if (!canAnalyze) return
-
-    setIsAnalyzing(true)
-    setAnalysisType(type)
-    const apiKey = getStoredApiKey()
-    
-    try {
-      const endpoint = type === 'quick' 
-        ? '/api/ai/analyze-questions'
-        : '/api/ai/analyze-adult-session'
-
-      const requestBody = {
-        questions: questions.map(q => q.text),
-        sessionType: session.sessionType,
-        subjects: session.subjects || ['general'], // 교과목 정보 추가
-        userApiKey: apiKey,
-        keywords: session.keywords || [],
-        educationLevel: session.isAdultEducation ? 'adult' : 'elementary',
-        adultLearnerType: session.adultLearnerType,
-        industryFocus: session.industryFocus,
-        difficultyLevel: session.difficultyLevel,
-        analysisType: type === 'detailed' ? 'comprehensive' : 'quick'
-      }
-
-      // 성인 교육 세션인 경우 추가 정보 포함
-      if (session.isAdultEducation && type === 'detailed') {
-        Object.assign(requestBody, {
-          sessionData: {
-            title: session.title,
-            participantCount: session.participantCount,
-            duration: session.duration,
-            learningGoals: session.learningGoals,
-            industryFocus: session.industryFocus,
-            difficultyLevel: session.difficultyLevel
-          }
-        })
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }))
-        throw new Error(`분석 실패: ${errorData.error || response.statusText}`)
-      }
-
-      const result = await response.json()
-      setAnalysisResult(result)
-      
-    } catch (error) {
-      console.error('AI 분석 오류:', error)
-      const errorMessage = error instanceof Error ? error.message : 'AI 분석 중 오류가 발생했습니다.'
-      alert(errorMessage)
-    } finally {
-      setIsAnalyzing(false)
-    }
-  }
-
-  const renderAnalysisResult = () => {
-    if (!analysisResult) return null
-
-    const data = analysisResult.data || analysisResult
-
-    return (
-      <div className="space-y-4">
-        {/* 주요 인사이트 */}
-        {data.sessionAnalysis && (
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-blue-900 mb-3">📊 세션 분석</h4>
-            <div className="space-y-2">
-              {Object.entries(data.sessionAnalysis).map(([key, value], idx) => (
-                value && (
-                  <div key={idx}>
-                    <span className="text-sm font-medium text-blue-800">
-                      {key === 'goalAchievement' ? '목표 달성도' :
-                       key === 'participantEngagement' ? '참여 수준' :
-                       key === 'effectiveness' ? '효과성' :
-                       key}:
-                    </span>
-                    <p className="text-sm text-blue-700 mt-1">
-                      {Array.isArray(value) ? value.join(', ') : String(value)}
-                    </p>
-                  </div>
-                )
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 추천 활동 */}
-        {data.activityRecommendations && (
-          <div className="bg-green-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-green-900 mb-3">🎯 추천 활동</h4>
-            <div className="space-y-2">
-              {Array.isArray(data.activityRecommendations) ? (
-                data.activityRecommendations.slice(0, 3).map((activity: any, idx: number) => (
-                  <div key={idx} className="text-sm">
-                    <span className="font-medium text-green-800">
-                      {typeof activity === 'object' ? (activity.title || `활동 ${idx + 1}`) : `활동 ${idx + 1}`}
-                    </span>
-                    <p className="text-green-700 mt-1">
-                      {typeof activity === 'object' ? activity.description : String(activity)}
-                    </p>
-                  </div>
-                ))
-              ) : typeof data.activityRecommendations === 'object' ? (
-                Object.entries(data.activityRecommendations).slice(0, 3).map(([key, value], idx) => (
-                  <div key={idx} className="text-sm">
-                    <span className="font-medium text-green-800">{key}</span>
-                    <p className="text-green-700 mt-1">{String(value)}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-green-700">{String(data.activityRecommendations)}</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* 개선 제안 */}
-        {(data.practicalAnalysis || data.recommendations) && (
-          <div className="bg-orange-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-orange-900 mb-3">💡 개선 제안</h4>
-            <div className="space-y-2">
-              {data.practicalAnalysis && typeof data.practicalAnalysis === 'object' ? (
-                Object.entries(data.practicalAnalysis).map(([key, value], idx) => (
-                  value && (
-                    <div key={idx} className="text-sm">
-                      <span className="font-medium text-orange-800">
-                        {key === 'recommendations' ? '실무 추천사항' : key}:
-                      </span>
-                      <p className="text-orange-700 mt-1">
-                        {Array.isArray(value) ? value.join(', ') : String(value)}
-                      </p>
-                    </div>
-                  )
-                ))
-              ) : data.recommendations ? (
-                <p className="text-sm text-orange-700">{String(data.recommendations)}</p>
-              ) : null}
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
 
   return (
     <Card className="mb-6">
@@ -228,72 +75,104 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
                   </div>
                 )}
 
-                {/* 질문 없음 안내 */}
-                {questions.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">
-                      학생들이 질문을 제출하면 분석을 시작할 수 있습니다.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* 분석 버튼 */}
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => handleAnalysis('quick')}
-                        disabled={!canAnalyze || isAnalyzing}
-                        isLoading={isAnalyzing && analysisType === 'quick'}
-                        size="sm"
-                      >
-                        {isAnalyzing && analysisType === 'quick' ? '분석 중...' : '⚡ 빠른 분석'}
-                      </Button>
-                      <Button
-                        onClick={() => handleAnalysis('detailed')}
-                        disabled={!canAnalyze || isAnalyzing}
-                        isLoading={isAnalyzing && analysisType === 'detailed'}
-                        variant="outline"
-                        size="sm"
-                      >
-                        {isAnalyzing && analysisType === 'detailed' ? '분석 중...' : '📊 상세 분석'}
-                      </Button>
+                {/* AI 분석 도구 - 단순화된 네비게이션 */}
+                <div className="space-y-4">
+                  {/* 현재 상태 요약 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">질문 현황</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          총 {questions.length}개의 질문이 제출되었습니다
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-blue-600">{questions.length}</div>
+                        <div className="text-xs text-gray-500">개 질문</div>
+                      </div>
                     </div>
-
-                    {/* 분석 결과 */}
-                    {analysisResult && (
-                      <div className="mt-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-sm font-medium text-gray-700">
-                            분석 결과 ({analysisType === 'quick' ? '빠른 분석' : '상세 분석'})
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            질문 {questions.length}개 분석
-                          </span>
-                        </div>
-                        {renderAnalysisResult()}
-                      </div>
-                    )}
-
-                    {/* 빠른 액션 */}
-                    {canAnalyze && (
-                      <div className="flex gap-2 pt-4 border-t">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.location.href = `/teacher/session/${sessionId}/comprehensive-analysis`}
-                        >
-                          📈 상세 분석 페이지
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.location.href = `/teacher/session/${sessionId}/real-time-monitoring`}
-                        >
-                          📡 실시간 모니터링
-                        </Button>
-                      </div>
-                    )}
                   </div>
-                )}
+
+                  {/* 분석 도구 바로가기 */}
+                  {questions.length > 0 ? (
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900">🔍 AI 분석 도구</h4>
+                      <div className="grid grid-cols-1 gap-3">
+                        {/* 종합 분석 */}
+                        <div className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h5 className="font-medium text-gray-900">📊 종합 분석</h5>
+                              <p className="text-sm text-gray-600 mt-1">
+                                질문 패턴, 학습 수준, 교육 효과를 종합적으로 분석합니다
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() => window.location.href = `/teacher/session/${sessionId}/comprehensive-analysis`}
+                            >
+                              분석하기
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* 실시간 모니터링 */}
+                        <div className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h5 className="font-medium text-gray-900">📡 실시간 모니터링</h5>
+                              <p className="text-sm text-gray-600 mt-1">
+                                세션 진행 상황과 참여도를 실시간으로 모니터링합니다
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.location.href = `/teacher/session/${sessionId}/real-time-monitoring`}
+                            >
+                              모니터링
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* 교육자 분석 - 성인 교육 세션만 */}
+                        {session.isAdultEducation && (
+                          <div className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h5 className="font-medium text-gray-900">👨‍🏫 교육자 분석</h5>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  교육 효과성과 개선 방안을 분석합니다
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.location.href = `/teacher/session/${sessionId}/instructor-analysis`}
+                              >
+                                분석하기
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="mb-4">
+                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        질문을 기다리고 있습니다
+                      </h3>
+                      <p className="text-gray-600">
+                        학생들이 질문을 제출하면 AI 분석을 시작할 수 있습니다.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
