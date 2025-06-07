@@ -14,9 +14,10 @@ import { useEducationLevel, useSmartTerminology, useLevelMessages } from '@/cont
 export default function HomePage() {
   const [sessionCode, setSessionCode] = useState('')
   const [showLevelSelector, setShowLevelSelector] = useState(false)
-  const { levelConfig, currentLevel, getTerminology, getTheme } = useEducationLevel()
+  const { levelConfig, currentLevel, getTerminology, getTheme, getCurrentTheme } = useEducationLevel()
   const { term, adapt, encouragement, sessionTerms } = useSmartTerminology()
   const { welcomeMessage, sessionStartMessage } = useLevelMessages()
+  const theme = getCurrentTheme()
 
   const sessionTypes = [
     {
@@ -115,16 +116,37 @@ export default function HomePage() {
             {adapt(`다양한 ${term('learning')} ${term('activity')}을(를) 지원합니다`)}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sessionTypes.map((session) => (
-              <Card key={session.type} className="hover:shadow-lg transition-shadow">
+            {sessionTypes.map((session, index) => (
+              <Card 
+                key={session.type} 
+                hover={true}
+                className="transition-all duration-300"
+                style={{
+                  animationDelay: `${index * 0.1}s`
+                }}
+              >
                 <div className="text-center">
-                  <div className="text-4xl mb-4">
+                  <div 
+                    className="mb-4 transition-transform duration-300 hover:scale-110"
+                    style={{ fontSize: '2.5rem' }}
+                  >
                     {getSessionTypeIcon(session.type)}
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 
+                    className="font-semibold mb-2"
+                    style={{ 
+                      fontSize: theme.typography.fontSize.lg,
+                      color: theme.colors.text.primary
+                    }}
+                  >
                     {getSessionTypeLabel(session.type)}
                   </h3>
-                  <p className="text-gray-600 text-sm">
+                  <p 
+                    style={{ 
+                      color: theme.colors.text.secondary,
+                      fontSize: theme.typography.fontSize.sm
+                    }}
+                  >
                     {session.description}
                   </p>
                 </div>

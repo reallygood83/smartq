@@ -150,8 +150,26 @@ export default function LevelSelector({
                     return (
                       <motion.div
                         key={level}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0, 
+                          scale: 1,
+                          transition: { 
+                            delay: Object.values(EducationLevel).indexOf(level) * 0.1,
+                            duration: 0.3,
+                            ease: "easeOut"
+                          }
+                        }}
+                        whileHover={{ 
+                          scale: 1.05, 
+                          y: -5,
+                          transition: { duration: 0.2 }
+                        }}
+                        whileTap={{ 
+                          scale: 0.95,
+                          transition: { duration: 0.1 }
+                        }}
                         className={`cursor-pointer transition-all duration-200 ${
                           !allowLevelChange && !isCurrent ? 'opacity-50 cursor-not-allowed' : ''
                         }`}

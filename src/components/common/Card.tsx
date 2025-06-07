@@ -1,35 +1,88 @@
+'use client'
+
+import { useFullTheme, useLevelAdaptiveComponents } from '@/contexts/EducationLevelContext'
+import { forwardRef } from 'react'
+
 interface CardProps {
   children: React.ReactNode;
   title?: string | React.ReactNode;
   className?: string;
   padding?: boolean;
+  style?: React.CSSProperties;
+  hover?: boolean;
+  onClick?: () => void;
 }
 
-function Card({ 
+const Card = forwardRef<HTMLDivElement, CardProps>(function Card({ 
   children, 
   title, 
   className = '',
-  padding = true 
-}: CardProps) {
-  const paddingClass = padding ? 'p-6' : '';
+  padding = true,
+  style = {},
+  hover = false,
+  onClick
+}, ref) {
+  const theme = useFullTheme()
+  const { CardPadding, FontSize } = useLevelAdaptiveComponents()
+  
+  const dynamicPadding = padding ? theme.spacing.component.padding : '0'
   
   return (
-    <div className={`bg-white rounded-lg shadow-md border border-gray-200 ${className}`}>
+    <div 
+      ref={ref}
+      className={`transition-all duration-300 ${hover ? 'hover:scale-105 cursor-pointer' : ''} ${className}`}
+      style={{
+        backgroundColor: theme.colors.surface,
+        borderRadius: theme.borders.radius.lg,
+        boxShadow: theme.shadows.md,
+        border: `${theme.borders.width.thin} solid ${theme.colors.border}`,
+        fontFamily: theme.typography.fontFamily.primary,
+        ...style
+      }}
+      onClick={onClick}
+      onMouseEnter={(e) => {
+        if (hover) {
+          e.currentTarget.style.boxShadow = theme.shadows.lg
+          e.currentTarget.style.borderColor = theme.colors.primary
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (hover) {
+          e.currentTarget.style.boxShadow = theme.shadows.md
+          e.currentTarget.style.borderColor = theme.colors.border
+        }
+      }}
+    >
       {title && (
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div 
+          className="border-b"
+          style={{
+            padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+            borderColor: theme.colors.border
+          }}
+        >
           {typeof title === 'string' ? (
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+            <h2 
+              className="font-semibold"
+              style={{
+                fontSize: theme.typography.fontSize.lg,
+                color: theme.colors.text.primary,
+                fontWeight: theme.typography.fontWeight.semibold
+              }}
+            >
+              {title}
+            </h2>
           ) : (
             title
           )}
         </div>
       )}
-      <div className={paddingClass}>
+      <div style={{ padding: dynamicPadding }}>
         {children}
       </div>
     </div>
   );
-}
+})
 
 export { Card }
 export default Card

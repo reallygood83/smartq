@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
-import { useThemeVariables } from '@/contexts/EducationLevelContext'
+import { useFullTheme, useLevelAdaptiveComponents } from '@/contexts/EducationLevelContext'
 import Button from './Button'
 import { useState } from 'react'
 
@@ -10,8 +10,9 @@ function Header() {
   const { user, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   
-  // 테마 변수 적용
-  useThemeVariables()
+  // 향상된 테마 시스템 적용
+  const theme = useFullTheme()
+  const { FontSize, CardPadding } = useLevelAdaptiveComponents()
 
   const handleLogout = async () => {
     try {
@@ -22,30 +23,115 @@ function Header() {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header 
+      className="shadow-sm border-b transition-all duration-300"
+      style={{ 
+        backgroundColor: theme.colors.surface,
+        borderColor: theme.colors.border,
+        height: theme.layout.header.height
+      }}
+    >
+      <div 
+        className="mx-auto px-4 sm:px-6 lg:px-8"
+        style={{ 
+          maxWidth: theme.layout.container.maxWidth,
+          padding: theme.layout.container.padding
+        }}
+      >
+        <div 
+          className="flex justify-between items-center"
+          style={{ height: theme.layout.header.height }}
+        >
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg mr-3">
+              <div 
+                className="text-white flex items-center justify-center font-bold mr-3 transition-all duration-300"
+                style={{
+                  backgroundColor: theme.colors.primary,
+                  width: theme.layout.header.height === '4rem' ? '2.5rem' : '2rem',
+                  height: theme.layout.header.height === '4rem' ? '2.5rem' : '2rem',
+                  borderRadius: theme.borders.radius.md,
+                  fontSize: theme.typography.fontSize.lg
+                }}
+              >
                 Q
               </div>
-              <span className="text-xl font-bold text-gray-900">SmartQ</span>
+              <span 
+                className="font-bold transition-all duration-300"
+                style={{
+                  fontSize: theme.typography.fontSize.xl,
+                  color: theme.colors.text.primary,
+                  fontFamily: theme.typography.fontFamily.primary
+                }}
+              >
+                SmartQ
+              </span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+          <nav 
+            className="hidden md:flex"
+            style={{ gap: theme.spacing.lg }}
+          >
+            <Link 
+              href="/" 
+              className="px-3 py-2 rounded-md font-medium transition-all duration-200 hover:scale-105"
+              style={{
+                color: theme.colors.text.secondary,
+                fontSize: theme.typography.fontSize.sm,
+                borderRadius: theme.borders.radius.md
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = theme.colors.primary
+                e.currentTarget.style.backgroundColor = theme.colors.background
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = theme.colors.text.secondary
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
               홈
             </Link>
             {user && (
               <>
-                <Link href="/teacher/dashboard" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                <Link 
+                  href="/teacher/dashboard" 
+                  className="px-3 py-2 rounded-md font-medium transition-all duration-200 hover:scale-105"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    fontSize: theme.typography.fontSize.sm,
+                    borderRadius: theme.borders.radius.md
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = theme.colors.primary
+                    e.currentTarget.style.backgroundColor = theme.colors.background
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = theme.colors.text.secondary
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
+                >
                   대시보드
                 </Link>
-                <Link href="/teacher/settings" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                <Link 
+                  href="/teacher/settings" 
+                  className="px-3 py-2 rounded-md font-medium transition-all duration-200 hover:scale-105"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    fontSize: theme.typography.fontSize.sm,
+                    borderRadius: theme.borders.radius.md
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = theme.colors.primary
+                    e.currentTarget.style.backgroundColor = theme.colors.background
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = theme.colors.text.secondary
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
+                >
                   설정
                 </Link>
               </>

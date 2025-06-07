@@ -14,6 +14,11 @@ import {
   type TerminologyMapping,
   type ToneSettings
 } from '@/lib/terminology'
+import { 
+  getThemeForLevel, 
+  applyThemeToDocument, 
+  type Theme 
+} from '@/styles/themes'
 
 interface EducationLevelContextType {
   currentLevel: EducationLevel
@@ -27,6 +32,10 @@ interface EducationLevelContextType {
   getTerminology: (term: keyof EducationLevelConfig['terminology']) => string
   getTheme: () => EducationLevelConfig['theme']
   getAIModifiers: () => EducationLevelConfig['aiPromptModifiers']
+  
+  // 향상된 테마 시스템
+  getFullTheme: () => Theme
+  getCurrentTheme: () => Theme
   
   // 스마트 용어 변환 함수들
   getSmartTerm: (term: keyof TerminologyMapping) => string
@@ -153,6 +162,15 @@ export function EducationLevelProvider({
     return adjustTextComplexity(text, currentLevel)
   }
 
+  // 향상된 테마 함수들
+  const getFullTheme = (): Theme => {
+    return getThemeForLevel(currentLevel, adultLearnerType)
+  }
+
+  const getCurrentTheme = (): Theme => {
+    return getThemeForLevel(currentLevel, adultLearnerType)
+  }
+
   const contextValue: EducationLevelContextType = {
     currentLevel,
     levelConfig,
@@ -164,6 +182,9 @@ export function EducationLevelProvider({
     getTerminology,
     getTheme,
     getAIModifiers,
+    // 향상된 테마 함수들
+    getFullTheme,
+    getCurrentTheme,
     // 스마트 용어 변환 함수들
     getSmartTerm,
     getTone,
@@ -193,7 +214,7 @@ export function useEducationLevel() {
   return context
 }
 
-// CSS 변수 동적 설정을 위한 훅
+// CSS 변수 동적 설정을 위한 훅 (기존 방식 - 호환성 유지)
 export function useThemeVariables() {
   const { getTheme, currentLevel } = useEducationLevel()
   
@@ -201,7 +222,7 @@ export function useThemeVariables() {
     const theme = getTheme()
     const root = document.documentElement
     
-    // CSS 커스텀 속성 동적 설정
+    // CSS 커스텀 속성 동적 설정 (기존 방식)
     root.style.setProperty('--smartq-primary-color', theme.primaryColor)
     root.style.setProperty('--smartq-secondary-color', theme.secondaryColor)
     root.style.setProperty('--smartq-background-color', theme.backgroundColor)
@@ -221,6 +242,31 @@ export function useThemeVariables() {
     document.body.classList.add(`smartq-level-${currentLevel}`)
     
   }, [currentLevel, getTheme])
+}
+
+// 향상된 테마 시스템을 위한 훅
+export function useFullTheme() {
+  const { getCurrentTheme, currentLevel, adultLearnerType } = useEducationLevel()
+  
+  useEffect(() => {
+    const fullTheme = getCurrentTheme()
+    applyThemeToDocument(fullTheme)
+    
+    // 레벨별 body 클래스 추가
+    document.body.className = document.body.className.replace(/smartq-level-\w+/g, '')
+    document.body.classList.add(`smartq-level-${currentLevel}`)
+    
+    // 성인 학습자 타입별 클래스 추가
+    if (currentLevel === EducationLevel.ADULT && adultLearnerType) {
+      document.body.classList.add(`smartq-adult-${adultLearnerType}`)
+    } else {
+      // 성인 타입 클래스 제거
+      document.body.className = document.body.className.replace(/smartq-adult-\w+/g, '')
+    }
+    
+  }, [getCurrentTheme, currentLevel, adultLearnerType])
+  
+  return getCurrentTheme()
 }
 
 // 레벨별 권한 확인 훅
