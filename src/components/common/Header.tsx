@@ -120,7 +120,7 @@ function Header() {
                 </Link>
                 <Link 
                   href="/teacher/settings" 
-                  className="px-3 py-2 rounded-md font-medium transition-all duration-200 hover:scale-105"
+                  className="px-3 py-2 rounded-md font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1"
                   style={{
                     color: theme.colors.text.secondary,
                     fontSize: theme.typography.fontSize.sm,
@@ -135,7 +135,8 @@ function Header() {
                     e.currentTarget.style.backgroundColor = 'transparent'
                   }}
                 >
-                  설정
+                  <span>⚙️</span>
+                  <span>설정</span>
                 </Link>
               </>
             )}
@@ -166,10 +167,11 @@ function Header() {
                     </div>
                     <Link 
                       href="/teacher/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      API 설정
+                      <span>⚙️</span>
+                      <span>설정</span>
                     </Link>
                     <button
                       onClick={() => {
@@ -216,8 +218,9 @@ function Header() {
                 <Link href="/teacher/dashboard" className="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
                   대시보드
                 </Link>
-                <Link href="/teacher/settings" className="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
-                  설정
+                <Link href="/teacher/settings" className="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 flex items-center space-x-2">
+                  <span>⚙️</span>
+                  <span>설정</span>
                 </Link>
                 <button
                   onClick={handleLogout}

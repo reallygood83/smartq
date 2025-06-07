@@ -1,69 +1,222 @@
-// SmartQ - API Key Encryption/Decryption Utilities
+/**
+ * SmartQ - API 키 암호화/복호화 및 안전한 저장을 위한 유틸리티
+ * 
+ * 보안 원칙:
+ * 1. 사용자 세션 기반 암호화
+ * 2. 서버에는 절대 저장하지 않음
+ * 3. localStorage에 암호화된 형태로만 저장
+ * 4. API 사용량 추적 및 모니터링
+ */
+
 import CryptoJS from 'crypto-js';
 
-// Generate a simple encryption key based on user session
-function getEncryptionKey(): string {
-  // Use a combination of timestamp and browser data for encryption
+/**
+ * 사용자 세션 기반 암호화 키 생성
+ * @param userSession - 사용자 세션 ID (Firebase UID 등)
+ */
+function getEncryptionKey(userSession?: string): string {
   const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent : 'server';
-  const timeKey = Math.floor(Date.now() / (1000 * 60 * 60 * 24)); // Changes daily
-  return CryptoJS.SHA256(userAgent + timeKey).toString();
+  const sessionKey = userSession || 'anonymous';
+  
+  // 더 안전한 키 생성을 위해 여러 요소 조합
+  return CryptoJS.SHA256(userAgent + sessionKey + 'smartq_2025').toString();
 }
 
-export function encryptApiKey(apiKey: string): string {
+/**
+ * API 키 암호화
+ * @param apiKey - 암호화할 Gemini API 키
+ * @param userSession - 사용자 세션 ID
+ */
+export function encryptApiKey(apiKey: string, userSession?: string): string {
   try {
-    const key = getEncryptionKey();
+    if (!apiKey.trim()) {
+      throw new Error('API 키가 비어있습니다');
+    }
+
+    const key = getEncryptionKey(userSession);
     return CryptoJS.AES.encrypt(apiKey, key).toString();
   } catch (error) {
-    console.error('Encryption error:', error);
-    throw new Error('Failed to encrypt API key');
+    console.error('API 키 암호화 실패:', error);
+    throw new Error('API 키 암호화에 실패했습니다');
   }
 }
 
-export function decryptApiKey(encryptedKey: string): string {
+/**
+ * API 키 복호화
+ * @param encryptedKey - 암호화된 API 키
+ * @param userSession - 사용자 세션 ID
+ */
+export function decryptApiKey(encryptedKey: string, userSession?: string): string {
   try {
-    const key = getEncryptionKey();
+    const key = getEncryptionKey(userSession);
     const bytes = CryptoJS.AES.decrypt(encryptedKey, key);
     const decrypted = bytes.toString(CryptoJS.enc.Utf8);
     
     if (!decrypted) {
-      throw new Error('Failed to decrypt API key');
+      throw new Error('복호화된 키가 비어있습니다');
     }
     
     return decrypted;
   } catch (error) {
-    console.error('Decryption error:', error);
-    throw new Error('Failed to decrypt API key');
+    console.error('API 키 복호화 실패:', error);
+    throw new Error('API 키 복호화에 실패했습니다. 다시 설정해주세요.');
   }
 }
 
-export function storeApiKey(apiKey: string): void {
+/**
+ * 암호화된 API 키를 localStorage에 저장
+ * @param apiKey - 저장할 API 키
+ * @param userSession - 사용자 세션 ID
+ */
+export function storeApiKey(apiKey: string, userSession?: string): void {
   try {
-    const encrypted = encryptApiKey(apiKey);
+    const encrypted = encryptApiKey(apiKey, userSession);
     localStorage.setItem('smartq_gemini_api_key', encrypted);
+    
+    // 저장 시간도 함께 기록 (만료 체크용)
+    localStorage.setItem('smartq_api_key_stored_at', Date.now().toString());
   } catch (error) {
-    console.error('Failed to store API key:', error);
-    throw new Error('Failed to store API key securely');
+    console.error('API 키 저장 실패:', error);
+    throw new Error('API 키 저장에 실패했습니다');
   }
 }
 
-export function getStoredApiKey(): string | null {
+/**
+ * localStorage에서 암호화된 API 키를 가져와서 복호화
+ * @param userSession - 사용자 세션 ID
+ */
+export function getStoredApiKey(userSession?: string): string | null {
   try {
     if (typeof window === 'undefined') return null;
     
     const encrypted = localStorage.getItem('smartq_gemini_api_key');
     if (!encrypted) return null;
+
+    // 저장된 지 너무 오래된 키는 무효화 (30일)
+    const storedAt = localStorage.getItem('smartq_api_key_stored_at');
+    if (storedAt) {
+      const daysSinceStored = (Date.now() - parseInt(storedAt)) / (1000 * 60 * 60 * 24);
+      if (daysSinceStored > 30) {
+        removeStoredApiKey();
+        return null;
+      }
+    }
     
-    return decryptApiKey(encrypted);
+    return decryptApiKey(encrypted, userSession);
   } catch (error) {
-    console.error('Failed to retrieve API key:', error);
-    // Clear invalid key
-    localStorage.removeItem('smartq_gemini_api_key');
+    console.error('저장된 API 키 가져오기 실패:', error);
+    // 복호화 실패 시 저장된 키 삭제
+    removeStoredApiKey();
     return null;
   }
 }
 
+/**
+ * 저장된 API 키 삭제
+ */
 export function removeStoredApiKey(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('smartq_gemini_api_key');
+    localStorage.removeItem('smartq_api_key_stored_at');
+    localStorage.removeItem('smartq_api_usage'); // 사용량 정보도 함께 삭제
   }
+}
+
+/**
+ * API 키가 저장되어 있는지 확인 (복호화하지 않고)
+ */
+export function hasStoredApiKey(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !!localStorage.getItem('smartq_gemini_api_key');
+}
+
+/**
+ * API 키 형식 검증
+ * @param apiKey - 검증할 API 키
+ */
+export function validateApiKeyFormat(apiKey: string): boolean {
+  if (!apiKey || typeof apiKey !== 'string') {
+    return false;
+  }
+
+  // Gemini API 키 형식: AIza로 시작하는 39자리 문자열
+  const geminiKeyPattern = /^AIza[A-Za-z0-9_-]{35}$/;
+  return geminiKeyPattern.test(apiKey.trim());
+}
+
+/**
+ * API 사용량 추적을 위한 인터페이스
+ */
+export interface ApiUsage {
+  date: string;
+  requestCount: number;
+  estimatedCost: number;
+  errors: number;
+  lastUpdated: number;
+}
+
+/**
+ * API 사용량 정보 저장
+ */
+export function trackApiUsage(requestCount: number = 1, estimatedCost: number = 0): void {
+  try {
+    if (typeof window === 'undefined') return;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const stored = localStorage.getItem('smartq_api_usage');
+    
+    let usage: ApiUsage = {
+      date: today,
+      requestCount: 0,
+      estimatedCost: 0,
+      errors: 0,
+      lastUpdated: Date.now()
+    };
+
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.date === today) {
+        usage = parsed;
+      }
+    }
+
+    usage.requestCount += requestCount;
+    usage.estimatedCost += estimatedCost;
+    usage.lastUpdated = Date.now();
+
+    localStorage.setItem('smartq_api_usage', JSON.stringify(usage));
+  } catch (error) {
+    console.error('API 사용량 추적 실패:', error);
+  }
+}
+
+/**
+ * API 사용량 정보 가져오기
+ */
+export function getApiUsage(): ApiUsage | null {
+  try {
+    if (typeof window === 'undefined') return null;
+    
+    const stored = localStorage.getItem('smartq_api_usage');
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.error('API 사용량 정보 가져오기 실패:', error);
+    return null;
+  }
+}
+
+/**
+ * API 키 마스킹 (UI 표시용)
+ * @param apiKey - 마스킹할 API 키
+ */
+export function maskApiKey(apiKey: string): string {
+  if (!apiKey || apiKey.length < 8) {
+    return '****';
+  }
+  
+  const start = apiKey.slice(0, 4);
+  const end = apiKey.slice(-4);
+  const middle = '*'.repeat(Math.max(4, apiKey.length - 8));
+  
+  return `${start}${middle}${end}`;
 }
