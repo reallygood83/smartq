@@ -388,3 +388,42 @@ export function getYouTubeEmbedUrl(url: string): string | null {
   
   return `https://www.youtube.com/embed/${videoId}`;
 }
+
+// Firebase에 저장하기 전에 undefined 값을 제거하는 함수
+export function sanitizeForFirebase<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return obj
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeForFirebase(item)) as T
+  }
+  
+  if (typeof obj === 'object') {
+    const sanitized = {} as T
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        (sanitized as any)[key] = sanitizeForFirebase(value)
+      }
+    }
+    return sanitized
+  }
+  
+  return obj
+}
+
+// AI 분석 결과에 sessionId를 추가하고 undefined 값을 제거하는 함수
+export function prepareAnalysisResultForFirebase(
+  result: MultiSubjectAnalysisResult, 
+  sessionId: string
+): MultiSubjectAnalysisResult {
+  const cleanResult = {
+    ...result,
+    conceptDefinitions: result.conceptDefinitions?.map(concept => ({
+      ...concept,
+      sessionId: sessionId
+    })) || []
+  }
+  
+  return sanitizeForFirebase(cleanResult)
+}

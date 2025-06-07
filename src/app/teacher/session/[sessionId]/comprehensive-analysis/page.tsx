@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { database } from '@/lib/firebase'
 import { ref, onValue, set } from 'firebase/database'
-import { Session, Question, MultiSubjectAnalysisResult } from '@/lib/utils'
+import { Session, Question, MultiSubjectAnalysisResult, prepareAnalysisResultForFirebase } from '@/lib/utils'
 import { getStoredApiKey } from '@/lib/encryption'
 import { analyzeQuestionsMultiSubject } from '@/lib/gemini'
 import { AdultLearnerType } from '@/types/education'
@@ -87,9 +87,12 @@ export default function ComprehensiveAnalysisPage() {
         session.keywords
       )
 
+      // 분석 결과를 Firebase용으로 정리
+      const cleanResult = prepareAnalysisResultForFirebase(result, sessionId)
+
       // 분석 결과를 Firebase에 저장
       const analysisRef = ref(database, `sessions/${sessionId}/aiAnalysisResult`)
-      await set(analysisRef, result)
+      await set(analysisRef, cleanResult)
       
       setAnalysisResult(result)
       alert('AI 분석이 완료되었습니다!')

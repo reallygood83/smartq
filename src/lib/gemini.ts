@@ -362,8 +362,8 @@ ${educationLevel === 'adult' ? `
         term: concept.term,
         definition: concept.definition,
         description: concept.example,
-        studentGroup: educationLevel,
-        sessionId: undefined // Will be set when saving
+        studentGroup: educationLevel
+        // sessionId는 undefined 대신 생략 - 나중에 호출하는 곳에서 설정
       })) || [];
     } catch (e) {
       console.error('JSON parsing error:', e);
