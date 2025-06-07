@@ -2,12 +2,19 @@
 
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEducationLevel, useThemeVariables } from '@/contexts/EducationLevelContext'
 import Button from './Button'
+import LevelSelector from './LevelSelector'
 import { useState } from 'react'
 
 function Header() {
   const { user, logout } = useAuth()
+  const { getTerminology } = useEducationLevel()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showLevelSelector, setShowLevelSelector] = useState(false)
+  
+  // 테마 변수 적용
+  useThemeVariables()
 
   const handleLogout = async () => {
     try {
@@ -31,22 +38,37 @@ function Header() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-              홈
-            </Link>
-            {user && (
-              <>
-                <Link href="/teacher/dashboard" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-                  대시보드
-                </Link>
-                <Link href="/teacher/settings" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-                  설정
-                </Link>
-              </>
-            )}
-          </nav>
+          {/* Education Level Display & Navigation */}
+          <div className="flex items-center space-x-6">
+            {/* Level Selector */}
+            <button
+              onClick={() => setShowLevelSelector(true)}
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              style={{ color: 'var(--smartq-primary-color)' }}
+            >
+              <LevelSelector showModal={false} />
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex space-x-8">
+              <Link href="/" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                홈
+              </Link>
+              {user && (
+                <>
+                  <Link href="/teacher/dashboard" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                    대시보드
+                  </Link>
+                  <Link href="/teacher/settings" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                    설정
+                  </Link>
+                </>
+              )}
+            </nav>
+          </div>
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
@@ -137,6 +159,13 @@ function Header() {
           </div>
         </div>
       )}
+
+      {/* Level Selector Modal */}
+      <LevelSelector 
+        showModal={showLevelSelector}
+        onClose={() => setShowLevelSelector(false)}
+        allowLevelChange={true}
+      />
     </header>
   )
 }

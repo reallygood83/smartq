@@ -6,11 +6,14 @@ import Header from '@/components/common/Header'
 import Footer from '@/components/common/Footer'
 import Button from '@/components/common/Button'
 import Card from '@/components/common/Card'
+import LevelSelector from '@/components/common/LevelSelector'
 import { getSessionTypeIcon, getSessionTypeLabel } from '@/lib/utils'
 import { SessionType } from '@/lib/utils'
+import { useEducationLevel } from '@/contexts/EducationLevelContext'
 
 export default function HomePage() {
   const [sessionCode, setSessionCode] = useState('')
+  const { levelConfig, level } = useEducationLevel()
 
   const sessionTypes = [
     {
@@ -43,6 +46,11 @@ export default function HomePage() {
     <>
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Education Level Selector */}
+        <div className="mb-12">
+          <LevelSelector />
+        </div>
+
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="flex justify-center mb-6">
@@ -56,15 +64,21 @@ export default function HomePage() {
           <p className="text-xl md:text-2xl text-gray-600 mb-2">
             모든 질문이 스마트한 학습이 되는 곳
           </p>
-          <p className="text-lg text-gray-500 mb-8">
+          <p className="text-lg text-gray-500 mb-2">
             AI 기반 다교과 질문 분석 및 활동 추천 서비스
+          </p>
+          <div className={`inline-block px-4 py-2 rounded-full text-white font-medium bg-gradient-to-r ${levelConfig.uiTheme.bgGradient}`}>
+            {levelConfig.label} 레벨 • {levelConfig.ageRange}
+          </div>
+          <p className="text-sm text-gray-500 mt-2 mb-8">
+            {levelConfig.description}
           </p>
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/teacher/dashboard">
               <Button size="lg" className="px-8 py-4 text-lg">
-                🍎 교사용 시작하기
+                {level === 'adult' ? '💼 진행자용 시작하기' : '🍎 교사용 시작하기'}
               </Button>
             </Link>
             <Button 
@@ -73,7 +87,7 @@ export default function HomePage() {
               className="px-8 py-4 text-lg"
               onClick={() => document.getElementById('student-access')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              📚 학생 세션 참여
+              {level === 'adult' ? '🎯 세션 참여하기' : '📚 학생 세션 참여'}
             </Button>
           </div>
         </div>

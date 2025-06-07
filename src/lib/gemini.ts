@@ -1,6 +1,8 @@
 // SmartQ - Gemini AI Integration with User API Keys
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { SessionType, Subject, QuestionCluster, ActivityRecommendation, TermDefinition } from './utils';
+import { EducationLevel, AdultSessionType } from '@/types/education';
+import { getEducationLevelPrompts, getTerminology } from './aiPrompts';
 
 // Subject-specific prompts for different educational contexts
 const SUBJECT_PROMPTS = {
@@ -63,16 +65,25 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
 // Cluster questions based on similarity
 export async function clusterQuestions(
   questions: string[], 
-  userApiKey: string
+  userApiKey: string,
+  educationLevel: EducationLevel = 'elementary',
+  adultSessionType?: AdultSessionType
 ): Promise<{ clusters: QuestionCluster[] }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
+    const levelPrompts = getEducationLevelPrompts(educationLevel, adultSessionType);
+    const terminology = getTerminology('student', educationLevel);
+    
     const prompt = `
-다음은 학생들이 제출한 질문 목록입니다. 
+${levelPrompts.systemPrompt}
+
+다음은 ${terminology}들이 제출한 질문 목록입니다. 
 이 질문들을 내용의 유사성에 따라 3-5개 그룹으로 묶고, 
 각 그룹의 핵심 내용을 요약한 뒤, '이 그룹의 질문들은 내용이 유사하여 함께 논의하거나 하나의 활동으로 연결할 수 있습니다.'라는 안내를 추가해주세요.
+
+${levelPrompts.questionAnalysisPrompt}
 
 응답은 JSON 형식으로 다음 구조를 따라주세요:
 {
@@ -116,7 +127,9 @@ export async function analyzeQuestionsMultiSubject(
   sessionType: SessionType,
   subjects: Subject[],
   userApiKey: string,
-  keywords: string[] = []
+  keywords: string[] = [],
+  educationLevel: EducationLevel = 'elementary',
+  adultSessionType?: AdultSessionType
 ): Promise<{
   clusteredQuestions: QuestionCluster[];
   recommendedActivities: ActivityRecommendation[];
@@ -128,10 +141,10 @@ export async function analyzeQuestionsMultiSubject(
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // First, cluster the questions
-    const clusteringResult = await clusterQuestions(questions, userApiKey)
+    const clusteringResult = await clusterQuestions(questions, userApiKey, educationLevel, adultSessionType)
     
     // Extract key concepts from questions
-    const conceptDefinitions = await extractConceptsFromQuestions(questions, sessionType, subjects, userApiKey);
+    const conceptDefinitions = await extractConceptsFromQuestions(questions, sessionType, subjects, userApiKey, educationLevel, adultSessionType);
 
     // Get subject-specific or generic prompts
     const subjectPrompts = subjects.map(subject => 
@@ -140,15 +153,21 @@ export async function analyzeQuestionsMultiSubject(
 
     const sessionTypeContext = getSessionTypeContext(sessionType);
     const keywordsText = keywords.length > 0 ? `추가 키워드: ${keywords.join(', ')}` : '';
+    const levelPrompts = getEducationLevelPrompts(educationLevel, adultSessionType);
+    const terminology = getTerminology('student', educationLevel);
 
     const prompt = `
-당신은 교육 전문가입니다. 다음 정보를 바탕으로 학생들의 질문을 분석하고 교육 활동을 제안해주세요.
+${levelPrompts.systemPrompt}
+
+당신은 교육 전문가입니다. 다음 정보를 바탕으로 ${terminology}들의 질문을 분석하고 교육 활동을 제안해주세요.
+
+${levelPrompts.topicRecommendationPrompt}
 
 세션 유형: ${sessionTypeContext}
 교과목: ${subjects.map(s => getSubjectLabel(s)).join(', ')}
 ${keywordsText}
 
-학생 질문 그룹 분석 결과:
+${terminology} 질문 그룹 분석 결과:
 ${JSON.stringify(clusteringResult.clusters, null, 2)}
 
 다음 형식으로 응답해주세요:
@@ -233,7 +252,9 @@ export async function extractConceptsFromQuestions(
   questions: string[],
   sessionType: SessionType,
   subjects: Subject[],
-  userApiKey: string
+  userApiKey: string,
+  educationLevel: EducationLevel = 'elementary',
+  adultSessionType?: AdultSessionType
 ): Promise<TermDefinition[]> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
@@ -241,28 +262,45 @@ export async function extractConceptsFromQuestions(
 
     const subjectContext = subjects.map(s => getSubjectLabel(s)).join(', ');
     const sessionContext = getSessionTypeContext(sessionType);
+    const levelPrompts = getEducationLevelPrompts(educationLevel, adultSessionType);
+    const terminology = getTerminology('student', educationLevel);
 
     const prompt = `
-당신은 초등학생을 위한 교육 전문가입니다. 다음 학생들의 질문에서 중요한 개념들을 찾아내고, 초등학생이 이해하기 쉽게 설명해주세요.
+${levelPrompts.systemPrompt}
+
+다음 ${terminology}들의 질문에서 중요한 개념들을 찾아내고, ${educationLevel === 'adult' ? '실무에 적용할 수 있도록' : '이해하기 쉽게'} 설명해주세요.
+
+${levelPrompts.termDefinitionPrompt}
 
 세션 유형: ${sessionContext}
 교과목: ${subjectContext}
 
-학생 질문들:
+${terminology} 질문들:
 ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 
 다음 기준으로 중요한 개념들을 추출하고 설명해주세요:
 
-1. 학생들이 어려워할 수 있는 전문 용어나 개념
-2. 교과서에 나오는 핵심 개념
-3. 학습에 꼭 필요한 기초 개념
-4. 학생들이 궁금해하는 현상이나 원리
+${educationLevel === 'adult' ? `
+1. 실무에서 자주 사용되는 전문 용어나 개념
+2. 업무 효율성과 직접 연관된 핵심 개념
+3. 팀워크와 협업에 필요한 기본 개념
+4. 참여자들이 궁금해하는 실무 원리
 
 각 개념은 다음과 같이 설명해주세요:
-- 초등학생 수준에 맞는 쉬운 언어 사용
+- 실무 경험과 연결된 실용적 설명
+- 구체적인 업무 상황 예시 활용
+- 바로 적용 가능한 방법론 포함
+- 참여자의 전문성 향상에 도움이 되는 방식` : `
+1. ${terminology}들이 어려워할 수 있는 전문 용어나 개념
+2. 교과서에 나오는 핵심 개념
+3. 학습에 꼭 필요한 기초 개념
+4. ${terminology}들이 궁금해하는 현상이나 원리
+
+각 개념은 다음과 같이 설명해주세요:
+- ${educationLevel} 수준에 맞는 적절한 언어 사용
 - 일상생활 예시나 비유 활용
 - 2-3문장으로 간단명료하게
-- 학생의 호기심을 자극하는 방식
+- ${terminology}의 호기심을 자극하는 방식`}
 
 응답 형식 (JSON):
 {
@@ -296,7 +334,7 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
         term: concept.term,
         definition: concept.definition,
         description: concept.example,
-        studentGroup: 'elementary',
+        studentGroup: educationLevel,
         sessionId: undefined // Will be set when saving
       })) || [];
     } catch (e) {
