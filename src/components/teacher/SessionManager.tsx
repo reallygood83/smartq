@@ -8,17 +8,11 @@ import { database } from '@/lib/firebase'
 import { ref, onValue, push, set, remove } from 'firebase/database'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
-import { analyzeQuestionsMultiSubject } from '@/lib/gemini'
 import { getStoredApiKey } from '@/lib/encryption'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import AdultSessionAnalysis from './AdultSessionAnalysis'
-import InstructorAnalysisDashboard from './InstructorAnalysisDashboard'
-import LearnerAnalysisDashboard from './LearnerAnalysisDashboard'
-import QualityMonitoringDashboard from './QualityMonitoringDashboard'
 import PeerFeedbackSystem from '@/components/feedback/PeerFeedbackSystem'
 import FeedbackQualityDashboard from '@/components/feedback/FeedbackQualityDashboard'
-import { AdultLearnerType } from '@/types/education'
 
 interface SessionManagerProps {
   sessionId: string
@@ -32,7 +26,6 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
   const [analysisResult, setAnalysisResult] = useState<MultiSubjectAnalysisResult | null>(null)
   const [sharedContents, setSharedContents] = useState<SharedContent[]>([])
   const [loading, setLoading] = useState(true)
-  const [analyzing, setAnalyzing] = useState(false)
   const [showContentForm, setShowContentForm] = useState(false)
   const [contentForm, setContentForm] = useState({
     title: '',
@@ -90,41 +83,6 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
     }
   }, [sessionId, router])
 
-  const handleAnalyzeQuestions = async () => {
-    if (!session || questions.length === 0) return
-
-    const apiKey = getStoredApiKey()
-    if (!apiKey) {
-      if (confirm('AI 분석을 위해 Gemini API 키가 필요합니다. 설정 페이지로 이동하시겠습니까?')) {
-        router.push('/teacher/settings')
-      }
-      return
-    }
-
-    setAnalyzing(true)
-    try {
-      const questionTexts = questions.map(q => q.text)
-      const result = await analyzeQuestionsMultiSubject(
-        questionTexts,
-        session.sessionType,
-        session.subjects,
-        apiKey,
-        session.keywords
-      )
-
-      // 분석 결과를 Firebase에 저장
-      const analysisRef = ref(database, `sessions/${sessionId}/aiAnalysisResult`)
-      await set(analysisRef, result)
-      
-      setAnalysisResult(result)
-      alert('AI 분석이 완료되었습니다!')
-    } catch (error) {
-      console.error('AI 분석 오류:', error)
-      alert('AI 분석 중 오류가 발생했습니다. API 키를 확인해주세요.')
-    } finally {
-      setAnalyzing(false)
-    }
-  }
 
   const copyStudentLink = () => {
     if (!session) return
@@ -329,15 +287,6 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           <h2 className="text-xl font-semibold text-gray-900">
             학생 질문 ({questions.length}개)
           </h2>
-          {questions.length > 0 && (
-            <Button
-              onClick={handleAnalyzeQuestions}
-              disabled={analyzing}
-              isLoading={analyzing}
-            >
-              AI 분석 실행
-            </Button>
-          )}
         </div>
 
         {questions.length === 0 ? (
@@ -602,122 +551,71 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button 
-              onClick={handleAnalyzeQuestions}
-              disabled={analyzing}
-              className="h-20 flex flex-col items-center justify-center"
-            >
-              <span className="text-2xl mb-1">🧩</span>
-              <span className="text-sm">질문 그룹 분석</span>
-            </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* 종합 분석 */}
+            <Link href={`/teacher/session/${sessionId}/comprehensive-analysis`}>
+              <Button 
+                className="h-24 flex flex-col items-center justify-center w-full"
+              >
+                <span className="text-2xl mb-1">📊</span>
+                <span className="text-sm font-medium">종합 분석</span>
+                <span className="text-xs text-gray-500">실무 분석, 학습 추천, 세션 평가</span>
+              </Button>
+            </Link>
             
+            {/* 실무 중심 분석 */}
             <Link href={`/teacher/session/${sessionId}/instructor-analysis`}>
               <Button 
                 variant="outline"
-                className="h-20 flex flex-col items-center justify-center w-full"
+                className="h-24 flex flex-col items-center justify-center w-full"
               >
-                <span className="text-2xl mb-1">👨‍🏫</span>
-                <span className="text-sm">교수자 분석</span>
+                <span className="text-2xl mb-1">🔒</span>
+                <span className="text-sm font-medium">실무 중심 분석</span>
+                <span className="text-xs text-gray-500">비즈니스 임팩트와 축적 역량 중심</span>
               </Button>
             </Link>
             
+            {/* 학습 활동 추천 */}
             <Link href={`/teacher/session/${sessionId}/learner-analysis`}>
               <Button 
                 variant="outline"
-                className="h-20 flex flex-col items-center justify-center w-full"
+                className="h-24 flex flex-col items-center justify-center w-full"
               >
-                <span className="text-2xl mb-1">🎓</span>
-                <span className="text-sm">학습자 분석</span>
+                <span className="text-2xl mb-1">🎯</span>
+                <span className="text-sm font-medium">학습 활동 추천</span>
+                <span className="text-xs text-gray-500">경험 기반 학습 활동과 실습 방법 제안</span>
               </Button>
             </Link>
             
+            {/* 세션 품질 분석 */}
             <Link href={`/teacher/session/${sessionId}/quality-monitoring`}>
               <Button 
                 variant="outline"
-                className="h-20 flex flex-col items-center justify-center w-full"
+                className="h-24 flex flex-col items-center justify-center w-full"
+              >
+                <span className="text-2xl mb-1">📈</span>
+                <span className="text-sm font-medium">세션 품질 분석</span>
+                <span className="text-xs text-gray-500">교수자/학습자 관점의 양방향 세션 평가</span>
+              </Button>
+            </Link>
+
+            {/* 실시간 모니터링 */}
+            <Link href={`/teacher/session/${sessionId}/real-time-monitoring`}>
+              <Button 
+                variant="outline"
+                className="h-24 flex flex-col items-center justify-center w-full"
               >
                 <span className="text-2xl mb-1">📊</span>
-                <span className="text-sm">품질 모니터링</span>
+                <span className="text-sm font-medium">실시간 모니터링</span>
+                <span className="text-xs text-gray-500">세션 진행 상황 및 참여도 실시간 추적</span>
               </Button>
             </Link>
           </div>
         )}
       </Card>
 
-      {/* 성인 교육 전용 AI 분석 */}
-      {session?.isAdultEducation && questions.length > 0 && getStoredApiKey() && (
-        <AdultSessionAnalysis
-          questions={questions.map(q => q.text)}
-          sessionType={session.sessionType}
-          adultLearnerType={session.adultLearnerType || AdultLearnerType.PROFESSIONAL}
-          userApiKey={getStoredApiKey() || ''}
-          industryFocus={session.industryFocus}
-          difficultyLevel={session.difficultyLevel}
-          participantCount={session.participantCount}
-          duration={session.duration}
-        />
-      )}
-
-      {/* 교수자 관점 교육 효과성 분석 */}
-      {questions.length > 0 && getStoredApiKey() && (
-        <InstructorAnalysisDashboard
-          questions={questions.map(q => q.text)}
-          sessionType={session.sessionType}
-          adultLearnerType={session?.adultLearnerType}
-          userApiKey={getStoredApiKey() || ''}
-          sessionData={session ? {
-            title: session.title,
-            participantCount: session.participantCount,
-            duration: session.duration,
-            learningGoals: session.learningGoals,
-            industryFocus: session.industryFocus,
-            difficultyLevel: session.difficultyLevel
-          } : undefined}
-        />
-      )}
-
-      {/* 학습자 관점 성과 분석 */}
-      {questions.length > 0 && getStoredApiKey() && (
-        <LearnerAnalysisDashboard
-          questions={questions.map(q => q.text)}
-          sessionType={session.sessionType}
-          adultLearnerType={session?.adultLearnerType}
-          userApiKey={getStoredApiKey() || ''}
-          sessionData={session ? {
-            title: session.title,
-            participantCount: session.participantCount,
-            duration: session.duration,
-            learningGoals: session.learningGoals,
-            industryFocus: session.industryFocus,
-            difficultyLevel: session.difficultyLevel
-          } : undefined}
-        />
-      )}
-
-      {/* 실시간 교육 품질 모니터링 */}
-      {questions.length > 0 && getStoredApiKey() && (
-        <QualityMonitoringDashboard
-          questions={questions.map(q => q.text)}
-          sessionType={session.sessionType}
-          adultLearnerType={session?.adultLearnerType}
-          userApiKey={getStoredApiKey() || ''}
-          sessionData={session ? {
-            title: session.title,
-            participantCount: session.participantCount,
-            duration: session.duration,
-            learningGoals: session.learningGoals,
-            industryFocus: session.industryFocus,
-            difficultyLevel: session.difficultyLevel
-          } : undefined}
-          realTimeData={{
-            activeParticipants: questions.length, // 질문을 제출한 참여자 수로 근사치
-            questionSubmissionRate: Math.min(100, (questions.length / parseInt(session?.participantCount?.split('-')[0] || '10')) * 100),
-            avgResponseTime: 45, // 기본값
-            sessionDuration: Math.floor((Date.now() - session.createdAt) / (1000 * 60)) // 세션 시작부터 현재까지의 시간
-          }}
-        />
-      )}
+      {/* AI 분석 결과 표시 영역 - 더 이상 여기서 렌더링하지 않음 */}
+      {/* 실제 분석은 각각의 전용 페이지에서 수행됨 */}
 
       {/* 전문적 피드백 시스템 */}
       {session?.isAdultEducation && (
