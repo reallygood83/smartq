@@ -39,9 +39,13 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
       const requestBody = {
         questions: questions.map(q => q.text),
         sessionType: session.sessionType,
+        subjects: session.subjects || ['general'], // 교과목 정보 추가
         userApiKey: apiKey,
+        keywords: session.keywords || [],
         educationLevel: session.isAdultEducation ? 'adult' : 'elementary',
         adultLearnerType: session.adultLearnerType,
+        industryFocus: session.industryFocus,
+        difficultyLevel: session.difficultyLevel,
         analysisType: type === 'detailed' ? 'comprehensive' : 'quick'
       }
 
@@ -65,14 +69,18 @@ export default function AIAnalysisPanel({ session, questions, sessionId }: AIAna
         body: JSON.stringify(requestBody)
       })
 
-      if (!response.ok) throw new Error('분석 실패')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }))
+        throw new Error(`분석 실패: ${errorData.error || response.statusText}`)
+      }
 
       const result = await response.json()
       setAnalysisResult(result)
       
     } catch (error) {
       console.error('AI 분석 오류:', error)
-      alert('AI 분석 중 오류가 발생했습니다.')
+      const errorMessage = error instanceof Error ? error.message : 'AI 분석 중 오류가 발생했습니다.'
+      alert(errorMessage)
     } finally {
       setIsAnalyzing(false)
     }
