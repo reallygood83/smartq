@@ -1,0 +1,39 @@
+{
+  "rules": {
+    "sessions": {
+      ".indexOn": ["teacherId", "accessCode", "createdAt"],
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid == data.child('teacherId').val() || !data.exists())"
+      }
+    },
+    "questions": {
+      "$sessionId": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": ["createdAt"]
+      }
+    },
+    "sharedContents": {
+      "$sessionId": {
+        ".read": true,
+        ".write": "auth != null",
+        ".indexOn": ["createdAt"]
+      }
+    },
+    "feedbackRequests": {
+      "$sessionId": {
+        ".read": true,
+        ".write": "auth != null",
+        ".indexOn": ["requesterId", "createdAt", "status"]
+      }
+    },
+    "feedbackResponses": {
+      "$sessionId": {
+        ".read": true,
+        ".write": "auth != null",
+        ".indexOn": ["requestId", "reviewerId", "submittedAt"]
+      }
+    }
+  }
+}

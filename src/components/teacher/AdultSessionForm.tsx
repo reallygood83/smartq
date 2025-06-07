@@ -129,9 +129,9 @@ export default function AdultSessionForm() {
     setIsLoading(true)
     
     try {
+      // 세션 생성을 위한 기본 데이터
       const sessionData = {
         ...formData,
-        sessionId: generateSessionCode(),
         accessCode: generateSessionCode(),
         createdAt: Date.now(),
         teacherId: user.uid,
@@ -143,6 +143,15 @@ export default function AdultSessionForm() {
       const sessionsRef = ref(database, 'sessions')
       const newSessionRef = await push(sessionsRef, sessionData)
       const newSessionId = newSessionRef.key
+      
+      // sessionId를 업데이트하여 저장
+      if (newSessionId) {
+        const sessionRef = ref(database, `sessions/${newSessionId}`)
+        await set(sessionRef, {
+          ...sessionData,
+          sessionId: newSessionId
+        })
+      }
 
       // 콘텐츠가 있으면 함께 저장
       if (sharedContents.length > 0 && newSessionId) {
