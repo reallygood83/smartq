@@ -185,35 +185,60 @@ export default function TeacherDashboardPage() {
 
         {/* 멘토-멘티 매칭 시스템 */}
         {sessions.some(session => session.isAdultEducation) && (
-          <Card className="p-6 mb-6 bg-purple-50 border-purple-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-purple-900 mb-2">
-                  🤝 멘토-멘티 매칭 시스템
-                </h3>
-                <p className="text-purple-800 text-sm mb-3">
-                  성인 교육 세션의 멘토-멘티 매칭을 관리하고 분석하세요.
-                </p>
-                <div className="text-xs text-purple-700">
-                  • AI 기반 최적 매칭 • 피드백 품질 분석 • 성장 추적 대시보드
+          <Card className="p-6 mb-8 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+            <div className="mb-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-xl">🤝</span>
                 </div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  멘토-멘티 매칭 관리
+                </h3>
               </div>
-              <div className="space-y-2">
-                {sessions
-                  .filter(session => session.isAdultEducation)
-                  .slice(0, 2)
-                  .map(session => (
-                    <Link key={session.sessionId} href={`/teacher/mentorship/${session.sessionId}`}>
-                      <Button size="sm" variant="outline" className="block w-full text-left">
-                        {session.title}
-                      </Button>
-                    </Link>
-                  ))}
-                {sessions.filter(session => session.isAdultEducation).length > 2 && (
-                  <div className="text-xs text-purple-600 text-center">
-                    +{sessions.filter(session => session.isAdultEducation).length - 2}개 더
+              <p className="text-gray-600 text-sm ml-13">
+                성인 교육 세션에서 활성화된 멘토링 프로그램을 관리하세요.
+              </p>
+            </div>
+
+            {/* 성인 교육 세션 목록 */}
+            <div className="space-y-3">
+              {sessions
+                .filter(session => session.isAdultEducation)
+                .map(session => (
+                  <div key={session.sessionId} className="bg-white p-4 rounded-lg border border-purple-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">{session.title}</h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          세션 코드: <span className="font-mono font-bold">{session.accessCode}</span>
+                        </p>
+                      </div>
+                      <Link href={`/teacher/mentorship/${session.sessionId}`}>
+                        <Button size="sm">
+                          매칭 관리
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
-                )}
+                ))}
+            </div>
+
+            {/* 교사가 할 수 있는 기능 설명 */}
+            <div className="mt-6 p-4 bg-purple-100 rounded-lg">
+              <h4 className="font-medium text-purple-900 mb-2">📋 교사 권한으로 가능한 작업</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-purple-800">
+                <div className="flex items-start gap-2">
+                  <span>✓</span>
+                  <span>참여자 프로필 조회 및 매칭 현황 확인</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span>✓</span>
+                  <span>AI 매칭 알고리즘 실행 및 조정</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span>✓</span>
+                  <span>매칭 품질 분석 및 개선 권고사항 확인</span>
+                </div>
               </div>
             </div>
           </Card>
