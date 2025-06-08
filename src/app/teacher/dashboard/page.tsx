@@ -75,7 +75,7 @@ export default function TeacherDashboardPage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-lg text-gray-600 dark:text-gray-200">페이지 로딩 중...</div>
+        <div className="text-lg text-gray-600 dark:text-white">페이지 로딩 중...</div>
       </div>
     )
   }
@@ -235,7 +235,7 @@ export default function TeacherDashboardPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-gray-900 dark:text-white">{session.title}</h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-200 mt-1">
+                        <p className="text-sm text-gray-500 dark:text-white mt-1">
                           세션 코드: <span className="font-mono font-bold">{session.accessCode}</span>
                         </p>
                       </div>

@@ -103,7 +103,7 @@ export default function LevelSelector({
             {EDUCATION_LEVEL_CONFIGS[currentLevel].displayName}
           </span>
           {adultLearnerType && (
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 dark:text-gray-200">
               {ADULT_LEARNER_CONFIGS[adultLearnerType].displayName}
             </div>
           )}
@@ -136,7 +136,7 @@ export default function LevelSelector({
                   <h2 className="text-3xl font-bold text-gray-900 mb-2">
                     교육 레벨을 선택해주세요
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-200">
                     사용자에게 맞는 최적화된 경험을 제공해드립니다
                   </p>
                 </div>
@@ -194,11 +194,11 @@ export default function LevelSelector({
                               {config.displayName}
                             </h3>
                             
-                            <p className="text-xs text-gray-600 mb-2">
+                            <p className="text-xs text-gray-600 dark:text-gray-200 mb-2">
                               {config.ageRange}
                             </p>
                             
-                            <p className="text-xs text-gray-700 mb-3 leading-relaxed">
+                            <p className="text-xs text-gray-700 dark:text-gray-200 mb-3 leading-relaxed">
                               {config.description}
                             </p>
                             
@@ -212,7 +212,7 @@ export default function LevelSelector({
                                 </div>
                               ))}
                               {config.characteristics.length > 2 && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-500 dark:text-gray-200">
                                   +{config.characteristics.length - 2}개 더
                                 </div>
                               )}
@@ -248,7 +248,7 @@ export default function LevelSelector({
                   <h2 className="text-3xl font-bold text-gray-900 mb-2">
                     성인 학습자 유형을 선택해주세요
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-200">
                     학습 목적에 맞는 맞춤형 기능을 제공해드립니다
                   </p>
                 </div>
@@ -284,13 +284,13 @@ export default function LevelSelector({
                                 {config.displayName}
                               </h3>
                               
-                              <p className="text-sm text-gray-600 mb-4">
+                              <p className="text-sm text-gray-600 dark:text-gray-200 mb-4">
                                 {config.description}
                               </p>
                               
                               <div className="space-y-2">
                                 <div>
-                                  <span className="text-xs font-medium text-gray-700">주요 영역:</span>
+                                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200">주요 영역:</span>
                                   <div className="flex flex-wrap gap-1 mt-1">
                                     {config.focusAreas.map((area, index) => (
                                       <span 
@@ -303,7 +303,7 @@ export default function LevelSelector({
                                   </div>
                                 </div>
                                 
-                                <div className="flex justify-between text-xs text-gray-500">
+                                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-200">
                                   <span>권장 시간: {config.sessionDuration}</span>
                                 </div>
                               </div>

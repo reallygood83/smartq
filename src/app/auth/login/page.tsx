@@ -62,7 +62,7 @@ export default function LoginPage() {
             <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
               교사 로그인
             </h2>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-200">
               SmartQ 서비스를 이용하기 위해 로그인하세요
             </p>
           </div>
@@ -73,7 +73,7 @@ export default function LoginPage() {
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                   Google 계정으로 시작하기
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                <p className="text-sm text-gray-600 dark:text-gray-200 mb-6">
                   교사 인증을 위해 Google 계정을 사용합니다
                 </p>
               </div>
@@ -107,7 +107,7 @@ export default function LoginPage() {
               </Button>
 
               <div className="text-center">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-200">
                   계속 진행하면{' '}
                   <Link href="/terms" className="text-blue-600 hover:text-blue-500">
                     이용약관

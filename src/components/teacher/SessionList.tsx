@@ -198,7 +198,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
           아직 생성된 세션이 없습니다
         </h3>
-        <p className="text-gray-600 dark:text-gray-200 mb-6">
+        <p className="text-gray-600 dark:text-white mb-6">
           첫 번째 세션을 만들어 학생들과 함께 스마트한 학습을 시작해보세요.
         </p>
         <Link href="/teacher/session/create">
@@ -226,14 +226,14 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
             placeholder="세션 제목, 학습 목표, 키워드로 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-200"
           />
         </div>
 
         {/* 교과목 필터 */}
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-100">교과목 필터:</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-white">교과목 필터:</span>
             {Object.values(Subject).map((subject) => {
               const isSelected = selectedSubjects.includes(subject)
               return (
@@ -243,7 +243,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
                   className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                     isSelected 
                       ? getSubjectColor(subject)
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   {getSubjectLabel(subject)}
@@ -303,7 +303,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
 
       {/* 결과 요약 */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-600 dark:text-gray-200">
+        <div className="text-sm text-gray-600 dark:text-white">
           총 {sessions.length}개 세션 중 {filteredSessions.length}개 표시
         </div>
         {filteredSessions.length > 0 && (
@@ -326,7 +326,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             {(selectedSubjects.length > 0 || searchQuery) ? '검색 결과가 없습니다' : '생성된 세션이 없습니다'}
           </h3>
-          <p className="text-gray-600 dark:text-gray-200 mb-6">
+          <p className="text-gray-600 dark:text-white mb-6">
             {(selectedSubjects.length > 0 || searchQuery) ? (
               <>
                 다른 검색어나 필터를 시도해보세요.
@@ -364,7 +364,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
                 </span>
               </div>
 
-              <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-200 mb-3">
+              <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-white mb-3">
                 <span>접속 코드: <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{session.accessCode}</span></span>
                 <span>생성일: {new Date(session.createdAt).toLocaleDateString()}</span>
               </div>
@@ -385,14 +385,14 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
 
               {/* 학습 목표 */}
               {session.learningGoals && (
-                <p className="text-sm text-gray-600 dark:text-gray-200 mb-3">
+                <p className="text-sm text-gray-600 dark:text-white mb-3">
                   <span className="font-medium">학습 목표:</span> {session.learningGoals}
                 </p>
               )}
 
               {/* 키워드 */}
               {session.keywords && session.keywords.length > 0 && (
-                <p className="text-sm text-gray-600 dark:text-gray-200 mb-3">
+                <p className="text-sm text-gray-600 dark:text-white mb-3">
                   <span className="font-medium">키워드:</span> {session.keywords.join(', ')}
                 </p>
               )}
@@ -403,13 +403,13 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                     {session.targetAudience && (
                       <div>
-                        <span className="font-medium text-gray-700 dark:text-gray-200">대상:</span>
-                        <span className="ml-1 text-gray-600 dark:text-gray-200">{session.targetAudience}</span>
+                        <span className="font-medium text-gray-700 dark:text-white">대상:</span>
+                        <span className="ml-1 text-gray-600 dark:text-white">{session.targetAudience}</span>
                       </div>
                     )}
                     {session.difficultyLevel && (
                       <div>
-                        <span className="font-medium text-gray-700 dark:text-gray-200">난이도:</span>
+                        <span className="font-medium text-gray-700 dark:text-white">난이도:</span>
                         <span className={`ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                           session.difficultyLevel === 'beginner' ? 'bg-green-100 text-green-800' :
                           session.difficultyLevel === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
@@ -424,14 +424,14 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
                     )}
                     {session.duration && (
                       <div>
-                        <span className="font-medium text-gray-700 dark:text-gray-200">시간:</span>
-                        <span className="ml-1 text-gray-600 dark:text-gray-200">{session.duration}</span>
+                        <span className="font-medium text-gray-700 dark:text-white">시간:</span>
+                        <span className="ml-1 text-gray-600 dark:text-white">{session.duration}</span>
                       </div>
                     )}
                     {session.deliveryFormat && (
                       <div>
-                        <span className="font-medium text-gray-700 dark:text-gray-200">진행:</span>
-                        <span className="ml-1 text-gray-600 dark:text-gray-200">
+                        <span className="font-medium text-gray-700 dark:text-white">진행:</span>
+                        <span className="ml-1 text-gray-600 dark:text-white">
                           {session.deliveryFormat === 'in-person' ? '대면' :
                            session.deliveryFormat === 'online' ? '온라인' : '하이브리드'}
                         </span>

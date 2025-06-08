@@ -167,7 +167,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">🔑 Gemini API 키 설정</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-200 mt-1">
                 AI 분석 기능을 사용하려면 개인 Gemini API 키가 필요합니다
               </p>
             </div>
@@ -185,7 +185,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">현재 저장된 키:</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-100">현재 저장된 키:</p>
                   <p className="text-sm text-gray-900 dark:text-white font-mono">
                     {showKey ? currentKey : maskApiKey(currentKey)}
                   </p>
@@ -222,7 +222,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
           {/* 새 API 키 입력 */}
           <div className="space-y-4">
             <div>
-              <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+              <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
                 {isStored ? '새 API 키로 변경' : 'Gemini API 키 입력'}
               </label>
               <div className="flex space-x-3">
@@ -232,7 +232,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="AIza로 시작하는 39자리 키를 입력하세요"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-300"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-200"
                 />
                 <Button
                   onClick={handleSaveKey}
@@ -263,7 +263,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
       <Card>
         <div className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">📋 API 키 발급 안내</h3>
-          <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+          <div className="space-y-3 text-sm text-gray-700 dark:text-gray-200">
             <div className="flex items-start space-x-3">
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">1</span>
               <div>
@@ -282,28 +282,28 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">2</span>
               <div>
                 <p className="font-medium">Google 계정으로 로그인</p>
-                <p className="text-gray-600 dark:text-gray-400">개인 Google 계정 사용 권장</p>
+                <p className="text-gray-600 dark:text-gray-200">개인 Google 계정 사용 권장</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">3</span>
               <div>
                 <p className="font-medium">"Get API key" 클릭</p>
-                <p className="text-gray-600 dark:text-gray-400">좌측 메뉴 또는 홈페이지에서 찾을 수 있습니다</p>
+                <p className="text-gray-600 dark:text-gray-200">좌측 메뉴 또는 홈페이지에서 찾을 수 있습니다</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">4</span>
               <div>
                 <p className="font-medium">"Create API key" 선택</p>
-                <p className="text-gray-600 dark:text-gray-400">새 프로젝트를 생성하거나 기존 프로젝트 선택</p>
+                <p className="text-gray-600 dark:text-gray-200">새 프로젝트를 생성하거나 기존 프로젝트 선택</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">5</span>
               <div>
                 <p className="font-medium">API 키 복사</p>
-                <p className="text-gray-600 dark:text-gray-400">AIza로 시작하는 39자리 키를 복사하여 위에 입력</p>
+                <p className="text-gray-600 dark:text-gray-200">AIza로 시작하는 39자리 키를 복사하여 위에 입력</p>
               </div>
             </div>
           </div>
@@ -329,7 +329,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
                 <div className="text-sm text-red-800">오류 횟수</div>
               </div>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
+            <p className="text-xs text-gray-500 dark:text-gray-200 mt-4">
               마지막 업데이트: {new Date(usage.lastUpdated).toLocaleString('ko-KR')}
             </p>
           </div>
@@ -340,7 +340,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
       <Card>
         <div className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">🔒 보안 및 개인정보 보호</h3>
-          <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+          <div className="space-y-3 text-sm text-gray-700 dark:text-gray-200">
             <div className="flex items-start space-x-3">
               <span className="text-green-600">✅</span>
               <p>API 키는 브라우저에서만 암호화되어 저장됩니다</p>

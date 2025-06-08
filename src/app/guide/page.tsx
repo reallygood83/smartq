@@ -16,7 +16,7 @@ export default function GuidePage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             SmartQ 사용 가이드
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-600 dark:text-gray-200">
             AI 기반 스마트한 교육 활동을 위한 완벽 가이드
           </p>
         </div>
@@ -37,7 +37,7 @@ export default function GuidePage() {
                 1단계: 구글 계정으로 로그인
               </h3>
               <div className="space-y-4">
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-200">
                   SmartQ는 구글 계정을 통한 안전한 로그인을 제공합니다. 
                   교육용 구글 계정이나 개인 구글 계정을 사용하실 수 있습니다.
                 </p>
@@ -62,7 +62,7 @@ export default function GuidePage() {
                 2단계: Gemini API 키 설정
               </h3>
               <div className="space-y-4">
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-200">
                   SmartQ의 AI 기능을 사용하기 위해 개인 Gemini API 키가 필요합니다.
                 </p>
                 <div className="bg-blue-50 p-4 rounded-lg">
@@ -101,13 +101,13 @@ export default function GuidePage() {
                 3단계: 학습 세션 생성
               </h3>
               <div className="space-y-4">
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-200">
                   수업에 맞는 세션을 생성하고 학생들을 초대하세요.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">세션 유형 선택</h4>
-                    <ul className="text-sm text-gray-700 space-y-1">
+                    <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
                       <li>💬 토론/논제 발굴</li>
                       <li>🔬 탐구 활동</li>
                       <li>🧮 문제 해결</li>
@@ -118,7 +118,7 @@ export default function GuidePage() {
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">교과목 설정</h4>
-                    <ul className="text-sm text-gray-700 space-y-1">
+                    <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
                       <li>• 단일 또는 다중 교과목 선택</li>
                       <li>• 학습 목표 입력 (선택)</li>
                       <li>• 키워드 설정 (선택)</li>
@@ -138,7 +138,7 @@ export default function GuidePage() {
                 4단계: 학생 초대 및 세션 관리
               </h3>
               <div className="space-y-4">
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-200">
                   생성된 세션의 접속 코드를 학생들에게 공유하고 실시간으로 질문을 모니터링하세요.
                 </p>
                 <div className="bg-purple-50 p-4 rounded-lg">
@@ -159,7 +159,7 @@ export default function GuidePage() {
                 5단계: AI 분석 결과 활용
               </h3>
               <div className="space-y-4">
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-200">
                   학생들의 질문이 수집되면 AI 분석을 실행하여 맞춤형 교육 활동을 제안받으세요.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -201,7 +201,7 @@ export default function GuidePage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   세션 참여 방법
                 </h3>
-                <ol className="text-gray-700 space-y-2 list-decimal list-inside">
+                <ol className="text-gray-700 dark:text-gray-200 space-y-2 list-decimal list-inside">
                   <li>선생님이 제공한 6자리 접속 코드 확인</li>
                   <li>SmartQ 홈페이지 방문</li>
                   <li>'학생용 참여하기' 버튼 클릭</li>
@@ -213,7 +213,7 @@ export default function GuidePage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   질문 작성 팁
                 </h3>
-                <ul className="text-gray-700 space-y-2 list-disc list-inside">
+                <ul className="text-gray-700 dark:text-gray-200 space-y-2 list-disc list-inside">
                   <li>구체적이고 명확한 질문 작성</li>
                   <li>궁금한 점을 솔직하게 표현</li>
                   <li>익명 또는 실명 선택 가능</li>
@@ -265,7 +265,7 @@ export default function GuidePage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Q. SmartQ 사용에 비용이 발생하나요?
               </h3>
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-200">
                 SmartQ 플랫폼 자체는 무료입니다. 다만 AI 기능 사용을 위해 개인 Gemini API 키가 필요하며, 
                 Google에서 월 15 USD의 무료 크레딧을 제공합니다.
               </p>
@@ -275,7 +275,7 @@ export default function GuidePage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Q. API 키 없이도 사용할 수 있나요?
               </h3>
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-200">
                 세션 생성, 질문 수집 등 기본 기능은 API 키 없이도 사용 가능합니다. 
                 AI 분석 기능만 API 키가 필요합니다.
               </p>
@@ -285,7 +285,7 @@ export default function GuidePage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Q. 한 번에 몇 명의 학생이 참여할 수 있나요?
               </h3>
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-200">
                 Firebase 실시간 데이터베이스를 사용하여 수십 명의 학생이 동시 참여 가능합니다. 
                 정확한 제한은 네트워크 환경에 따라 달라질 수 있습니다.
               </p>
@@ -295,7 +295,7 @@ export default function GuidePage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Q. 데이터는 어떻게 보관되나요?
               </h3>
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-200">
                 세션과 질문 데이터는 Firebase에 안전하게 저장됩니다. 
                 API 키는 암호화되어 브라우저에만 저장되며, 서버에는 저장되지 않습니다.
               </p>
@@ -308,7 +308,7 @@ export default function GuidePage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             지금 바로 시작해보세요!
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-200 mb-6">
             SmartQ로 더 스마트한 교육을 경험해보세요
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

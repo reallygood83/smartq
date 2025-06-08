@@ -35,11 +35,11 @@ export default function ThemeToggle() {
           className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <span className="text-lg">{currentTheme.icon}</span>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          <span className="text-sm font-medium text-gray-700 dark:text-white">
             {currentTheme.label}
           </span>
           <svg 
-            className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-gray-500 dark:text-gray-200 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -70,7 +70,7 @@ export default function ThemeToggle() {
                     className={`w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
                       theme === themeOption.value 
                         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
-                        : 'text-gray-700 dark:text-gray-200'
+                        : 'text-gray-700 dark:text-white'
                     }`}
                   >
                     <span className="text-lg">{themeOption.icon}</span>

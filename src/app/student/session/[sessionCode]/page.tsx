@@ -305,7 +305,7 @@ export default function StudentSessionPage() {
                         )}
                       </div>
                       
-                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-300">
+                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-200">
                         {new Date(content.createdAt).toLocaleString('ko-KR')}
                       </div>
                     </div>
