@@ -279,7 +279,7 @@ export default function CreateSessionForm() {
             <select
               value={newMaterial.type}
               onChange={(e) => setNewMaterial(prev => ({ ...prev, type: e.target.value as any }))}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             >
               <option value="text">텍스트</option>
               <option value="youtube">YouTube 동영상</option>
@@ -292,7 +292,7 @@ export default function CreateSessionForm() {
                 value={newMaterial.content || ''}
                 onChange={(e) => setNewMaterial(prev => ({ ...prev, content: e.target.value }))}
                 placeholder="텍스트 내용"
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:col-span-2"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 md:col-span-2"
               />
             )}
             
@@ -302,7 +302,7 @@ export default function CreateSessionForm() {
                 value={newMaterial.url || ''}
                 onChange={(e) => setNewMaterial(prev => ({ ...prev, url: e.target.value }))}
                 placeholder={newMaterial.type === 'youtube' ? 'YouTube URL' : '웹사이트 URL'}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:col-span-2"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 md:col-span-2"
               />
             )}
           </div>
