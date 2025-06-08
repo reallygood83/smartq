@@ -130,13 +130,53 @@ export default function AdultSessionForm() {
     
     try {
       // 세션 생성을 위한 기본 데이터
-      const sessionData = {
-        ...formData,
+      const sessionData: any = {
+        title: formData.title,
+        sessionType: formData.sessionType,
+        adultLearnerType: formData.adultLearnerType,
+        subjects: formData.subjects,
+        difficultyLevel: formData.difficultyLevel,
+        deliveryFormat: formData.deliveryFormat,
+        certificationOffered: formData.certificationOffered,
+        networkingOpportunities: formData.networkingOpportunities,
         accessCode: generateSessionCode(),
         createdAt: Date.now(),
         teacherId: user.uid,
         isAdultEducation: true,
         educationLevel: currentLevel
+      }
+
+      // Optional fields - only add if they have values
+      if (formData.learningGoals.trim()) {
+        sessionData.learningGoals = formData.learningGoals.trim()
+      }
+      
+      if (formData.targetAudience.trim()) {
+        sessionData.targetAudience = formData.targetAudience.trim()
+      }
+      
+      if (formData.prerequisites.trim()) {
+        sessionData.prerequisites = formData.prerequisites.trim()
+      }
+      
+      if (formData.duration) {
+        sessionData.duration = formData.duration
+      }
+      
+      if (formData.participantCount) {
+        sessionData.participantCount = formData.participantCount
+      }
+      
+      if (formData.materials.trim()) {
+        sessionData.materials = formData.materials.trim()
+      }
+      
+      if (formData.keywords.length > 0) {
+        sessionData.keywords = formData.keywords
+      }
+      
+      if (formData.industryFocus.trim()) {
+        sessionData.industryFocus = formData.industryFocus.trim()
       }
 
       // 세션 생성

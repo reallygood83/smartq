@@ -53,17 +53,30 @@ export default function CreateSessionForm() {
     setIsLoading(true)
     try {
       const accessCode = generateSessionCode()
-      const sessionData: Session = {
+      const sessionData: any = {
         sessionId: '', // Will be set by Firebase
         title: title.trim(),
         accessCode,
         createdAt: Date.now(),
         teacherId: user.uid,
         sessionType,
-        subjects,
-        learningGoals: learningGoals.trim() || undefined,
-        materials: materials.length > 0 ? materials : undefined,
-        keywords: keywords.trim() ? keywords.split(',').map(k => k.trim()).filter(k => k) : undefined
+        subjects
+      }
+
+      // Optional fields - only add if they have values
+      if (learningGoals.trim()) {
+        sessionData.learningGoals = learningGoals.trim()
+      }
+      
+      if (materials.length > 0) {
+        sessionData.materials = materials
+      }
+      
+      if (keywords.trim()) {
+        const keywordList = keywords.split(',').map(k => k.trim()).filter(k => k)
+        if (keywordList.length > 0) {
+          sessionData.keywords = keywordList
+        }
       }
 
       const sessionsRef = ref(database, 'sessions')
