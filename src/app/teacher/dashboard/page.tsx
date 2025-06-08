@@ -26,44 +26,67 @@ export default function TeacherDashboardPage() {
 
   // 세션 목록 로드
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setSessionsLoading(false)
+      return
+    }
+
+    setSessionsLoading(true)
 
     const sessionsRef = ref(database, 'sessions')
     const userSessionsQuery = query(sessionsRef, orderByChild('teacherId'), equalTo(user.uid))
 
-    const unsubscribe = onValue(userSessionsQuery, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        const sessionsList = Object.values(data) as Session[]
-        // 최신순으로 정렬
-        sessionsList.sort((a, b) => b.createdAt - a.createdAt)
-        setSessions(sessionsList)
-        
-        // AI 분석 결과가 있는 가장 최근 세션 찾기
-        const sessionWithAnalysis = sessionsList.find(session => session.aiAnalysisResult)
-        setLatestSessionWithAnalysis(sessionWithAnalysis || null)
-      } else {
+    const unsubscribe = onValue(userSessionsQuery, 
+      (snapshot) => {
+        try {
+          const data = snapshot.val()
+          if (data) {
+            const sessionsList = Object.values(data) as Session[]
+            // 최신순으로 정렬
+            sessionsList.sort((a, b) => b.createdAt - a.createdAt)
+            setSessions(sessionsList)
+            
+            // AI 분석 결과가 있는 가장 최근 세션 찾기
+            const sessionWithAnalysis = sessionsList.find(session => session.aiAnalysisResult)
+            setLatestSessionWithAnalysis(sessionWithAnalysis || null)
+          } else {
+            setSessions([])
+            setLatestSessionWithAnalysis(null)
+          }
+          setSessionsLoading(false)
+        } catch (error) {
+          console.error('세션 데이터 처리 오류:', error)
+          setSessions([])
+          setLatestSessionWithAnalysis(null)
+          setSessionsLoading(false)
+        }
+      },
+      (error) => {
+        console.error('Firebase 세션 로드 오류:', error)
         setSessions([])
         setLatestSessionWithAnalysis(null)
+        setSessionsLoading(false)
       }
-      setSessionsLoading(false)
-    })
+    )
 
     return () => unsubscribe()
   }, [user])
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">로딩 중...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-lg text-gray-600 dark:text-gray-300">페이지 로딩 중...</div>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">로딩 중...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="text-lg text-gray-600 dark:text-gray-300">인증 확인 중...</div>
+        </div>
       </div>
     )
   }
@@ -73,7 +96,7 @@ export default function TeacherDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -81,10 +104,10 @@ export default function TeacherDashboardPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 교사 대시보드
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 안녕하세요, {user.displayName || user.email}님! 
                 SmartQ로 스마트한 교육을 시작해보세요.
               </p>
@@ -108,11 +131,11 @@ export default function TeacherDashboardPage() {
                   <span className="text-sm font-bold">1</span>
                 </div>
               </div>
-              <h3 className="ml-3 text-lg font-medium text-gray-900">
+              <h3 className="ml-3 text-lg font-medium text-gray-900 dark:text-white">
                 API 키 설정
               </h3>
             </div>
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
               AI 기능 사용을 위해 Gemini API 키를 설정하세요.
             </p>
             <Link href="/teacher/settings">
@@ -129,11 +152,11 @@ export default function TeacherDashboardPage() {
                   <span className="text-sm font-bold">2</span>
                 </div>
               </div>
-              <h3 className="ml-3 text-lg font-medium text-gray-900">
+              <h3 className="ml-3 text-lg font-medium text-gray-900 dark:text-white">
                 세션 만들기
               </h3>
             </div>
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
               새로운 학습 세션을 만들고 학생들을 초대하세요.
             </p>
             <Link href="/teacher/session/create">
@@ -150,16 +173,19 @@ export default function TeacherDashboardPage() {
                   <span className="text-sm font-bold">3</span>
                 </div>
               </div>
-              <h3 className="ml-3 text-lg font-medium text-gray-900">
+              <h3 className="ml-3 text-lg font-medium text-gray-900 dark:text-white">
                 AI 분석 확인
               </h3>
             </div>
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
               학생 질문들을 AI가 분석한 결과를 확인하세요.
             </p>
             {sessionsLoading ? (
               <Button variant="outline" size="sm" disabled>
-                로딩 중...
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                  <span>로딩 중...</span>
+                </div>
               </Button>
             ) : sessions.length > 0 ? (
               latestSessionWithAnalysis ? (
@@ -191,11 +217,11 @@ export default function TeacherDashboardPage() {
                 <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
                   <span className="text-xl">🤝</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                   멘토-멘티 매칭 관리
                 </h3>
               </div>
-              <p className="text-gray-600 text-sm ml-13">
+              <p className="text-gray-600 dark:text-gray-300 text-sm ml-13">
                 성인 교육 세션에서 활성화된 멘토링 프로그램을 관리하세요.
               </p>
             </div>
@@ -208,8 +234,8 @@ export default function TeacherDashboardPage() {
                   <div key={session.sessionId} className="bg-white p-4 rounded-lg border border-purple-100">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-gray-900">{session.title}</h4>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <h4 className="font-medium text-gray-900 dark:text-white">{session.title}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           세션 코드: <span className="font-mono font-bold">{session.accessCode}</span>
                         </p>
                       </div>
@@ -247,7 +273,7 @@ export default function TeacherDashboardPage() {
         {/* 세션 목록 */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               내 세션 목록
             </h2>
             <Link href="/teacher/session/create">
@@ -257,12 +283,19 @@ export default function TeacherDashboardPage() {
             </Link>
           </div>
           
-          <SessionList />
+          <SessionList 
+            sessions={sessions}
+            loading={sessionsLoading}
+            onSessionDeleted={(sessionId) => {
+              // 실시간 Firebase 리스너가 자동으로 처리하므로 별도 작업 불필요
+              console.log('세션 삭제됨:', sessionId)
+            }}
+          />
         </Card>
 
         {/* 사용 가이드 링크 */}
         <div className="mt-8 text-center">
-          <p className="text-gray-600 text-sm mb-4">
+          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
             SmartQ 사용법이 궁금하신가요?
           </p>
           <Link 

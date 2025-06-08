@@ -1,43 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Session, Subject } from '@/lib/utils'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor } from '@/lib/utils'
 import { database } from '@/lib/firebase'
-import { ref, query, orderByChild, equalTo, onValue, remove } from 'firebase/database'
+import { ref, remove } from 'firebase/database'
 import { Button } from '@/components/common/Button'
 import Link from 'next/link'
 
-export default function SessionList() {
+interface SessionListProps {
+  sessions: Session[]
+  loading: boolean
+  onSessionDeleted: (sessionId: string) => void
+}
+
+export default function SessionList({ sessions, loading, onSessionDeleted }: SessionListProps) {
   const { user } = useAuth()
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [loading, setLoading] = useState(true)
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
   const [selectedSubjects, setSelectedSubjects] = useState<Subject[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-
-  useEffect(() => {
-    if (!user) return
-
-    const sessionsRef = ref(database, 'sessions')
-    const userSessionsQuery = query(sessionsRef, orderByChild('teacherId'), equalTo(user.uid))
-
-    const unsubscribe = onValue(userSessionsQuery, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        const sessionsList = Object.values(data) as Session[]
-        // 최신순으로 정렬
-        sessionsList.sort((a, b) => b.createdAt - a.createdAt)
-        setSessions(sessionsList)
-      } else {
-        setSessions([])
-      }
-      setLoading(false)
-    })
-
-    return () => unsubscribe()
-  }, [user])
 
   // 세션 필터링
   const filteredSessions = sessions.filter((session) => {
@@ -174,8 +156,8 @@ export default function SessionList() {
         alert('세션이 성공적으로 삭제되었습니다.')
       }
       
-      // 세션 목록에서 즉시 제거
-      setSessions(prevSessions => prevSessions.filter(s => s.sessionId !== sessionId))
+      // 부모 컴포넌트에 세션 삭제 알림
+      onSessionDeleted(sessionId)
       
     } catch (error) {
       console.error('세션 삭제 오류:', error)
