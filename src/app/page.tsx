@@ -10,6 +10,7 @@ import LevelSelector from '@/components/common/LevelSelector'
 import { getSessionTypeIcon, getSessionTypeLabel, getSessionTypeDescription, getRecommendedSessionTypes } from '@/lib/utils'
 import { SessionType } from '@/lib/utils'
 import { useEducationLevel, useSmartTerminology, useLevelMessages } from '@/contexts/EducationLevelContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 export default function HomePage() {
   const [sessionCode, setSessionCode] = useState('')
@@ -17,6 +18,7 @@ export default function HomePage() {
   const { levelConfig, currentLevel, getTerminology, getTheme, getCurrentTheme } = useEducationLevel()
   const { term, adapt, encouragement, sessionTerms } = useSmartTerminology()
   const { welcomeMessage, sessionStartMessage } = useLevelMessages()
+  const { resolvedTheme } = useTheme()
   const theme = getCurrentTheme()
 
   // 교육 레벨에 따라 세션 타입 동적 선택
@@ -47,6 +49,13 @@ export default function HomePage() {
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
             Smart<span className="text-blue-600 dark:text-blue-400">Q</span>
           </h1>
+          
+          {/* 다크모드 상태 표시 (개발용 - 나중에 제거 가능) */}
+          <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+            현재 모드: <span className="font-semibold text-blue-600 dark:text-blue-400">
+              {resolvedTheme === 'dark' ? '🌙 다크 모드' : '☀️ 라이트 모드'}
+            </span>
+          </div>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-2">
             {adapt('모든 질문이 스마트한 학습이 되는 곳')}
           </p>
@@ -221,7 +230,7 @@ export default function HomePage() {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center bg-blue-50 dark:bg-gray-800 rounded-2xl p-12">
+        <div className="text-center bg-blue-50 dark:bg-slate-800 rounded-2xl p-12 border dark:border-slate-600">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             지금 시작해보세요!
           </h2>
