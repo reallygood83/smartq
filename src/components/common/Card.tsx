@@ -30,12 +30,10 @@ const Card = forwardRef<HTMLDivElement, CardProps>(function Card({
   return (
     <div 
       ref={ref}
-      className={`transition-all duration-300 ${hover ? 'hover:scale-105 cursor-pointer' : ''} ${className}`}
+      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 transition-all duration-300 ${hover ? 'hover:scale-105 cursor-pointer' : ''} ${className}`}
       style={{
-        backgroundColor: theme.colors.surface,
         borderRadius: theme.borders.radius.lg,
         boxShadow: theme.shadows.md,
-        border: `${theme.borders.width.thin} solid ${theme.colors.border}`,
         fontFamily: theme.typography.fontFamily.primary,
         ...style
       }}

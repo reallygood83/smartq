@@ -127,7 +127,7 @@ export default function TeacherDashboardPage() {
           <Card className="p-6">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-lg flex items-center justify-center">
                   <span className="text-sm font-bold">1</span>
                 </div>
               </div>
@@ -148,7 +148,7 @@ export default function TeacherDashboardPage() {
           <Card className="p-6">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 rounded-lg flex items-center justify-center">
                   <span className="text-sm font-bold">2</span>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function TeacherDashboardPage() {
           <Card className="p-6">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 rounded-lg flex items-center justify-center">
                   <span className="text-sm font-bold">3</span>
                 </div>
               </div>
@@ -211,10 +211,10 @@ export default function TeacherDashboardPage() {
 
         {/* 멘토-멘티 매칭 시스템 */}
         {sessions.some(session => session.isAdultEducation) && (
-          <Card className="p-6 mb-8 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+          <Card className="p-6 mb-8 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-purple-200 dark:border-purple-600">
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 rounded-lg flex items-center justify-center">
                   <span className="text-xl">🤝</span>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -231,7 +231,7 @@ export default function TeacherDashboardPage() {
               {sessions
                 .filter(session => session.isAdultEducation)
                 .map(session => (
-                  <div key={session.sessionId} className="bg-white p-4 rounded-lg border border-purple-100">
+                  <div key={session.sessionId} className="bg-white dark:bg-gray-700 p-4 rounded-lg border border-purple-100 dark:border-purple-600">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-gray-900 dark:text-white">{session.title}</h4>
@@ -250,9 +250,9 @@ export default function TeacherDashboardPage() {
             </div>
 
             {/* 교사가 할 수 있는 기능 설명 */}
-            <div className="mt-6 p-4 bg-purple-100 rounded-lg">
-              <h4 className="font-medium text-purple-900 mb-2">📋 교사 권한으로 가능한 작업</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-purple-800">
+            <div className="mt-6 p-4 bg-purple-100 dark:bg-purple-800/30 rounded-lg">
+              <h4 className="font-medium text-purple-900 dark:text-purple-200 mb-2">📋 교사 권한으로 가능한 작업</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-purple-800 dark:text-purple-200">
                 <div className="flex items-start gap-2">
                   <span>✓</span>
                   <span>참여자 프로필 조회 및 매칭 현황 확인</span>
