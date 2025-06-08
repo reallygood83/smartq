@@ -124,7 +124,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
             onChange={() => setIsAnonymous(true)}
             className="text-blue-600 focus:ring-blue-500"
           />
-          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">익명으로 질문하기</span>
+          <span className="ml-2 text-sm text-gray-700 dark:text-gray-200">익명으로 질문하기</span>
         </label>
         <label className="flex items-center">
           <input
@@ -134,14 +134,14 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
             onChange={() => setIsAnonymous(false)}
             className="text-blue-600 focus:ring-blue-500"
           />
-          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">이름을 남기고 질문하기</span>
+          <span className="ml-2 text-sm text-gray-700 dark:text-gray-200">이름을 남기고 질문하기</span>
         </label>
       </div>
 
       {/* 이름 입력 (익명이 아닌 경우) */}
       {!isAnonymous && (
         <div>
-          <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             이름
           </label>
           <input
@@ -158,7 +158,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
 
       {/* 질문 입력 */}
       <div>
-        <label htmlFor="questionText" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label htmlFor="questionText" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
           질문 내용
         </label>
         <textarea
@@ -170,7 +170,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
           placeholder={getPlaceholderText(sessionType)}
           required
         />
-        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-1 text-xs text-gray-500 dark:text-gray-300">
           {questionText.length}/500자
         </div>
       </div>

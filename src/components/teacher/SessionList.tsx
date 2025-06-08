@@ -233,7 +233,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
         {/* 교과목 필터 */}
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">교과목 필터:</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">교과목 필터:</span>
             {Object.values(Subject).map((subject) => {
               const isSelected = selectedSubjects.includes(subject)
               return (
@@ -243,7 +243,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
                   className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                     isSelected 
                       ? getSubjectColor(subject)
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   {getSubjectLabel(subject)}
@@ -303,7 +303,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
 
       {/* 결과 요약 */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-sm text-gray-600 dark:text-gray-300">
           총 {sessions.length}개 세션 중 {filteredSessions.length}개 표시
         </div>
         {filteredSessions.length > 0 && (
@@ -364,7 +364,7 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
                 </span>
               </div>
 
-              <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+              <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300 mb-3">
                 <span>접속 코드: <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{session.accessCode}</span></span>
                 <span>생성일: {new Date(session.createdAt).toLocaleDateString()}</span>
               </div>
@@ -385,14 +385,14 @@ export default function SessionList({ sessions, loading, onSessionDeleted }: Ses
 
               {/* 학습 목표 */}
               {session.learningGoals && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   <span className="font-medium">학습 목표:</span> {session.learningGoals}
                 </p>
               )}
 
               {/* 키워드 */}
               {session.keywords && session.keywords.length > 0 && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   <span className="font-medium">키워드:</span> {session.keywords.join(', ')}
                 </p>
               )}
