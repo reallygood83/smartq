@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from '@/contexts/AuthContext';
 import { EducationLevelProvider } from '@/contexts/EducationLevelContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 export const metadata: Metadata = {
   title: "SmartQ - 스마트한 다교과 질문 기반 학습 플랫폼",
@@ -16,12 +17,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className="antialiased bg-gray-50 min-h-screen font-sans">
-        <AuthProvider>
-          <EducationLevelProvider>
-            {children}
-          </EducationLevelProvider>
-        </AuthProvider>
+      <body className="antialiased min-h-screen font-sans">
+        <ThemeProvider>
+          <AuthProvider>
+            <EducationLevelProvider>
+              {children}
+            </EducationLevelProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

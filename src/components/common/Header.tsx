@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useFullTheme, useLevelAdaptiveComponents } from '@/contexts/EducationLevelContext'
 import Button from './Button'
+import ThemeToggle from './ThemeToggle'
 import { useState } from 'react'
 
 function Header() {
@@ -144,6 +145,9 @@ function Header() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             {user ? (
               <div className="relative">
                 <button
@@ -155,19 +159,32 @@ function Header() {
                     src={user.photoURL || '/default-avatar.png'}
                     alt={user.displayName || 'User'}
                   />
-                  <span className="ml-2 text-gray-700 font-medium hidden md:block">
+                  <span 
+                    className="ml-2 font-medium hidden md:block"
+                    style={{ color: theme.colors.text.primary }}
+                  >
                     {user.displayName}
                   </span>
                 </button>
 
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
-                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                  <div 
+                    className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-600"
+                    style={{ 
+                      backgroundColor: theme.colors.surface,
+                      boxShadow: theme.shadows.lg
+                    }}
+                  >
+                    <div 
+                      className="px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-600"
+                      style={{ color: theme.colors.text.secondary }}
+                    >
                       {user.email}
                     </div>
                     <Link 
                       href="/teacher/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                      style={{ color: theme.colors.text.primary }}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <span>⚙️</span>
@@ -178,7 +195,8 @@ function Header() {
                         handleLogout()
                         setIsMenuOpen(false)
                       }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                      style={{ color: theme.colors.text.primary }}
                     >
                       로그아웃
                     </button>
@@ -196,7 +214,8 @@ function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              style={{ color: theme.colors.text.secondary }}
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -209,22 +228,41 @@ function Header() {
       {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
-            <Link href="/" className="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+          <div 
+            className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200 dark:border-gray-600"
+            style={{ 
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.border
+            }}
+          >
+            <Link 
+              href="/" 
+              className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+              style={{ color: theme.colors.text.secondary }}
+            >
               홈
             </Link>
             {user && (
               <>
-                <Link href="/teacher/dashboard" className="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                <Link 
+                  href="/teacher/dashboard" 
+                  className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  style={{ color: theme.colors.text.secondary }}
+                >
                   대시보드
                 </Link>
-                <Link href="/teacher/settings" className="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 flex items-center space-x-2">
+                <Link 
+                  href="/teacher/settings" 
+                  className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 rounded-md"
+                  style={{ color: theme.colors.text.secondary }}
+                >
                   <span>⚙️</span>
                   <span>설정</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900"
+                  className="block w-full text-left px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  style={{ color: theme.colors.text.secondary }}
                 >
                   로그아웃
                 </button>
