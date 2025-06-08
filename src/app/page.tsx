@@ -51,15 +51,15 @@ export default function HomePage() {
           </h1>
           
           {/* 다크모드 상태 표시 (개발용 - 나중에 제거 가능) */}
-          <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
             현재 모드: <span className="font-semibold text-blue-600 dark:text-blue-400">
               {resolvedTheme === 'dark' ? '🌙 다크 모드' : '☀️ 라이트 모드'}
             </span>
           </div>
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-2">
+          <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-2">
             {adapt('모든 질문이 스마트한 학습이 되는 곳')}
           </p>
-          <p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-2">
             {adapt(`AI 기반 다교과 ${term('question')} 분석 및 ${term('activity')} 추천 서비스`)}
           </p>
           <button
@@ -73,7 +73,7 @@ export default function HomePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 mb-8">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-3 mb-8">
             {levelConfig.description}
           </p>
           
@@ -149,7 +149,7 @@ export default function HomePage() {
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                   세션 코드로 참여하기
                 </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                <p className="text-gray-700 dark:text-gray-300 mb-6">
                   {getTerminology('teacher')}이 제공한 6자리 세션 코드를 입력하여 학습 활동에 참여하세요
                 </p>
                 
@@ -198,7 +198,7 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{adapt('AI 기반 스마트 분석')}</h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-700 dark:text-gray-300">
                 {adapt(`Gemini AI가 ${term('participant')} ${term('question')}을(를) 분석하여 맞춤형 ${term('learning')} ${term('activity')}을(를) 제안합니다`)}
               </p>
             </div>
@@ -210,7 +210,7 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">다교과 통합 지원</h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-700 dark:text-gray-300">
                 국어, 수학, 과학, 사회 등 모든 교과목에서 활용 가능한 유연한 플랫폼
               </p>
             </div>
@@ -222,7 +222,7 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">실시간 협업</h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-700 dark:text-gray-300">
                 {getTerminology('teacher')}와 {getTerminology('student')}이 실시간으로 소통하며 함께 만들어가는 {getTerminology('class')}
               </p>
             </div>
@@ -234,7 +234,7 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             지금 시작해보세요!
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
+          <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
             무료로 사용할 수 있으며, 개인 Gemini API 키만 있으면 모든 기능을 이용하실 수 있습니다
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
