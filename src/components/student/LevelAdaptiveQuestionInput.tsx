@@ -102,7 +102,7 @@ export default function LevelAdaptiveQuestionInput({ onSubmit, sessionType }: Qu
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder={placeholders[level]}
-            className={`w-full px-4 py-3 rounded-lg bg-white/90 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 ${
+            className={`w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 ${
               levelConfig.uiTheme.fontSize === 'large' ? 'text-lg' : 
               levelConfig.uiTheme.fontSize === 'medium' ? 'text-base' : 'text-sm'
             }`}

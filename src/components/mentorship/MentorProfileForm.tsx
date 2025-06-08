@@ -201,7 +201,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               required
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
           
@@ -213,7 +213,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               type="email"
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               value={formData.industry}
               onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
               placeholder="예: IT, 금융, 제조업"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
           
@@ -242,7 +242,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               value={formData.jobTitle}
               onChange={(e) => setFormData(prev => ({ ...prev, jobTitle: e.target.value }))}
               placeholder="예: 시니어 개발자, 프로젝트 매니저"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               required
               value={formData.experienceLevel}
               onChange={(e) => setFormData(prev => ({ ...prev, experienceLevel: e.target.value as any }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             >
               <option value="beginner">초급 (1-2년)</option>
               <option value="intermediate">중급 (3-5년)</option>
@@ -275,7 +275,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               max="50"
               value={formData.yearsOfExperience}
               onChange={(e) => setFormData(prev => ({ ...prev, yearsOfExperience: parseInt(e.target.value) || 0 }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               onChange={(e) => setNewExpertiseArea(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addExpertiseArea())}
               placeholder="전문 분야 추가 (예: 프론트엔드 개발, 데이터 분석)"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
             <Button type="button" onClick={addExpertiseArea} variant="outline">
               추가
@@ -329,7 +329,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               <select
                 value={formData.maxMentees}
                 onChange={(e) => setFormData(prev => ({ ...prev, maxMentees: parseInt(e.target.value) }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               >
                 <option value={1}>1명</option>
                 <option value={2}>2명</option>
@@ -346,7 +346,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               <select
                 value={formData.preferredCommunicationStyle}
                 onChange={(e) => setFormData(prev => ({ ...prev, preferredCommunicationStyle: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               >
                 <option value="formal">공식적</option>
                 <option value="casual">캐주얼</option>
@@ -361,7 +361,7 @@ export default function MentorProfileForm({ sessionId, onSave }: MentorProfileFo
               <select
                 value={formData.feedbackStyle}
                 onChange={(e) => setFormData(prev => ({ ...prev, feedbackStyle: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               >
                 <option value="detailed">상세한</option>
                 <option value="concise">간결한</option>

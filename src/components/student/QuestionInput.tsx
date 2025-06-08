@@ -149,7 +149,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
             id="studentName"
             value={studentName}
             onChange={(e) => setStudentName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             placeholder="이름을 입력하세요"
             required={!isAnonymous}
           />
@@ -166,7 +166,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
           value={questionText}
           onChange={(e) => setQuestionText(e.target.value)}
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
           placeholder={getPlaceholderText(sessionType)}
           required
         />

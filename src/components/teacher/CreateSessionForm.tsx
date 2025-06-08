@@ -120,7 +120,7 @@ export default function CreateSessionForm() {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               placeholder="예: 5학년 과학 - 물의 순환"
               required
             />
@@ -135,7 +135,7 @@ export default function CreateSessionForm() {
               id="sessionType"
               value={sessionType}
               onChange={(e) => setSessionType(e.target.value as SessionType)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             >
               <option value={SessionType.GENERAL}>일반 Q&A</option>
               <option value={SessionType.DEBATE}>토론/논제 발굴</option>
@@ -247,7 +247,7 @@ export default function CreateSessionForm() {
               value={learningGoals}
               onChange={(e) => setLearningGoals(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               placeholder="이 세션을 통해 달성하고자 하는 학습 목표를 입력하세요."
             />
           </div>
@@ -262,7 +262,7 @@ export default function CreateSessionForm() {
               id="keywords"
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               placeholder="관련 키워드를 쉼표로 구분하여 입력 (예: 물의 순환, 증발, 응결)"
             />
           </div>

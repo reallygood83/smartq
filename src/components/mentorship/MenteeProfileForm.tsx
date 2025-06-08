@@ -222,7 +222,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               required
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
           
@@ -234,7 +234,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               type="email"
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -249,7 +249,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               required
               value={formData.currentLevel}
               onChange={(e) => setFormData(prev => ({ ...prev, currentLevel: e.target.value as any }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             >
               <option value="beginner">초급 (경험 1-2년)</option>
               <option value="intermediate">중급 (경험 3-5년)</option>
@@ -266,7 +266,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               value={formData.industry}
               onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
               placeholder="예: IT, 금융, 제조업"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -281,7 +281,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
             value={formData.background}
             onChange={(e) => setFormData(prev => ({ ...prev, background: e.target.value }))}
             placeholder="현재 하고 있는 일이나 학습 배경을 간단히 소개해주세요"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
           />
         </div>
 
@@ -297,7 +297,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               onChange={(e) => setNewLearningGoal(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addLearningGoal())}
               placeholder="달성하고 싶은 학습 목표 (예: React 마스터하기)"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
             <Button type="button" onClick={addLearningGoal} variant="outline">
               추가
@@ -334,7 +334,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               onChange={(e) => setNewInterestedArea(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInterestedArea())}
               placeholder="관심 있는 분야 (예: 프론트엔드 개발, 데이터 분석)"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
             <Button type="button" onClick={addInterestedArea} variant="outline">
               추가
@@ -371,7 +371,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               onChange={(e) => setNewChallenge(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addChallenge())}
               placeholder="개선하고 싶은 영역 (예: 코드 리뷰 받기, 발표 능력)"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
             />
             <Button type="button" onClick={addChallenge} variant="outline">
               추가
@@ -408,7 +408,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               <select
                 value={formData.preferredMentorExperience}
                 onChange={(e) => setFormData(prev => ({ ...prev, preferredMentorExperience: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               >
                 <option value="any">상관없음</option>
                 <option value="intermediate">중급 이상</option>
@@ -424,7 +424,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               <select
                 value={formData.communicationStyle}
                 onChange={(e) => setFormData(prev => ({ ...prev, communicationStyle: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               >
                 <option value="formal">공식적</option>
                 <option value="casual">캐주얼</option>
@@ -441,7 +441,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               <select
                 value={formData.feedbackFrequency}
                 onChange={(e) => setFormData(prev => ({ ...prev, feedbackFrequency: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               >
                 <option value="daily">매일</option>
                 <option value="weekly">주 1회</option>
@@ -457,7 +457,7 @@ export default function MenteeProfileForm({ sessionId, onSave }: MenteeProfileFo
               <select
                 value={formData.learningStyle}
                 onChange={(e) => setFormData(prev => ({ ...prev, learningStyle: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
               >
                 <option value="visual">시각적</option>
                 <option value="auditory">청각적</option>

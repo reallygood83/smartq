@@ -236,7 +236,7 @@ export default function AdultSessionForm() {
                 required
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
                 placeholder="예: 디지털 마케팅 전략과 실무 적용"
               />
@@ -309,7 +309,7 @@ export default function AdultSessionForm() {
                 rows={4}
                 value={formData.learningGoals}
                 onChange={(e) => handleInputChange('learningGoals', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
                 placeholder="이 세션을 통해 학습자가 달성하게 될 구체적인 목표를 작성하세요"
               />
@@ -324,7 +324,7 @@ export default function AdultSessionForm() {
                 rows={3}
                 value={formData.targetAudience}
                 onChange={(e) => handleInputChange('targetAudience', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
                 placeholder="예: 마케팅 실무 2-5년차, 스타트업 창업자, 중소기업 경영진"
               />
@@ -338,7 +338,7 @@ export default function AdultSessionForm() {
                 rows={3}
                 value={formData.prerequisites}
                 onChange={(e) => handleInputChange('prerequisites', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
                 placeholder="참여를 위해 필요한 사전 지식, 경험, 준비물 등"
               />
@@ -360,7 +360,7 @@ export default function AdultSessionForm() {
               <select
                 value={formData.duration}
                 onChange={(e) => handleInputChange('duration', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
               >
                 <option value="">선택하세요</option>
@@ -381,7 +381,7 @@ export default function AdultSessionForm() {
               <select
                 value={formData.participantCount}
                 onChange={(e) => handleInputChange('participantCount', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
               >
                 <option value="">선택하세요</option>
@@ -400,7 +400,7 @@ export default function AdultSessionForm() {
               <select
                 value={formData.difficultyLevel}
                 onChange={(e) => handleInputChange('difficultyLevel', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
               >
                 <option value="beginner">초급 (Beginner)</option>
@@ -417,7 +417,7 @@ export default function AdultSessionForm() {
               <select
                 value={formData.deliveryFormat}
                 onChange={(e) => handleInputChange('deliveryFormat', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
               >
                 <option value="in-person">대면 진행</option>
@@ -434,7 +434,7 @@ export default function AdultSessionForm() {
                 type="text"
                 value={formData.industryFocus}
                 onChange={(e) => handleInputChange('industryFocus', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
                 placeholder="예: IT, 금융, 제조업, 서비스업"
               />
@@ -502,7 +502,7 @@ export default function AdultSessionForm() {
                   value={newKeyword}
                   onChange={(e) => setNewKeyword(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword())}
-                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                   style={{ borderColor: theme.colors.border }}
                   placeholder="키워드 입력 후 추가 버튼 클릭"
                 />
@@ -537,7 +537,7 @@ export default function AdultSessionForm() {
                 rows={3}
                 value={formData.materials}
                 onChange={(e) => handleInputChange('materials', e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                 style={{ borderColor: theme.colors.border }}
                 placeholder="세션에 필요한 자료, 도구, 플랫폼 등을 설명하세요"
               />
@@ -568,7 +568,7 @@ export default function AdultSessionForm() {
                       type="text"
                       value={newContent.title}
                       onChange={(e) => setNewContent(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                       style={{ borderColor: theme.colors.border }}
                       placeholder="콘텐츠 제목"
                     />
@@ -581,7 +581,7 @@ export default function AdultSessionForm() {
                     <select
                       value={newContent.type}
                       onChange={(e) => setNewContent(prev => ({ ...prev, type: e.target.value as any }))}
-                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                       style={{ borderColor: theme.colors.border }}
                     >
                       <option value="text">📄 텍스트</option>
@@ -600,7 +600,7 @@ export default function AdultSessionForm() {
                     rows={4}
                     value={newContent.content}
                     onChange={(e) => setNewContent(prev => ({ ...prev, content: e.target.value }))}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
                     style={{ borderColor: theme.colors.border }}
                     placeholder={
                       newContent.type === 'link' 

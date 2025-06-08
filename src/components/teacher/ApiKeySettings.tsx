@@ -232,7 +232,7 @@ function ApiKeySettings({ className = '' }: ApiKeySettingsProps) {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="AIza로 시작하는 39자리 키를 입력하세요"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm bg-white text-gray-900 placeholder-gray-500"
                 />
                 <Button
                   onClick={handleSaveKey}
