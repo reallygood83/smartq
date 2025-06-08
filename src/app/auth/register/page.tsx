@@ -13,7 +13,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-lg">로그인 페이지로 이동 중...</div>
+      <div className="text-lg text-gray-900 dark:text-white">로그인 페이지로 이동 중...</div>
     </div>
   )
 }

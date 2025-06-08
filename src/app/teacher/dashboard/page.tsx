@@ -75,7 +75,7 @@ export default function TeacherDashboardPage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-lg text-gray-600 dark:text-gray-300">페이지 로딩 중...</div>
+        <div className="text-lg text-gray-600 dark:text-gray-200">페이지 로딩 중...</div>
       </div>
     )
   }
@@ -85,7 +85,7 @@ export default function TeacherDashboardPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <div className="text-lg text-gray-600 dark:text-gray-200">인증 확인 중...</div>
+          <div className="text-lg text-gray-600 dark:text-gray-100">인증 확인 중...</div>
         </div>
       </div>
     )
@@ -107,7 +107,7 @@ export default function TeacherDashboardPage() {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 교사 대시보드
               </h1>
-              <p className="text-gray-600 dark:text-gray-200">
+              <p className="text-gray-600 dark:text-gray-100">
                 안녕하세요, {user.displayName || user.email}님! 
                 SmartQ로 스마트한 교육을 시작해보세요.
               </p>
@@ -135,7 +135,7 @@ export default function TeacherDashboardPage() {
                 API 키 설정
               </h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-200 text-sm mb-4">
+            <p className="text-gray-600 dark:text-gray-100 text-sm mb-4">
               AI 기능 사용을 위해 Gemini API 키를 설정하세요.
             </p>
             <Link href="/teacher/settings">
@@ -156,7 +156,7 @@ export default function TeacherDashboardPage() {
                 세션 만들기
               </h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-200 text-sm mb-4">
+            <p className="text-gray-600 dark:text-gray-100 text-sm mb-4">
               새로운 학습 세션을 만들고 학생들을 초대하세요.
             </p>
             <Link href="/teacher/session/create">
@@ -177,7 +177,7 @@ export default function TeacherDashboardPage() {
                 AI 분석 확인
               </h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-200 text-sm mb-4">
+            <p className="text-gray-600 dark:text-gray-100 text-sm mb-4">
               학생 질문들을 AI가 분석한 결과를 확인하세요.
             </p>
             {sessionsLoading ? (
@@ -221,7 +221,7 @@ export default function TeacherDashboardPage() {
                   멘토-멘티 매칭 관리
                 </h3>
               </div>
-              <p className="text-gray-600 dark:text-gray-200 text-sm ml-13">
+              <p className="text-gray-600 dark:text-gray-100 text-sm ml-13">
                 성인 교육 세션에서 활성화된 멘토링 프로그램을 관리하세요.
               </p>
             </div>
@@ -235,7 +235,7 @@ export default function TeacherDashboardPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-gray-900 dark:text-white">{session.title}</h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                        <p className="text-sm text-gray-500 dark:text-gray-200 mt-1">
                           세션 코드: <span className="font-mono font-bold">{session.accessCode}</span>
                         </p>
                       </div>
@@ -295,7 +295,7 @@ export default function TeacherDashboardPage() {
 
         {/* 사용 가이드 링크 */}
         <div className="mt-8 text-center">
-          <p className="text-gray-600 dark:text-gray-200 text-sm mb-4">
+          <p className="text-gray-600 dark:text-gray-100 text-sm mb-4">
             SmartQ 사용법이 궁금하신가요?
           </p>
           <Link 

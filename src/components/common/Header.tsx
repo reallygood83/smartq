@@ -169,21 +169,21 @@ function Header() {
 
                 {isMenuOpen && (
                   <div 
-                    className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-600"
+                    className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-500"
                     style={{ 
                       backgroundColor: theme.colors.surface,
                       boxShadow: theme.shadows.lg
                     }}
                   >
                     <div 
-                      className="px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-600"
+                      className="px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-500"
                       style={{ color: theme.colors.text.secondary }}
                     >
                       {user.email}
                     </div>
                     <Link 
                       href="/teacher/settings"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center space-x-2"
                       style={{ color: theme.colors.text.primary }}
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -195,7 +195,7 @@ function Header() {
                         handleLogout()
                         setIsMenuOpen(false)
                       }}
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
                       style={{ color: theme.colors.text.primary }}
                     >
                       로그아웃
@@ -214,7 +214,7 @@ function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600"
               style={{ color: theme.colors.text.secondary }}
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -229,7 +229,7 @@ function Header() {
       {isMenuOpen && (
         <div className="md:hidden">
           <div 
-            className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200 dark:border-gray-600"
+            className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200 dark:border-gray-500"
             style={{ 
               backgroundColor: theme.colors.surface,
               borderColor: theme.colors.border
@@ -237,7 +237,7 @@ function Header() {
           >
             <Link 
               href="/" 
-              className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+              className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md"
               style={{ color: theme.colors.text.secondary }}
             >
               홈
@@ -246,14 +246,14 @@ function Header() {
               <>
                 <Link 
                   href="/teacher/dashboard" 
-                  className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md"
                   style={{ color: theme.colors.text.secondary }}
                 >
                   대시보드
                 </Link>
                 <Link 
                   href="/teacher/settings" 
-                  className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 rounded-md"
+                  className="block px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center space-x-2 rounded-md"
                   style={{ color: theme.colors.text.secondary }}
                 >
                   <span>⚙️</span>
@@ -261,7 +261,7 @@ function Header() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  className="block w-full text-left px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md"
                   style={{ color: theme.colors.text.secondary }}
                 >
                   로그아웃

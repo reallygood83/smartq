@@ -112,15 +112,15 @@ export default function StudentSessionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg text-gray-600">세션을 찾는 중...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-lg text-gray-600 dark:text-gray-200">세션을 찾는 중...</div>
       </div>
     )
   }
 
   if (notFound || !session) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <Card className="p-8 text-center">
@@ -129,14 +129,14 @@ export default function StudentSessionPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <h2 className="text-xl font-medium text-gray-900 mb-2">
+            <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
               세션을 찾을 수 없습니다
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-200 mb-6">
               입력하신 접속 코드 <span className="font-mono font-bold text-red-600">{sessionCode}</span>에 해당하는 세션이 없습니다.
             </p>
             <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>확인해주세요:</strong>
                 <br />• 접속 코드를 정확히 입력했는지 확인
                 <br />• 대소문자 구분 (예: A와 a는 다름)
@@ -150,7 +150,7 @@ export default function StudentSessionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -161,10 +161,10 @@ export default function StudentSessionPage() {
               {getSessionTypeIcon(session.sessionType)}
             </span>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {session.title}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-200">
                 {getSessionTypeLabel(session.sessionType)}
               </p>
             </div>
@@ -189,8 +189,8 @@ export default function StudentSessionPage() {
           {/* 학습 목표 */}
           {session.learningGoals && (
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium text-blue-900 mb-1">학습 목표</h3>
-              <p className="text-sm text-blue-800">{session.learningGoals}</p>
+              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-1">학습 목표</h3>
+              <p className="text-sm text-blue-800 dark:text-blue-200">{session.learningGoals}</p>
             </div>
           )}
         </Card>
@@ -209,8 +209,8 @@ export default function StudentSessionPage() {
                   key={content.contentId}
                   className={`border rounded-lg p-4 ${
                     content.type === 'instruction' 
-                      ? 'border-orange-200 bg-orange-50' 
-                      : 'border-gray-200 bg-white'
+                      ? 'border-orange-200 bg-orange-50 dark:border-orange-600 dark:bg-orange-900/20' 
+                      : 'border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-800'
                   }`}
                 >
                   <div className="flex items-start space-x-3">
@@ -221,7 +221,7 @@ export default function StudentSessionPage() {
                     </span>
                     <div className="flex-1">
                       <h3 className={`text-lg font-medium mb-2 ${
-                        content.type === 'instruction' ? 'text-orange-900' : 'text-gray-900'
+                        content.type === 'instruction' ? 'text-orange-900 dark:text-orange-200' : 'text-gray-900 dark:text-white'
                       }`}>
                         {content.title}
                       </h3>
@@ -231,7 +231,7 @@ export default function StudentSessionPage() {
                           ? 'bg-orange-100 p-3' 
                           : content.type === 'youtube'
                           ? 'bg-black'
-                          : 'bg-gray-50 p-3'
+                          : 'bg-gray-50 dark:bg-gray-900 p-3'
                       }`}>
                         {content.type === 'youtube' ? (
                           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
@@ -257,8 +257,8 @@ export default function StudentSessionPage() {
                         ) : (
                           <div className={`whitespace-pre-wrap ${
                             content.type === 'instruction' 
-                              ? 'text-orange-800' 
-                              : 'text-gray-900'
+                              ? 'text-orange-800 dark:text-orange-200' 
+                              : 'text-gray-900 dark:text-white'
                           }`}>
                             {/* 개념 설명인 경우 특별한 포맷팅 */}
                             {content.title.startsWith('개념 설명:') ? (
@@ -268,7 +268,7 @@ export default function StudentSessionPage() {
                                     // 제목 부분
                                     const title = section.replace('📚 **', '').replace('**', '')
                                     return (
-                                      <div key={index} className="text-lg font-bold text-orange-900 flex items-center">
+                                      <div key={index} className="text-lg font-bold text-orange-900 dark:text-orange-200 flex items-center">
                                         <span className="text-2xl mr-2">📚</span>
                                         {title}
                                       </div>
@@ -281,8 +281,8 @@ export default function StudentSessionPage() {
                                         <div className="flex items-start">
                                           <span className="text-lg mr-2">🔍</span>
                                           <div>
-                                            <span className="font-semibold text-orange-900">예시: </span>
-                                            <span className="text-orange-800">{example}</span>
+                                            <span className="font-semibold text-orange-900 dark:text-orange-200">예시: </span>
+                                            <span className="text-orange-800 dark:text-orange-200">{example}</span>
                                           </div>
                                         </div>
                                       </div>
@@ -290,7 +290,7 @@ export default function StudentSessionPage() {
                                   } else {
                                     // 일반 설명 부분
                                     return (
-                                      <p key={index} className="text-orange-800 leading-relaxed">
+                                      <p key={index} className="text-orange-800 dark:text-orange-200 leading-relaxed">
                                         {section}
                                       </p>
                                     )
@@ -305,7 +305,7 @@ export default function StudentSessionPage() {
                         )}
                       </div>
                       
-                      <div className="mt-2 text-xs text-gray-500">
+                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-300">
                         {new Date(content.createdAt).toLocaleString('ko-KR')}
                       </div>
                     </div>
@@ -409,10 +409,10 @@ export default function StudentSessionPage() {
             {/* 추천 활동 */}
             {analysisResult.recommendedActivities && analysisResult.recommendedActivities.length > 0 && (
               <Card className="p-6 mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   🎯 추천 학습 활동
                 </h2>
-                <p className="text-gray-600 mb-6 text-sm">
+                <p className="text-gray-600 dark:text-gray-200 mb-6 text-sm">
                   여러분의 질문을 바탕으로 선생님이 준비한 재미있는 학습 활동들이에요!
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -472,10 +472,10 @@ export default function StudentSessionPage() {
             {/* 개념 정의 - 학생용 */}
             {analysisResult.conceptDefinitions && analysisResult.conceptDefinitions.length > 0 && (
               <Card className="p-6 mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   📚 오늘 배운 중요한 개념들
                 </h2>
-                <p className="text-gray-600 mb-6 text-sm">
+                <p className="text-gray-600 dark:text-gray-200 mb-6 text-sm">
                   질문 속에 나온 중요한 개념들을 쉽게 정리해두었어요. 복습할 때 활용해보세요!
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -485,20 +485,20 @@ export default function StudentSessionPage() {
                         <div className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mr-3">
                           📖
                         </div>
-                        <h3 className="text-lg font-semibold text-blue-900">
+                        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-200">
                           {concept.term}
                         </h3>
                       </div>
                       
                       <div className="space-y-3 ml-11">
                         <div>
-                          <span className="text-sm font-medium text-blue-800">💡 쉬운 설명:</span>
+                          <span className="text-sm font-medium text-blue-800 dark:text-blue-200">💡 쉬운 설명:</span>
                           <p className="text-sm text-blue-700 mt-1 leading-relaxed">{concept.definition}</p>
                         </div>
                         
                         {concept.description && (
                           <div>
-                            <span className="text-sm font-medium text-blue-800">🔍 예시:</span>
+                            <span className="text-sm font-medium text-blue-800 dark:text-blue-200">🔍 예시:</span>
                             <p className="text-sm text-blue-700 mt-1 leading-relaxed">{concept.description}</p>
                           </div>
                         )}

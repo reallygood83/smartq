@@ -120,12 +120,12 @@ export default function CreateSessionForm() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">새 세션 만들기</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">새 세션 만들기</h2>
         
         <div className="space-y-6">
           {/* 기본 정보 */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               세션 제목 *
             </label>
             <input
@@ -133,7 +133,7 @@ export default function CreateSessionForm() {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-300"
               placeholder="예: 5학년 과학 - 물의 순환"
               required
             />
@@ -141,14 +141,14 @@ export default function CreateSessionForm() {
 
           {/* 세션 유형 */}
           <div>
-            <label htmlFor="sessionType" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="sessionType" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               세션 유형 *
             </label>
             <select
               id="sessionType"
               value={sessionType}
               onChange={(e) => setSessionType(e.target.value as SessionType)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-300"
             >
               <option value={SessionType.GENERAL}>일반 Q&A</option>
               <option value={SessionType.DEBATE}>토론/논제 발굴</option>
@@ -161,7 +161,7 @@ export default function CreateSessionForm() {
 
           {/* 교과목 선택 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
               교과목 선택 (다중 선택 가능)
             </label>
             <div className="space-y-4">
@@ -181,7 +181,7 @@ export default function CreateSessionForm() {
                         <button
                           type="button"
                           onClick={() => handleSubjectChange(subject, false)}
-                          className="ml-2 text-current hover:text-gray-600"
+                          className="ml-2 text-current hover:text-gray-600 dark:hover:text-gray-300"
                         >
                           ×
                         </button>
@@ -201,7 +201,7 @@ export default function CreateSessionForm() {
                       className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
                         isSelected 
                           ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-700'
                       }`}
                     >
                       <input
@@ -210,7 +210,7 @@ export default function CreateSessionForm() {
                         onChange={(e) => handleSubjectChange(subject, e.target.checked)}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-700'}`}>
+                      <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-700 dark:text-gray-200'}`}>
                         {getSubjectLabel(subject)}
                       </span>
                     </label>
@@ -221,8 +221,8 @@ export default function CreateSessionForm() {
               {/* 교과목 추천 */}
               {subjects.length === 0 && (
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">💡 추천 조합</h4>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">💡 추천 조합</h4>
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                     <button
                       type="button"
                       onClick={() => setSubjects([Subject.KOREAN, Subject.SOCIAL])}
@@ -252,7 +252,7 @@ export default function CreateSessionForm() {
 
           {/* 학습 목표 */}
           <div>
-            <label htmlFor="learningGoals" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="learningGoals" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               학습 목표 (선택사항)
             </label>
             <textarea
@@ -260,14 +260,14 @@ export default function CreateSessionForm() {
               value={learningGoals}
               onChange={(e) => setLearningGoals(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-300"
               placeholder="이 세션을 통해 달성하고자 하는 학습 목표를 입력하세요."
             />
           </div>
 
           {/* 키워드 */}
           <div>
-            <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               키워드 (선택사항)
             </label>
             <input
@@ -275,7 +275,7 @@ export default function CreateSessionForm() {
               id="keywords"
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-300"
               placeholder="관련 키워드를 쉼표로 구분하여 입력 (예: 물의 순환, 증발, 응결)"
             />
           </div>
@@ -284,7 +284,7 @@ export default function CreateSessionForm() {
 
       {/* 학습 자료 */}
       <Card className="p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">학습 자료 (선택사항)</h3>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">학습 자료 (선택사항)</h3>
         
         {/* 자료 추가 폼 */}
         <div className="space-y-4 mb-6">
@@ -292,7 +292,7 @@ export default function CreateSessionForm() {
             <select
               value={newMaterial.type}
               onChange={(e) => setNewMaterial(prev => ({ ...prev, type: e.target.value as any }))}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
             >
               <option value="text">텍스트</option>
               <option value="youtube">YouTube 동영상</option>
@@ -305,7 +305,7 @@ export default function CreateSessionForm() {
                 value={newMaterial.content || ''}
                 onChange={(e) => setNewMaterial(prev => ({ ...prev, content: e.target.value }))}
                 placeholder="텍스트 내용"
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 md:col-span-2"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-300 md:col-span-2"
               />
             )}
             
@@ -315,7 +315,7 @@ export default function CreateSessionForm() {
                 value={newMaterial.url || ''}
                 onChange={(e) => setNewMaterial(prev => ({ ...prev, url: e.target.value }))}
                 placeholder={newMaterial.type === 'youtube' ? 'YouTube URL' : '웹사이트 URL'}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 md:col-span-2"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-300 md:col-span-2"
               />
             )}
           </div>
@@ -328,12 +328,12 @@ export default function CreateSessionForm() {
         {/* 추가된 자료 목록 */}
         {materials.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-gray-700">추가된 자료:</h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200">추가된 자료:</h4>
             {materials.map((material, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
                 <div className="flex-1">
-                  <span className="text-xs text-gray-500 uppercase">{material.type}</span>
-                  <p className="text-sm text-gray-900">
+                  <span className="text-xs text-gray-500 dark:text-gray-300 uppercase">{material.type}</span>
+                  <p className="text-sm text-gray-900 dark:text-white">
                     {material.content || material.url || material.linkTitle}
                   </p>
                 </div>
