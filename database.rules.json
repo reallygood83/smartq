@@ -1,11 +1,11 @@
 {
   "rules": {
     "sessions": {
-      ".indexOn": ["teacherId"],
-      ".read": "auth != null",
+      ".indexOn": ["teacherId", "accessCode"],
+      ".read": "true",
       ".write": "auth != null",
       "$sessionId": {
-        ".read": "auth != null",
+        ".read": "true",
         ".write": "auth != null && (data.child('teacherId').val() == auth.uid || !data.exists())",
         ".validate": "newData.exists() ? newData.hasChildren(['title', 'accessCode', 'sessionType', 'teacherId', 'createdAt']) : true"
       }
