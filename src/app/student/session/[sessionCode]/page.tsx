@@ -26,6 +26,13 @@ export default function StudentSessionPage() {
   const [analysisResult, setAnalysisResult] = useState<MultiSubjectAnalysisResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string[]>([])
+  
+  // 디버깅 정보 추가 함수
+  const addDebugInfo = (message: string) => {
+    console.log(message);
+    setDebugInfo(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+  }
   
   // Detect if this is an adult education session based on session type or isAdultEducation flag
   const isAdultEducationSession = session?.isAdultEducation || 
@@ -33,32 +40,47 @@ export default function StudentSessionPage() {
     [currentLevel].includes(EducationLevel.ADULT)
 
   useEffect(() => {
+    addDebugInfo('=== SmartQ 세션 조회 시작 ===');
+    
+    const envInfo = {
+      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
+      브라우저: typeof window !== 'undefined' ? window.navigator.vendor : 'server',
+      뷰포트: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'server',
+      연결상태: typeof window !== 'undefined' && 'onLine' in window.navigator ? window.navigator.onLine : 'unknown'
+    };
+    addDebugInfo(`환경 정보: ${JSON.stringify(envInfo)}`);
+    
     if (!sessionCode || typeof sessionCode !== 'string') {
+      addDebugInfo('❌ 잘못된 세션 코드');
       setNotFound(true)
       setLoading(false)
       return
     }
+    
+    addDebugInfo(`세션 코드: ${sessionCode}`);
 
     if (!database) {
-      console.error('Firebase database가 초기화되지 않음')
+      addDebugInfo('❌ Firebase database가 초기화되지 않음')
       setNotFound(true)
       setLoading(false)
       return
     }
+    
+    addDebugInfo('✅ Firebase database 연결 확인됨')
 
     // 접속 코드로 세션 찾기
-    console.log('세션 코드로 검색:', sessionCode)
+    addDebugInfo(`📡 세션 검색 시작: ${sessionCode}`)
     const sessionsRef = ref(database, 'sessions')
     const sessionQuery = query(sessionsRef, orderByChild('accessCode'), equalTo(sessionCode))
     
     const unsubscribe = onValue(sessionQuery, (snapshot) => {
       const data = snapshot.val()
-      console.log('Firebase 쿼리 결과:', data)
+      addDebugInfo(`📡 Firebase 쿼리 결과: ${data ? '데이터 존재' : '데이터 없음'}`)
       if (data) {
         try {
           // 첫 번째 (그리고 유일한) 결과 가져오기
           const sessionData = Object.values(data)[0] as Session
-          console.log('세션 데이터:', sessionData)
+          addDebugInfo(`✅ 세션 발견: ${sessionData.title}`)
           setSession(sessionData)
           setNotFound(false)
           setLoading(false)
@@ -70,12 +92,12 @@ export default function StudentSessionPage() {
           
           // 공유 콘텐츠 로드 (별도 useEffect에서 처리)
         } catch (error) {
-          console.error('세션 데이터 파싱 오류:', error)
+          addDebugInfo(`❌ 세션 데이터 파싱 오류: ${error}`)
           setNotFound(true)
           setLoading(false)
         }
       } else {
-        console.log('세션을 찾을 수 없음')
+        addDebugInfo('❌ 세션을 찾을 수 없음')
         setNotFound(true)
         setLoading(false)
       }
@@ -112,8 +134,43 @@ export default function StudentSessionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-lg text-gray-600 dark:text-gray-200">세션을 찾는 중...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="text-lg text-gray-600 dark:text-gray-200 mt-4">세션을 찾는 중...</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              세션 코드: <span className="font-mono font-bold">{sessionCode}</span>
+            </div>
+            <div className="mt-6 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+              <p>💡 잠시만 기다려주세요</p>
+              <p>📱 모바일에서는 조금 더 오래 걸릴 수 있습니다</p>
+              <p>🌐 네트워크 연결을 확인해주세요</p>
+            </div>
+          </div>
+          
+          {/* 실시간 디버깅 정보 */}
+          {debugInfo.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">🔍 연결 상태</h3>
+                <button 
+                  onClick={() => setDebugInfo([])}
+                  className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  지우기
+                </button>
+              </div>
+              <div className="max-h-40 overflow-y-auto text-xs text-gray-600 dark:text-gray-300 space-y-1 font-mono">
+                {debugInfo.map((info, index) => (
+                  <div key={index} className="break-all">
+                    {info}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     )
   }
