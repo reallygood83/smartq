@@ -59,7 +59,11 @@ firebase deploy --only database:rules    # Deploy only security rules
   sessionType: 'DEBATE' | 'INQUIRY' | 'PROBLEM' | 'CREATIVE' | 'DISCUSSION' | 'QNA',
   teacherId: string,
   subjects?: Subject[],
-  isAdultEducation?: boolean
+  isAdultEducation?: boolean,
+  
+  // Teacher-led mode support (NEW)
+  interactionMode?: 'free_question' | 'teacher_led',
+  activeTeacherQuestionId?: string
 }
 ```
 
@@ -75,6 +79,36 @@ firebase deploy --only database:rules    # Deploy only security rules
   likes?: {
     [studentId: string]: boolean  // Like tracking per student
   }
+}
+```
+
+**Teacher Questions**: Teacher-prepared and real-time questions (NEW)
+```typescript
+{
+  questionId: string,
+  sessionId: string,
+  text: string,
+  teacherId: string,
+  order: number,
+  source: 'prepared' | 'realtime',
+  status: 'waiting' | 'active' | 'completed',
+  createdAt: number,
+  activatedAt?: number,
+  completedAt?: number
+}
+```
+
+**Student Responses**: Responses to teacher questions (NEW)
+```typescript
+{
+  responseId: string,
+  questionId: string,  // Links to TeacherQuestion
+  sessionId: string,
+  studentId: string,
+  text: string,
+  createdAt: number,
+  isAnonymous: boolean,
+  studentName?: string
 }
 ```
 
@@ -107,6 +141,9 @@ firebase deploy --only database:rules    # Deploy only security rules
 - Anonymous users can read sessions and submit questions/likes
 - Questions have anonymous write access for student participation
 - All advanced features (content sharing, analysis) require teacher authentication
+- **NEW**: Teacher questions (`teacherQuestions/`) - teacher write-only, students read-only
+- **NEW**: Student responses (`studentResponses/`) - students write, teachers read
+- **NEW**: Question analyses (`questionAnalyses/`) - teacher write-only
 
 **API Integration Pattern**
 - `/src/app/api/ai/` contains Next.js API routes that proxy to Gemini
@@ -118,8 +155,76 @@ firebase deploy --only database:rules    # Deploy only security rules
 - Teachers: `/teacher/dashboard` → `/teacher/session/create` → `/teacher/session/{sessionId}`
 - Students: Home page session code input → `/student/session/{sessionCode}`
 - Education level adaptation affects all page content and navigation terminology
+- **NEW**: Teacher session pages conditionally show teacher-led vs free-question mode interfaces
 
-### Development Patterns
+## Teacher-Led Q&A Mode Architecture (NEW)
+
+### Overview
+Teacher-led mode provides structured Q&A sessions where teachers control question flow and collect student responses for analysis.
+
+### Key Components
+
+**TeacherQuestionManager** (`/src/components/teacher/TeacherQuestionManager.tsx`)
+- Real-time question management with Firebase `onValue` listeners
+- Question status tracking (waiting → active → completed)
+- Instant question deployment and queue management
+- Integration with question templates and participation monitoring
+
+**QuestionTemplates** (`/src/components/teacher/QuestionTemplates.tsx`)
+- Educational template library based on Bloom's Taxonomy
+- 8 categories: Understanding, Critical Thinking, Creative Thinking, Inquiry, etc.
+- Smart filtering by session type, subjects, and education level
+- Cognitive level tagging (remember, understand, apply, analyze, evaluate, create)
+
+**TeacherQuestionView** (`/src/components/student/TeacherQuestionView.tsx`)
+- Student interface for responding to active teacher questions
+- Real-time question synchronization
+- Anonymous response submission with persistent student IDs
+
+**ParticipationMonitor** (`/src/components/teacher/ParticipationMonitor.tsx`)
+- Real-time participation rate calculation
+- Response length distribution analysis
+- Connected student estimation
+- Visual participation status indicators
+
+**StudentResponseAnalysisDashboard** (`/src/components/teacher/StudentResponseAnalysisDashboard.tsx`)
+- AI-powered response analysis using Gemini API
+- Individual and collective response insights
+- Education level-adapted analysis prompts
+- Analysis history and export features
+
+### Data Flow Architecture
+
+```
+Teacher Creates Question → Firebase teacherQuestions/
+                      ↓
+Teacher Activates Question → Session activeTeacherQuestionId updated
+                      ↓
+Students See Active Question → Real-time onValue listener
+                      ↓
+Students Submit Responses → Firebase studentResponses/
+                      ↓
+Teacher Views Responses → Real-time participation monitoring
+                      ↓
+Teacher Requests AI Analysis → Gemini API analysis
+                      ↓
+Analysis Results Stored → Firebase questionAnalyses/
+```
+
+### Zero-Impact Implementation
+- All teacher-led features are additive - existing free-question mode unchanged
+- Conditional rendering based on `session.interactionMode`
+- Backward compatibility with existing sessions (defaults to 'free_question')
+- No breaking changes to existing data structures
+
+## Development Patterns
+
+**When working with Teacher-Led Mode:**
+- Check session `interactionMode` before rendering teacher-led components
+- Use conditional rendering: `{session?.interactionMode === 'teacher_led' && <Component />}`
+- All teacher-led data uses separate Firebase paths to avoid conflicts
+- Maintain backward compatibility - always provide fallbacks for missing interactionMode
+- Question templates filter automatically based on session context
 
 **When modifying UI components:**
 - Always check if component uses education level adaptation via `useSmartTerminology()`
@@ -134,11 +239,15 @@ firebase deploy --only database:rules    # Deploy only security rules
 - Student operations (questions, likes) work anonymously - no auth checks needed
 - Teacher operations require authentication state verification
 - Questions support real-time like functionality with student-specific tracking
+- **NEW**: Teacher-led mode uses separate data paths: `teacherQuestions/`, `studentResponses/`, `questionAnalyses/`
+- **NEW**: Always use batch updates when activating questions to ensure consistency
 
 **When adding AI features:**
 - API routes go in `/src/app/api/ai/`
 - Use the established encryption pattern for API key handling
 - Follow the education level prompt enhancement pattern in `/src/lib/aiPrompts.ts`
+- **NEW**: Student response analysis uses education level-adapted prompts
+- **NEW**: Analysis results stored in Firebase for history and export features
 
 ### Environment Setup Requirements
 
@@ -180,3 +289,83 @@ The app gracefully degrades when Firebase config is missing, but authentication 
 - Shared materials support text, links, YouTube videos, and instructions
 - Materials section is collapsible to reduce initial page load
 - Educational level adaptation affects all content presentation
+
+## Recent Major Updates (Teacher-Led Mode Implementation)
+
+### New Components Added
+
+**Teacher Components:**
+- `TeacherQuestionManager.tsx` - Central question management interface
+- `QuestionTemplates.tsx` - Educational template library with Bloom's Taxonomy
+- `ParticipationMonitor.tsx` - Real-time participation tracking
+- `StudentResponseAnalysisDashboard.tsx` - AI-powered response analysis
+
+**Student Components:**
+- `TeacherQuestionView.tsx` - Interface for responding to teacher questions
+
+**API Routes:**
+- `/api/teacher-questions/create` - Create teacher questions
+- `/api/teacher-questions/activate` - Activate questions for students
+- `/api/student-responses/submit` - Submit student responses
+- `/api/ai/analyze-student-responses` - AI analysis of responses
+
+**Type Definitions:**
+- `/src/types/teacher-led.ts` - Complete type system for teacher-led mode
+- `/src/types/education.ts` - Session mode configurations
+
+### Firebase Data Structure Extensions
+
+```
+firebase-realtime-database/
+├── sessions/{sessionId}/
+│   ├── interactionMode: 'free_question' | 'teacher_led'
+│   └── activeTeacherQuestionId?: string
+├── teacherQuestions/{sessionId}/
+│   └── {questionId}/
+│       ├── text: string
+│       ├── status: 'waiting' | 'active' | 'completed'
+│       └── order: number
+├── studentResponses/{sessionId}/
+│   └── {responseId}/
+│       ├── questionId: string
+│       ├── studentId: string
+│       └── text: string
+└── questionAnalyses/{sessionId}/
+    └── {questionId}/
+        ├── individualAnalyses: ResponseAnalysis[]
+        └── collectiveAnalysis: CollectiveAnalysis
+```
+
+### Educational Design Principles Implemented
+
+**Bloom's Taxonomy Integration:**
+- Question templates categorized by cognitive levels
+- Clear progression from basic recall to creative synthesis
+- Education level adaptation for age-appropriate language
+
+**Assessment Best Practices:**
+- Real-time formative assessment capabilities
+- Participation monitoring without over-surveillance
+- AI analysis focused on learning insights, not grading
+
+**Pedagogical Flexibility:**
+- Teacher maintains full control over question flow
+- Support for both planned and spontaneous questioning
+- Easy transition between modes within same platform
+
+### Development Philosophy
+
+**Zero-Impact Architecture:**
+- All new features are completely additive
+- Existing free-question mode remains unchanged
+- Backward compatibility guaranteed for all existing sessions
+
+**Educational Effectiveness:**
+- Avoided over-guidance that could inhibit learning
+- Focused on teacher empowerment rather than student constraint
+- Maintained authentic assessment opportunities
+
+**Technical Reliability:**
+- Simple, robust real-time synchronization
+- Minimal complexity to reduce error potential
+- Clear separation of concerns between modes
