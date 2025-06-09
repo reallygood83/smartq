@@ -16,6 +16,7 @@ import FeedbackQualityDashboard from '@/components/feedback/FeedbackQualityDashb
 import AIAnalysisPanel from './AIAnalysisPanel'
 import CollapsiblePanel from './CollapsiblePanel'
 import QuickNavigation from './QuickNavigation'
+import TeacherQuestionManager from './TeacherQuestionManager'
 
 interface SessionManagerProps {
   sessionId: string
@@ -38,6 +39,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
 
   // 패널 참조를 위한 refs
   const aiAnalysisRef = useRef<HTMLDivElement>(null)
+  const teacherQuestionRef = useRef<HTMLDivElement>(null)
   const questionsRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const feedbackRef = useRef<HTMLDivElement>(null)
@@ -57,9 +59,17 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       icon: '🤖',
       onClick: () => scrollToPanel(aiAnalysisRef)
     },
+    ...(session?.interactionMode === 'teacher_led' ? [
+      {
+        id: 'teacher-questions',
+        label: '질문 관리',
+        icon: '🎯',
+        onClick: () => scrollToPanel(teacherQuestionRef)
+      }
+    ] : []),
     {
       id: 'questions',
-      label: '질문 목록',
+      label: session?.interactionMode === 'teacher_led' ? '학생 답변' : '질문 목록',
       icon: '❓',
       onClick: () => scrollToPanel(questionsRef)
     },
@@ -340,6 +350,13 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           />
         )}
       </div>
+
+      {/* 교사 주도 질문 관리 (교사 주도 모드에서만 표시) */}
+      {session?.interactionMode === 'teacher_led' && (
+        <div ref={teacherQuestionRef}>
+          <TeacherQuestionManager sessionId={sessionId} />
+        </div>
+      )}
 
       {/* 질문 목록 */}
       <div ref={questionsRef}>

@@ -11,6 +11,7 @@ import { ref, query, orderByChild, equalTo, onValue } from 'firebase/database'
 import QuestionInput from '@/components/student/QuestionInput'
 import QuestionList from '@/components/student/QuestionList'
 import MentorshipAccess from '@/components/student/MentorshipAccess'
+import TeacherQuestionView from '@/components/student/TeacherQuestionView'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, getYouTubeEmbedUrl } from '@/lib/utils'
 import { useEducationLevel, useSmartTerminology, useFullTheme } from '@/contexts/EducationLevelContext'
 import { EducationLevel } from '@/types/education'
@@ -27,11 +28,30 @@ export default function StudentSessionPage() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [isMaterialsExpanded, setIsMaterialsExpanded] = useState(false)
+  const [studentId, setStudentId] = useState<string>('')
+  const [studentName, setStudentName] = useState<string>('')
   
   // Detect if this is an adult education session based on session type or isAdultEducation flag
   const isAdultEducationSession = session?.isAdultEducation || 
     [currentLevel].includes(EducationLevel.UNIVERSITY) || 
     [currentLevel].includes(EducationLevel.ADULT)
+
+  // 학생 ID 및 이름 설정
+  useEffect(() => {
+    // 브라우저 기반 학생 ID 생성 또는 복원
+    let id = localStorage.getItem('student_id')
+    if (!id) {
+      id = `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      localStorage.setItem('student_id', id)
+    }
+    setStudentId(id)
+
+    // 저장된 학생 이름 복원 (있는 경우)
+    const savedName = localStorage.getItem('student_name')
+    if (savedName) {
+      setStudentName(savedName)
+    }
+  }, [])
 
   useEffect(() => {
     if (!sessionCode || typeof sessionCode !== 'string') {
@@ -408,25 +428,38 @@ export default function StudentSessionPage() {
           </Card>
         )}
 
-        {/* 질문 입력 - 교육 레벨 적응형 */}
-        <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-            {isAdultEducationSession 
-              ? adapt('질문 및 토론', '질의응답', '전문적 질문') 
-              : adapt('질문하기', '궁금한 것 물어보기', '질문 작성')}
-          </h2>
-          <QuestionInput sessionId={session.sessionId} sessionType={session.sessionType} />
-        </Card>
+        {/* 교사 주도 모드 vs 자유 질문 모드 조건부 렌더링 */}
+        {session.interactionMode === 'teacher_led' ? (
+          /* 교사 주도 Q&A 모드 */
+          <TeacherQuestionView 
+            sessionId={session.sessionId}
+            studentId={studentId}
+            studentName={studentName}
+          />
+        ) : (
+          /* 기존 자유 질문 모드 */
+          <>
+            {/* 질문 입력 - 교육 레벨 적응형 */}
+            <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
+              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+                {isAdultEducationSession 
+                  ? adapt('질문 및 토론', '질의응답', '전문적 질문') 
+                  : adapt('질문하기', '궁금한 것 물어보기', '질문 작성')}
+              </h2>
+              <QuestionInput sessionId={session.sessionId} sessionType={session.sessionType} />
+            </Card>
 
-        {/* 질문 목록 - 교육 레벨 적응형 */}
-        <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-            💬 {isAdultEducationSession 
-              ? adapt('참여자 질의응답', '토론 및 질의', '전문적 대화') 
-              : adapt('우리들의 질문 대화', '친구들과 질문 나누기', '학습자 질문 공간')}
-          </h2>
-          <QuestionList sessionId={session.sessionId} session={session} />
-        </Card>
+            {/* 질문 목록 - 교육 레벨 적응형 */}
+            <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
+              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+                💬 {isAdultEducationSession 
+                  ? adapt('참여자 질의응답', '토론 및 질의', '전문적 대화') 
+                  : adapt('우리들의 질문 대화', '친구들과 질문 나누기', '학습자 질문 공간')}
+              </h2>
+              <QuestionList sessionId={session.sessionId} session={session} />
+            </Card>
+          </>
+        )}
 
         {/* 멘토-멘티 매칭 시스템 - 대학생/성인 세션용 */}
         {isAdultEducationSession && session && (

@@ -1,5 +1,5 @@
 // SmartQ - Utility Types and Functions
-import { AdultLearnerType } from '@/types/education'
+import { AdultLearnerType, SessionMode } from '@/types/education'
 
 export enum SessionType {
   // 기본 교육용 세션 타입
@@ -57,6 +57,10 @@ export interface Session {
   materials?: Material[];
   keywords?: string[];
   aiAnalysisResult?: MultiSubjectAnalysisResult;
+  
+  // Teacher-led mode support
+  interactionMode?: SessionMode;
+  activeTeacherQuestionId?: string;
   
   // Adult education specific fields
   isAdultEducation?: boolean;
