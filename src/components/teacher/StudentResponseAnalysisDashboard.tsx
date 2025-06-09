@@ -350,7 +350,7 @@ export default function StudentResponseAnalysisDashboard({
 
       {/* AI 분석 결과 */}
       {analysisMode === 'comprehensive' && comprehensiveAnalysis ? (
-        {/* 종합 분석 결과 */}
+        /* 종합 분석 결과 */
         <>
           {/* 전체 평가 */}
           <Card className="p-6">
