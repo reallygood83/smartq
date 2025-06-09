@@ -267,7 +267,7 @@ export default function StudentSessionPage() {
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+                    <span className="text-sm text-gray-600 dark:text-gray-200 font-medium">
                       자료 {sharedContents.length}개
                     </span>
                     <div className="flex space-x-2">
@@ -279,7 +279,7 @@ export default function StudentSessionPage() {
                         </span>
                       ))}
                       {sharedContents.length > 4 && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400">+{sharedContents.length - 4}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-300">+{sharedContents.length - 4}</span>
                       )}
                     </div>
                   </div>
@@ -313,7 +313,7 @@ export default function StudentSessionPage() {
                     </span>
                     <div className="flex-1">
                       <h3 className={`text-lg font-medium mb-2 ${
-                        content.type === 'instruction' ? 'text-orange-900 dark:text-orange-200' : 'text-gray-900 dark:text-white'
+                        content.type === 'instruction' ? 'text-orange-900 dark:text-orange-200' : 'text-gray-900 dark:text-gray-100'
                       }`}>
                         {content.title}
                       </h3>

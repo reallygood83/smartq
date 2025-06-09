@@ -72,7 +72,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-gray-500 dark:text-gray-100">질문 목록을 불러오는 중...</div>
+        <div className="text-gray-500 dark:text-gray-200">질문 목록을 불러오는 중...</div>
       </div>
     )
   }
@@ -81,7 +81,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
     return (
       <div className="text-center py-12">
         <div className="mb-4">
-          <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -180,7 +180,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
                   isMine ? 'flex-row-reverse' : 'flex-row'
                 }`}>
                   <span className={`text-xs font-medium ${
-                    isMine ? 'text-blue-100' : 'text-gray-600 dark:text-gray-100'
+                    isMine ? 'text-blue-100' : 'text-gray-600 dark:text-gray-200'
                   }`}>
                     {isMine 
                       ? isAdultEducationSession 
@@ -193,7 +193,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
                         : (question.studentName || (isAdultEducationSession ? adapt('참여자', '학습자', '질문자') : '학생')))}
                   </span>
                   <span className={`text-xs ${
-                    isMine ? 'text-blue-200' : 'text-gray-400 dark:text-gray-100'
+                    isMine ? 'text-blue-200' : 'text-gray-400 dark:text-gray-300'
                   }`}>
                     {new Date(question.createdAt).toLocaleString('ko-KR', isAdultEducationSession ? {
                       month: 'short',
@@ -212,7 +212,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
                 
                 {/* 질문 내용 */}
                 <p className={`${isAdultEducationSession ? 'text-base' : 'text-sm'} leading-relaxed ${
-                  isMine ? 'text-white' : 'text-gray-800 dark:text-white'
+                  isMine ? 'text-white' : 'text-gray-800 dark:text-gray-100'
                 }`}>
                   {question.text}
                 </p>
@@ -260,7 +260,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
                   {/* 추가 메타데이터 (성인 교육용) */}
                   {isAdultEducationSession && (
                     <div className={`flex items-center space-x-3 text-xs ${
-                      isMine ? 'text-blue-100' : 'text-gray-500 dark:text-gray-100'
+                      isMine ? 'text-blue-100' : 'text-gray-500 dark:text-gray-300'
                     }`}>
                       <span>#{index + 1}</span>
                       <span>{question.text.length}자</span>
