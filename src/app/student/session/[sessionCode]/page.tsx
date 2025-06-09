@@ -224,15 +224,40 @@ export default function StudentSessionPage() {
             <p className="text-gray-600 dark:text-gray-200 mb-6">
               입력하신 접속 코드 <span className="font-mono font-bold text-red-600">{sessionCode}</span>에 해당하는 세션이 없습니다.
             </p>
-            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg mb-6">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>확인해주세요:</strong>
-                <br />• 접속 코드를 정확히 입력했는지 확인
-                <br />• 대소문자 구분 (예: A와 a는 다름)
+                <strong>📱 모바일/태블릿 사용자:</strong>
+                <br />• 페이지 새로고침 (당겨서 새로고침)
+                <br />• Wi-Fi 연결 확인
+                <br />• 다른 브라우저 시도 (Chrome, Safari)
                 <br />• 선생님께 정확한 접속 코드 문의
               </p>
             </div>
+            
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              🔄 페이지 새로고침
+            </button>
           </Card>
+          
+          {/* 에러 시에도 디버깅 정보 표시 */}
+          {debugInfo.length > 0 && (
+            <div className="mt-8 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">🔍 연결 과정 (기술진단용)</h3>
+              <div className="max-h-40 overflow-y-auto text-xs text-gray-600 dark:text-gray-300 space-y-1 font-mono">
+                {debugInfo.slice(-15).map((info, index) => (
+                  <div key={index} className="break-all">
+                    {info}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                💡 이 정보를 선생님께 보여주시면 문제 해결에 도움이 됩니다
+              </p>
+            </div>
+          )}
         </div>
       </div>
     )
