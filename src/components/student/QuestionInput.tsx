@@ -182,7 +182,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
             id="studentName"
             value={studentName}
             onChange={(e) => setStudentName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-200"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300"
             placeholder="이름을 입력하세요"
             required={!isAnonymous}
           />
@@ -199,7 +199,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
           value={questionText}
           onChange={(e) => setQuestionText(e.target.value)}
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-200"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300"
           placeholder={getPlaceholderText(sessionType)}
           required
         />
