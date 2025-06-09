@@ -99,6 +99,16 @@
         }
       }
     },
+    "questionAnalyses": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$analysisId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.exists() ? newData.hasChildren(['analysisId', 'sessionId', 'questionId', 'generatedAt']) : true"
+        }
+      }
+    },
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",

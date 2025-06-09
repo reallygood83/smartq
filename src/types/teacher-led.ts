@@ -33,13 +33,51 @@ export interface StudentResponse {
   analysisResult?: ResponseAnalysis;
 }
 
-// 기본 AI 분석 인터페이스
+// 확장된 AI 분석 인터페이스
 export interface ResponseAnalysis {
   responseId: string;
-  comprehensionLevel: 'advanced' | 'proficient' | 'developing' | 'beginning';
-  keyPoints: string[];
-  misconceptions?: string[];
-  confidence: number; // 0-1
+  studentId: string;
+  analysisResults: {
+    comprehensionLevel: 'excellent' | 'good' | 'fair' | 'needs_improvement';
+    comprehensionScore: number; // 0-100
+    keyStrengths: string[];
+    improvementAreas: string[];
+    conceptualGaps: string[];
+    nextSteps: string[];
+    detailedFeedback: string;
+  };
+}
+
+export interface CollectiveAnalysis {
+  overallInsights: {
+    averageComprehension: number;
+    commonStrengths: string[];
+    commonChallenges: string[];
+    conceptualPatterns: string[];
+  };
+  teachingRecommendations: {
+    immediateActions: string[];
+    followUpQuestions: string[];
+    reinforcementActivities: string[];
+    differentiationStrategies: string[];
+  };
+  questionEffectiveness: {
+    clarityScore: number; // 0-100
+    engagementLevel: number; // 0-100
+    cognitiveLevel: string;
+    suggestions: string[];
+  };
+}
+
+export interface StudentResponseAnalysis {
+  question: {
+    questionId: string;
+    text: string;
+    responseCount: number;
+  };
+  individualAnalyses: ResponseAnalysis[];
+  collectiveAnalysis: CollectiveAnalysis;
+  generatedAt: number;
 }
 
 // 교사용 질문 분석

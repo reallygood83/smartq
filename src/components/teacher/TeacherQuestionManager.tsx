@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { TeacherQuestion, CreateTeacherQuestionRequest, ActivateQuestionRequest } from '@/types/teacher-led'
+import StudentResponseAnalysisDashboard from './StudentResponseAnalysisDashboard'
 
 interface TeacherQuestionManagerProps {
   sessionId: string
@@ -19,6 +20,7 @@ export default function TeacherQuestionManager({ sessionId, onQuestionActivated 
   const [newQuestion, setNewQuestion] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
+  const [analysisQuestionId, setAnalysisQuestionId] = useState<string | null>(null)
 
   // 실시간 질문 목록 동기화
   useEffect(() => {
@@ -207,6 +209,7 @@ export default function TeacherQuestionManager({ sessionId, onQuestionActivated 
   }
 
   return (
+    <>
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">💭 질문 관리</h3>
       
@@ -308,6 +311,16 @@ export default function TeacherQuestionManager({ sessionId, onQuestionActivated 
                         완료
                       </Button>
                     )}
+                    {(question.status === 'active' || question.status === 'completed') && (
+                      <Button
+                        onClick={() => setAnalysisQuestionId(question.questionId)}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs text-blue-600 hover:text-blue-700"
+                      >
+                        📊 AI 분석
+                      </Button>
+                    )}
                     <Button
                       onClick={() => {
                         const newText = prompt('질문 수정:', question.text)
@@ -343,8 +356,23 @@ export default function TeacherQuestionManager({ sessionId, onQuestionActivated 
           <li>• <strong>대기열 추가:</strong> 나중에 사용할 질문을 미리 준비해둡니다</li>
           <li>• <strong>활성화:</strong> 대기 중인 질문을 학생들에게 전송합니다</li>
           <li>• <strong>완료:</strong> 진행 중인 질문을 종료하고 다음 질문으로 넘어갑니다</li>
+          <li>• <strong>AI 분석:</strong> 활성화되거나 완료된 질문의 학생 답변을 AI로 분석합니다</li>
         </ul>
       </div>
     </Card>
+
+    {/* AI 분석 대시보드 모달 */}
+    {analysisQuestionId && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <StudentResponseAnalysisDashboard 
+            sessionId={sessionId}
+            questionId={analysisQuestionId}
+            onClose={() => setAnalysisQuestionId(null)}
+          />
+        </div>
+      </div>
+    )}
+  </>
   )
 }
