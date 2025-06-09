@@ -26,13 +26,6 @@ export default function StudentSessionPage() {
   const [analysisResult, setAnalysisResult] = useState<MultiSubjectAnalysisResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<string[]>([])
-  
-  // 디버깅 정보 추가 함수
-  const addDebugInfo = (message: string) => {
-    console.log(message);
-    setDebugInfo(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
-  }
   
   // Detect if this is an adult education session based on session type or isAdultEducation flag
   const isAdultEducationSession = session?.isAdultEducation || 
@@ -40,57 +33,32 @@ export default function StudentSessionPage() {
     [currentLevel].includes(EducationLevel.ADULT)
 
   useEffect(() => {
-    addDebugInfo('=== SmartQ 세션 조회 시작 ===');
-    
-    const envInfo = {
-      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
-      브라우저: typeof window !== 'undefined' ? window.navigator.vendor : 'server',
-      뷰포트: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'server',
-      연결상태: typeof window !== 'undefined' && 'onLine' in window.navigator ? window.navigator.onLine : 'unknown'
-    };
-    addDebugInfo(`환경 정보: ${JSON.stringify(envInfo)}`);
-    
     if (!sessionCode || typeof sessionCode !== 'string') {
-      addDebugInfo('❌ 잘못된 세션 코드');
       setNotFound(true)
       setLoading(false)
       return
     }
-    
-    addDebugInfo(`세션 코드: ${sessionCode}`);
 
     if (!database) {
-      addDebugInfo('❌ Firebase database가 초기화되지 않음')
       setNotFound(true)
       setLoading(false)
       return
     }
-    
-    addDebugInfo('✅ Firebase database 연결 확인됨')
-
-    // 접속 코드로 세션 찾기 (모바일 호환성을 위해 단순한 방법 사용)
-    addDebugInfo(`📡 세션 검색 시작: ${sessionCode}`)
     
     try {
       const sessionsRef = ref(database, 'sessions')
-      addDebugInfo(`📡 세션 참조 생성 완료`)
       
       // 복잡한 쿼리 대신 모든 세션을 가져와서 클라이언트에서 필터링
       const unsubscribe = onValue(sessionsRef, (snapshot) => {
-        addDebugInfo(`📡 Firebase 응답 수신`)
         const data = snapshot.val()
-        addDebugInfo(`📡 Firebase 응답: ${data ? '데이터 존재' : '데이터 없음'}`)
         
         if (data) {
-          addDebugInfo(`📡 전체 세션 수: ${Object.keys(data).length}`)
-          
           // 클라이언트에서 accessCode로 필터링
           let foundSession: Session | null = null
           let foundSessionId: string | null = null
           
           for (const [sessionId, sessionData] of Object.entries(data)) {
             const session = sessionData as any
-            addDebugInfo(`📡 세션 확인: ${sessionId} - ${session.accessCode}`)
             
             if (session.accessCode === sessionCode) {
               foundSessionId = sessionId
@@ -98,7 +66,6 @@ export default function StudentSessionPage() {
                 sessionId,
                 ...session
               } as Session
-              addDebugInfo(`✅ 세션 발견: ${session.title}`)
               break
             }
           }
@@ -113,17 +80,14 @@ export default function StudentSessionPage() {
               setAnalysisResult(foundSession.aiAnalysisResult)
             }
           } else {
-            addDebugInfo('❌ 일치하는 세션을 찾을 수 없음')
             setNotFound(true)
             setLoading(false)
           }
         } else {
-          addDebugInfo('❌ 세션 데이터가 없음')
           setNotFound(true)
           setLoading(false)
         }
       }, (error) => {
-        addDebugInfo(`❌ Firebase 쿼리 오류: ${error.message}`)
         console.error('Firebase 쿼리 오류:', error)
         setNotFound(true)
         setLoading(false)
@@ -131,7 +95,6 @@ export default function StudentSessionPage() {
 
       return () => unsubscribe()
     } catch (queryError) {
-      addDebugInfo(`❌ 쿼리 생성 오류: ${queryError}`)
       console.error('쿼리 생성 오류:', queryError)
       setNotFound(true)
       setLoading(false)
@@ -171,37 +134,15 @@ export default function StudentSessionPage() {
           <div className="text-center mb-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <div className="text-lg text-gray-600 dark:text-gray-200 mt-4">세션을 찾는 중...</div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              세션 코드: <span className="font-mono font-bold">{sessionCode}</span>
+            <div className="text-sm text-gray-500 dark:text-gray-300 mt-2">
+              세션 코드: <span className="font-mono font-bold text-gray-800 dark:text-gray-200">{sessionCode}</span>
             </div>
-            <div className="mt-6 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+            <div className="mt-6 text-xs text-gray-400 dark:text-gray-400 space-y-1">
               <p>💡 잠시만 기다려주세요</p>
               <p>📱 모바일에서는 조금 더 오래 걸릴 수 있습니다</p>
               <p>🌐 네트워크 연결을 확인해주세요</p>
             </div>
           </div>
-          
-          {/* 실시간 디버깅 정보 */}
-          {debugInfo.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">🔍 연결 상태</h3>
-                <button 
-                  onClick={() => setDebugInfo([])}
-                  className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  지우기
-                </button>
-              </div>
-              <div className="max-h-40 overflow-y-auto text-xs text-gray-600 dark:text-gray-300 space-y-1 font-mono">
-                {debugInfo.map((info, index) => (
-                  <div key={index} className="break-all">
-                    {info}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     )
@@ -221,10 +162,10 @@ export default function StudentSessionPage() {
             <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
               세션을 찾을 수 없습니다
             </h2>
-            <p className="text-gray-600 dark:text-gray-200 mb-6">
-              입력하신 접속 코드 <span className="font-mono font-bold text-red-600">{sessionCode}</span>에 해당하는 세션이 없습니다.
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              입력하신 접속 코드 <span className="font-mono font-bold text-red-600 dark:text-red-400">{sessionCode}</span>에 해당하는 세션이 없습니다.
             </p>
-            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg mb-6">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-6">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>📱 모바일/태블릿 사용자:</strong>
                 <br />• 페이지 새로고침 (당겨서 새로고침)
@@ -241,23 +182,6 @@ export default function StudentSessionPage() {
               🔄 페이지 새로고침
             </button>
           </Card>
-          
-          {/* 에러 시에도 디버깅 정보 표시 */}
-          {debugInfo.length > 0 && (
-            <div className="mt-8 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">🔍 연결 과정 (기술진단용)</h3>
-              <div className="max-h-40 overflow-y-auto text-xs text-gray-600 dark:text-gray-300 space-y-1 font-mono">
-                {debugInfo.slice(-15).map((info, index) => (
-                  <div key={index} className="break-all">
-                    {info}
-                  </div>
-                ))}
-              </div>
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                💡 이 정보를 선생님께 보여주시면 문제 해결에 도움이 됩니다
-              </p>
-            </div>
-          )}
         </div>
       </div>
     )
@@ -372,7 +296,7 @@ export default function StudentSessionPage() {
                           <div className={`whitespace-pre-wrap ${
                             content.type === 'instruction' 
                               ? 'text-orange-800 dark:text-orange-200' 
-                              : 'text-gray-900 dark:text-white'
+                              : 'text-gray-900 dark:text-gray-100'
                           }`}>
                             {/* 개념 설명인 경우 특별한 포맷팅 */}
                             {content.title.startsWith('개념 설명:') ? (
@@ -404,7 +328,7 @@ export default function StudentSessionPage() {
                                   } else {
                                     // 일반 설명 부분
                                     return (
-                                      <p key={index} className="text-orange-800 dark:text-orange-200 leading-relaxed">
+                                      <p key={index} className="text-orange-800 dark:text-orange-100 leading-relaxed">
                                         {section}
                                       </p>
                                     )
@@ -419,7 +343,7 @@ export default function StudentSessionPage() {
                         )}
                       </div>
                       
-                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-200">
+                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                         {new Date(content.createdAt).toLocaleString('ko-KR')}
                       </div>
                     </div>
