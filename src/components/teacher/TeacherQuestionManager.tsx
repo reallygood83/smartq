@@ -9,6 +9,7 @@ import { Button } from '@/components/common/Button'
 import { TeacherQuestion, CreateTeacherQuestionRequest, ActivateQuestionRequest } from '@/types/teacher-led'
 import StudentResponseAnalysisDashboard from './StudentResponseAnalysisDashboard'
 import QuestionTemplates from './QuestionTemplates'
+import ParticipationMonitor from './ParticipationMonitor'
 import { Session } from '@/lib/utils'
 
 interface TeacherQuestionManagerProps {
@@ -276,6 +277,16 @@ export default function TeacherQuestionManager({ sessionId, onQuestionActivated,
         </div>
       )}
       
+      {/* 실시간 참여도 모니터링 */}
+      {activeQuestionId && (
+        <div className="mb-6">
+          <ParticipationMonitor 
+            sessionId={sessionId} 
+            activeQuestionId={activeQuestionId} 
+          />
+        </div>
+      )}
+
       {/* 질문 목록 */}
       <div>
         <h4 className="font-medium mb-3 text-gray-700 dark:text-gray-100">📋 질문 목록</h4>
