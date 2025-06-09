@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Question, Session } from '@/lib/utils'
 import { database } from '@/lib/firebase'
-import { ref, onValue } from 'firebase/database'
+import { ref, onValue, set, remove } from 'firebase/database'
 import { useEducationLevel, useSmartTerminology, useFullTheme } from '@/contexts/EducationLevelContext'
 import { EducationLevel } from '@/types/education'
 
@@ -21,6 +21,8 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
   const [myStudentId, setMyStudentId] = useState<string>('')
+  const [likesData, setLikesData] = useState<{[questionId: string]: {[studentId: string]: boolean}}>({})
+  const [processingLike, setProcessingLike] = useState<string | null>(null)
   
   // Determine if this is an adult/university education session
   const isAdultEducationSession = session?.isAdultEducation || 
@@ -48,8 +50,18 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
         // 시간순으로 정렬 (오래된 것부터)
         questionsList.sort((a, b) => a.createdAt - b.createdAt)
         setQuestions(questionsList)
+        
+        // 좋아요 데이터 추출
+        const likes: {[questionId: string]: {[studentId: string]: boolean}} = {}
+        Object.entries(data).forEach(([questionId, questionData]: [string, any]) => {
+          if (questionData.likes) {
+            likes[questionId] = questionData.likes
+          }
+        })
+        setLikesData(likes)
       } else {
         setQuestions([])
+        setLikesData({})
       }
       setLoading(false)
     })
@@ -93,6 +105,42 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
     return question.studentId === myStudentId
   }
 
+  // 좋아요 토글 함수
+  const toggleLike = async (questionId: string) => {
+    if (!database || !myStudentId || processingLike) return
+    
+    setProcessingLike(questionId)
+    
+    try {
+      const likeRef = ref(database, `questions/${sessionId}/${questionId}/likes/${myStudentId}`)
+      const isLiked = likesData[questionId]?.[myStudentId] || false
+      
+      if (isLiked) {
+        // 좋아요 취소
+        await remove(likeRef)
+      } else {
+        // 좋아요 추가
+        await set(likeRef, true)
+      }
+    } catch (error) {
+      console.error('좋아요 처리 오류:', error)
+      alert('좋아요 처리 중 오류가 발생했습니다.')
+    } finally {
+      setProcessingLike(null)
+    }
+  }
+
+  // 질문의 좋아요 수 계산
+  const getLikeCount = (questionId: string): number => {
+    const likes = likesData[questionId]
+    return likes ? Object.keys(likes).length : 0
+  }
+
+  // 내가 좋아요 했는지 확인
+  const isLikedByMe = (questionId: string): boolean => {
+    return likesData[questionId]?.[myStudentId] || false
+  }
+
   return (
     <div className="space-y-3">
       <div className="text-sm mb-4 text-center" style={{ color: theme.colors.text.secondary }}>
@@ -105,6 +153,8 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
            style={{ backgroundColor: isAdultEducationSession ? 'rgba(0,0,0,0.02)' : 'transparent' }}>
         {questions.map((question, index) => {
           const isMine = isMyQuestion(question)
+          const likeCount = getLikeCount(question.questionId)
+          const isPopular = likeCount >= 3 // 3개 이상의 좋아요를 받으면 인기 질문
           
           return (
             <div
@@ -112,6 +162,8 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
               className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${isAdultEducationSession ? 'mb-4' : ''}`}
             >
               <div className={`${isAdultEducationSession ? 'max-w-lg lg:max-w-xl' : 'max-w-xs lg:max-w-md'} px-4 py-3 rounded-2xl shadow-sm ${
+                isPopular && !isMine ? 'ring-2 ring-red-300 ring-opacity-50' : ''
+              } ${
                 isMine 
                   ? isAdultEducationSession 
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-md shadow-md' 
@@ -165,16 +217,56 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
                   {question.text}
                 </p>
                 
-                {/* 추가 메타데이터 (성인 교육용) */}
-                {isAdultEducationSession && (
-                  <div className={`mt-2 flex items-center justify-between text-xs ${
-                    isMine ? 'text-blue-100' : 'text-gray-500 dark:text-gray-100'
-                  }`}>
-                    <span>#{index + 1}</span>
-                    {/* 질문 길이 표시 */}
-                    <span>{question.text.length}자</span>
-                  </div>
-                )}
+                {/* 좋아요 버튼 및 카운트 */}
+                <div className={`mt-3 flex items-center ${isMine ? 'justify-between' : 'justify-between'}`}>
+                  <button
+                    onClick={() => toggleLike(question.questionId)}
+                    disabled={processingLike === question.questionId || isMine}
+                    className={`flex items-center space-x-1 transition-all ${
+                      isMine 
+                        ? 'cursor-not-allowed opacity-50' 
+                        : processingLike === question.questionId
+                        ? 'cursor-wait opacity-70'
+                        : 'cursor-pointer hover:scale-110'
+                    } ${
+                      isLikedByMe(question.questionId)
+                        ? 'text-red-500'
+                        : isMine
+                        ? 'text-blue-200'
+                        : 'text-gray-400 hover:text-red-500'
+                    }`}
+                    title={isMine ? '내 질문에는 좋아요를 할 수 없습니다' : '좋아요'}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill={isLikedByMe(question.questionId) ? 'currentColor' : 'none'}
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                    <span className={`text-sm font-medium ${
+                      isMine ? 'text-blue-200' : ''
+                    }`}>
+                      {getLikeCount(question.questionId)}
+                    </span>
+                  </button>
+
+                  {/* 추가 메타데이터 (성인 교육용) */}
+                  {isAdultEducationSession && (
+                    <div className={`flex items-center space-x-3 text-xs ${
+                      isMine ? 'text-blue-100' : 'text-gray-500 dark:text-gray-100'
+                    }`}>
+                      <span>#{index + 1}</span>
+                      <span>{question.text.length}자</span>
+                    </div>
+                  )}
+                </div>
                 
                 {/* 읽음 표시 (내 질문인 경우에만) */}
                 {isMine && (
