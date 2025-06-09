@@ -271,12 +271,24 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
                 <span className="text-sm font-medium text-gray-700">접속 코드:</span>
                 <div className="mt-1">
                   <span className="inline-flex items-center px-3 py-1 rounded-md text-lg font-mono font-bold bg-blue-100 text-blue-800">
                     {session.accessCode}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-700">상호작용 방식:</span>
+                <div className="mt-1">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium ${
+                    (session.interactionMode || 'free_question') === 'teacher_led' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-purple-100 text-purple-800'
+                  }`}>
+                    {(session.interactionMode || 'free_question') === 'teacher_led' ? '🎯 교사 주도' : '💬 자유 질문'}
                   </span>
                 </div>
               </div>

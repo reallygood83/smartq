@@ -85,7 +85,7 @@ export default function CreateSessionForm() {
         teacherId: user.uid,
         sessionType,
         subjects,
-        interactionMode // 새 필드 추가
+        interactionMode: interactionMode || 'free_question' // 기본값 보장
       }
 
       // Optional fields - only add if they have values
@@ -191,10 +191,13 @@ export default function CreateSessionForm() {
           </div>
 
           {/* 상호작용 모드 선택 (신규) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-3">
-              🎯 수업 상호작용 방식 *
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-600">
+            <label className="block text-sm font-medium text-yellow-900 dark:text-yellow-100 mb-2">
+              🎯 수업 상호작용 방식 * (중요 선택사항)
             </label>
+            <p className="text-xs text-yellow-700 dark:text-yellow-200 mb-4">
+              ⚠️ 세션 생성 후에는 변경할 수 없으니 신중히 선택해주세요. 수업 스타일에 맞는 방식을 선택하세요.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.values(SESSION_MODE_CONFIGS).map((config) => {
                 const isSelected = interactionMode === config.mode

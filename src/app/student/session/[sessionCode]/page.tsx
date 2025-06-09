@@ -215,17 +215,28 @@ export default function StudentSessionPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* 세션 정보 */}
         <Card className="p-6 mb-6">
-          <div className="flex items-center space-x-4 mb-4">
-            <span className="text-4xl">
-              {getSessionTypeIcon(session.sessionType)}
-            </span>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {session.title}
-              </h1>
-              <p className="text-gray-600 dark:text-white">
-                {getSessionTypeLabel(session.sessionType)}
-              </p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <span className="text-4xl">
+                {getSessionTypeIcon(session.sessionType)}
+              </span>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {session.title}
+                </h1>
+                <p className="text-gray-600 dark:text-white">
+                  {getSessionTypeLabel(session.sessionType)}
+                </p>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                (session.interactionMode || 'free_question') === 'teacher_led' 
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' 
+                  : 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300'
+              }`}>
+                {(session.interactionMode || 'free_question') === 'teacher_led' ? '🎯 교사 주도 모드' : '💬 자유 질문 모드'}
+              </span>
             </div>
           </div>
 
@@ -429,7 +440,7 @@ export default function StudentSessionPage() {
         )}
 
         {/* 교사 주도 모드 vs 자유 질문 모드 조건부 렌더링 */}
-        {session.interactionMode === 'teacher_led' ? (
+        {(session.interactionMode || 'free_question') === 'teacher_led' ? (
           /* 교사 주도 Q&A 모드 */
           <TeacherQuestionView 
             sessionId={session.sessionId}
