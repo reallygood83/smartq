@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Development
-npm run dev              # Start development server with Turbopack (default)
+npm run dev              # Start development server with Turbopack (default port 3000)
 npm run build           # Build for production
 npm run start           # Start production server
-npm run lint            # Run ESLint
+npm run lint            # Run ESLint for code quality
 
 # Firebase deployment
 firebase deploy --only database    # Deploy database rules only
@@ -18,6 +18,11 @@ firebase login                    # Login to Firebase CLI (required once)
 
 # Database rules testing
 firebase deploy --only database:rules    # Deploy only security rules
+
+# Git workflow (for commits to https://github.com/reallygood83/smartq)
+git add .
+git commit -m "descriptive message"
+git push origin main
 ```
 
 ## Architecture Overview
@@ -253,16 +258,16 @@ Analysis Results Stored → Firebase questionAnalyses/
 
 Required `.env.local` variables:
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-NEXT_PUBLIC_FIREBASE_DATABASE_URL=
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.com/
 ```
 
-The app gracefully degrades when Firebase config is missing, but authentication and real-time features will be disabled.
+**Important**: The app gracefully degrades when Firebase config is missing, but authentication and real-time features will be disabled. Always verify Firebase connection before making database-related changes.
 
 ### Mobile and Dark Mode Considerations
 
@@ -369,3 +374,26 @@ firebase-realtime-database/
 - Simple, robust real-time synchronization
 - Minimal complexity to reduce error potential
 - Clear separation of concerns between modes
+
+## Common Development Scenarios
+
+### Adding New Features
+1. Check if feature affects existing functionality
+2. Use conditional rendering based on session mode when needed
+3. Add proper TypeScript types in relevant type files
+4. Update Firebase security rules if new data paths are needed
+5. Test both free-question and teacher-led modes
+6. Update CLAUDE.md if introducing new patterns
+
+### Debugging Common Issues
+- **Port conflicts**: Dev server defaults to 3000, uses 3001 if busy
+- **Missing interactionMode**: Always provide fallback `(session.interactionMode || 'free_question')`
+- **Firebase connection**: Check `.env.local` variables and network connectivity
+- **Dark mode contrast**: Always use `dark:text-white` for readable text
+- **Mobile responsiveness**: Test on mobile devices, especially student interfaces
+
+### Performance Optimization
+- Use `onValue` listeners efficiently (clean up in useEffect cleanup)
+- Batch Firebase updates when modifying multiple fields
+- Avoid unnecessary re-renders with proper dependency arrays
+- Use React.memo for expensive components when appropriate

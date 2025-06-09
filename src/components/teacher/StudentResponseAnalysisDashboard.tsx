@@ -87,7 +87,7 @@ export default function StudentResponseAnalysisDashboard({
   const runAnalysis = async () => {
     if (!user || responses.length === 0) return
 
-    const apiKey = getStoredApiKey()
+    const apiKey = getStoredApiKey(user.uid)
     if (!apiKey) {
       setError('AI 분석을 위해 API 키가 필요합니다. 설정에서 API 키를 등록해주세요.')
       return
