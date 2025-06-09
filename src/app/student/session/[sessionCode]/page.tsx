@@ -68,42 +68,74 @@ export default function StudentSessionPage() {
     
     addDebugInfo('✅ Firebase database 연결 확인됨')
 
-    // 접속 코드로 세션 찾기
+    // 접속 코드로 세션 찾기 (모바일 호환성을 위해 단순한 방법 사용)
     addDebugInfo(`📡 세션 검색 시작: ${sessionCode}`)
-    const sessionsRef = ref(database, 'sessions')
-    const sessionQuery = query(sessionsRef, orderByChild('accessCode'), equalTo(sessionCode))
     
-    const unsubscribe = onValue(sessionQuery, (snapshot) => {
-      const data = snapshot.val()
-      addDebugInfo(`📡 Firebase 쿼리 결과: ${data ? '데이터 존재' : '데이터 없음'}`)
-      if (data) {
-        try {
-          // 첫 번째 (그리고 유일한) 결과 가져오기
-          const sessionData = Object.values(data)[0] as Session
-          addDebugInfo(`✅ 세션 발견: ${sessionData.title}`)
-          setSession(sessionData)
-          setNotFound(false)
-          setLoading(false)
+    try {
+      const sessionsRef = ref(database, 'sessions')
+      addDebugInfo(`📡 세션 참조 생성 완료`)
+      
+      // 복잡한 쿼리 대신 모든 세션을 가져와서 클라이언트에서 필터링
+      const unsubscribe = onValue(sessionsRef, (snapshot) => {
+        addDebugInfo(`📡 Firebase 응답 수신`)
+        const data = snapshot.val()
+        addDebugInfo(`📡 Firebase 응답: ${data ? '데이터 존재' : '데이터 없음'}`)
+        
+        if (data) {
+          addDebugInfo(`📡 전체 세션 수: ${Object.keys(data).length}`)
           
-          // AI 분석 결과가 있다면 로드
-          if (sessionData.aiAnalysisResult) {
-            setAnalysisResult(sessionData.aiAnalysisResult)
+          // 클라이언트에서 accessCode로 필터링
+          let foundSession: Session | null = null
+          let foundSessionId: string | null = null
+          
+          for (const [sessionId, sessionData] of Object.entries(data)) {
+            const session = sessionData as any
+            addDebugInfo(`📡 세션 확인: ${sessionId} - ${session.accessCode}`)
+            
+            if (session.accessCode === sessionCode) {
+              foundSessionId = sessionId
+              foundSession = {
+                sessionId,
+                ...session
+              } as Session
+              addDebugInfo(`✅ 세션 발견: ${session.title}`)
+              break
+            }
           }
           
-          // 공유 콘텐츠 로드 (별도 useEffect에서 처리)
-        } catch (error) {
-          addDebugInfo(`❌ 세션 데이터 파싱 오류: ${error}`)
+          if (foundSession) {
+            setSession(foundSession)
+            setNotFound(false)
+            setLoading(false)
+            
+            // AI 분석 결과가 있다면 로드
+            if (foundSession.aiAnalysisResult) {
+              setAnalysisResult(foundSession.aiAnalysisResult)
+            }
+          } else {
+            addDebugInfo('❌ 일치하는 세션을 찾을 수 없음')
+            setNotFound(true)
+            setLoading(false)
+          }
+        } else {
+          addDebugInfo('❌ 세션 데이터가 없음')
           setNotFound(true)
           setLoading(false)
         }
-      } else {
-        addDebugInfo('❌ 세션을 찾을 수 없음')
+      }, (error) => {
+        addDebugInfo(`❌ Firebase 쿼리 오류: ${error.message}`)
+        console.error('Firebase 쿼리 오류:', error)
         setNotFound(true)
         setLoading(false)
-      }
-    })
+      })
 
-    return () => unsubscribe()
+      return () => unsubscribe()
+    } catch (queryError) {
+      addDebugInfo(`❌ 쿼리 생성 오류: ${queryError}`)
+      console.error('쿼리 생성 오류:', queryError)
+      setNotFound(true)
+      setLoading(false)
+    }
   }, [sessionCode])
 
   // 공유 콘텐츠 로드
