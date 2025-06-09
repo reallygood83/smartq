@@ -142,7 +142,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* 도움말 */}
       <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-        <p className="text-sm text-blue-800 dark:text-blue-200">
+        <p className="text-sm text-blue-800 dark:text-white">
           {getHelpText(sessionType)}
         </p>
       </div>
@@ -157,7 +157,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
             onChange={() => setIsAnonymous(true)}
             className="text-blue-600 focus:ring-blue-500"
           />
-          <span className="ml-2 text-sm text-gray-700 dark:text-gray-200">익명으로 질문하기</span>
+          <span className="ml-2 text-sm text-gray-700 dark:text-white">익명으로 질문하기</span>
         </label>
         <label className="flex items-center">
           <input
@@ -167,14 +167,14 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
             onChange={() => setIsAnonymous(false)}
             className="text-blue-600 focus:ring-blue-500"
           />
-          <span className="ml-2 text-sm text-gray-700 dark:text-gray-200">이름을 남기고 질문하기</span>
+          <span className="ml-2 text-sm text-gray-700 dark:text-white">이름을 남기고 질문하기</span>
         </label>
       </div>
 
       {/* 이름 입력 (익명이 아닌 경우) */}
       {!isAnonymous && (
         <div>
-          <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+          <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
             이름
           </label>
           <input
@@ -182,7 +182,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
             id="studentName"
             value={studentName}
             onChange={(e) => setStudentName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-300"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             placeholder="이름을 입력하세요"
             required={!isAnonymous}
           />
@@ -191,7 +191,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
 
       {/* 질문 입력 */}
       <div>
-        <label htmlFor="questionText" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+        <label htmlFor="questionText" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
           질문 내용
         </label>
         <textarea
@@ -203,7 +203,7 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
           placeholder={getPlaceholderText(sessionType)}
           required
         />
-        <div className="mt-1 text-xs text-gray-500 dark:text-gray-300">
+        <div className="mt-1 text-xs text-gray-500 dark:text-white">
           {questionText.length}/500자
         </div>
       </div>

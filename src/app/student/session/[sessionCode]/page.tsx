@@ -135,10 +135,10 @@ export default function StudentSessionPage() {
           <div className="text-center mb-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <div className="text-lg text-gray-600 dark:text-white mt-4">세션을 찾는 중...</div>
-            <div className="text-sm text-gray-500 dark:text-gray-200 mt-2">
+            <div className="text-sm text-gray-500 dark:text-white mt-2">
               세션 코드: <span className="font-mono font-bold text-gray-800 dark:text-white">{sessionCode}</span>
             </div>
-            <div className="mt-6 text-xs text-gray-400 dark:text-gray-300 space-y-1">
+            <div className="mt-6 text-xs text-gray-400 dark:text-white space-y-1">
               <p>💡 잠시만 기다려주세요</p>
               <p>📱 모바일에서는 조금 더 오래 걸릴 수 있습니다</p>
               <p>🌐 네트워크 연결을 확인해주세요</p>
@@ -163,11 +163,11 @@ export default function StudentSessionPage() {
             <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
               세션을 찾을 수 없습니다
             </h2>
-            <p className="text-gray-600 dark:text-gray-200 mb-6">
+            <p className="text-gray-600 dark:text-white mb-6">
               입력하신 접속 코드 <span className="font-mono font-bold text-red-600 dark:text-red-300">{sessionCode}</span>에 해당하는 세션이 없습니다.
             </p>
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-6">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+              <p className="text-sm text-blue-800 dark:text-white">
                 <strong>📱 모바일/태블릿 사용자:</strong>
                 <br />• 페이지 새로고침 (당겨서 새로고침)
                 <br />• Wi-Fi 연결 확인
@@ -203,7 +203,7 @@ export default function StudentSessionPage() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {session.title}
               </h1>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-600 dark:text-white">
                 {getSessionTypeLabel(session.sessionType)}
               </p>
             </div>
@@ -228,8 +228,8 @@ export default function StudentSessionPage() {
           {/* 학습 목표 */}
           {session.learningGoals && (
             <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-1">학습 목표</h3>
-              <p className="text-sm text-blue-800 dark:text-blue-200">{session.learningGoals}</p>
+              <h3 className="text-sm font-medium text-blue-900 dark:text-white mb-1">학습 목표</h3>
+              <p className="text-sm text-blue-800 dark:text-white">{session.learningGoals}</p>
             </div>
           )}
         </Card>
@@ -267,7 +267,7 @@ export default function StudentSessionPage() {
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-600 dark:text-gray-200 font-medium">
+                    <span className="text-sm text-gray-600 dark:text-white font-medium">
                       자료 {sharedContents.length}개
                     </span>
                     <div className="flex space-x-2">
@@ -279,13 +279,13 @@ export default function StudentSessionPage() {
                         </span>
                       ))}
                       {sharedContents.length > 4 && (
-                        <span className="text-sm text-gray-500 dark:text-gray-300">+{sharedContents.length - 4}</span>
+                        <span className="text-sm text-gray-500 dark:text-white">+{sharedContents.length - 4}</span>
                       )}
                     </div>
                   </div>
                   <button
                     onClick={() => setIsMaterialsExpanded(true)}
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium"
+                    className="text-sm text-blue-600 dark:text-white hover:text-blue-500 dark:hover:text-gray-200 font-medium"
                   >
                     자료 보기
                   </button>
@@ -397,7 +397,7 @@ export default function StudentSessionPage() {
                         )}
                       </div>
                       
-                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-300">
+                      <div className="mt-2 text-xs text-gray-500 dark:text-white">
                         {new Date(content.createdAt).toLocaleString('ko-KR')}
                       </div>
                     </div>
