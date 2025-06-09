@@ -6,13 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Development
-npm run dev --turbopack    # Start development server with Turbopack
-npm run build             # Build for production
-npm run lint              # Run ESLint
+npm run dev              # Start development server with Turbopack (default)
+npm run build           # Build for production
+npm run start           # Start production server
+npm run lint            # Run ESLint
 
 # Firebase deployment
 firebase deploy --only database    # Deploy database rules only
 firebase deploy                   # Deploy all Firebase config
+firebase login                    # Login to Firebase CLI (required once)
+
+# Database rules testing
+firebase deploy --only database:rules    # Deploy only security rules
 ```
 
 ## Architecture Overview
@@ -58,7 +63,7 @@ firebase deploy                   # Deploy all Firebase config
 }
 ```
 
-**Questions**: Student submissions linked to sessions
+**Questions**: Student submissions linked to sessions with like functionality
 ```typescript
 {
   questionId: string,
@@ -66,7 +71,10 @@ firebase deploy                   # Deploy all Firebase config
   text: string,
   studentId: string,  // Anonymous persistent ID
   isAnonymous: boolean,
-  studentName?: string
+  studentName?: string,
+  likes?: {
+    [studentId: string]: boolean  // Like tracking per student
+  }
 }
 ```
 
@@ -88,14 +96,17 @@ firebase deploy                   # Deploy all Firebase config
 
 **Theme and Dark Mode System**
 - Dual context system: `ThemeContext` for light/dark, `EducationLevelContext` for adaptive theming
+- Theme system in `/src/styles/themes.ts` provides level-specific colors and styling
 - Card components use Tailwind `dark:` classes for backgrounds
-- Text colors adapt via `dark:text-*` classes throughout components
+- **CRITICAL**: Always use `dark:text-white` for maximum contrast in dark mode - avoid `dark:text-gray-*`
+- Use `useFullTheme()` hook to access complete theme object in components
 
 **Firebase Security Rules**
 - Teachers can only modify their own sessions
-- Students can submit questions to any session but can't modify existing data
-- Anonymous users can read sessions marked as public
-- All data access requires authentication except for public session access
+- Students can submit questions anonymously to any session
+- Anonymous users can read sessions and submit questions/likes
+- Questions have anonymous write access for student participation
+- All advanced features (content sharing, analysis) require teacher authentication
 
 **API Integration Pattern**
 - `/src/app/api/ai/` contains Next.js API routes that proxy to Gemini
@@ -112,13 +123,17 @@ firebase deploy                   # Deploy all Firebase config
 
 **When modifying UI components:**
 - Always check if component uses education level adaptation via `useSmartTerminology()`
-- Add dark mode support using Tailwind `dark:` classes
+- Add dark mode support using Tailwind `dark:` classes - use `dark:text-white` for text
+- Override theme system colors with Tailwind classes when needed for dark mode
 - Test across different education levels using the level selector
+- Student components support anonymous access - no authentication checks required
 
 **When working with Firebase:**
 - Security rules are in `database.rules.json` - deploy with `firebase deploy --only database`
 - Use `onValue` listeners for real-time updates, not one-time `get()` calls
-- Always check user authentication state before database operations
+- Student operations (questions, likes) work anonymously - no auth checks needed
+- Teacher operations require authentication state verification
+- Questions support real-time like functionality with student-specific tracking
 
 **When adding AI features:**
 - API routes go in `/src/app/api/ai/`
@@ -139,3 +154,29 @@ NEXT_PUBLIC_FIREBASE_DATABASE_URL=
 ```
 
 The app gracefully degrades when Firebase config is missing, but authentication and real-time features will be disabled.
+
+### Mobile and Dark Mode Considerations
+
+**Mobile Optimization:**
+- All components are mobile-first responsive using Tailwind CSS
+- Student session pages optimized for tablet/mobile usage
+- Touch-friendly UI elements and proper spacing
+
+**Dark Mode Implementation:**
+- Use `dark:text-white` for primary text in dark mode (not gray variants)
+- Override theme system colors when they provide insufficient contrast
+- Test all text elements on dark backgrounds for readability
+- Collapsible sections and interactive elements maintain contrast in both modes
+
+### Student Experience Features
+
+**Real-time Interactions:**
+- Questions appear instantly for all session participants
+- Like functionality allows students to interact with each other's questions
+- Anonymous student IDs persist across browser sessions
+- Popular questions (3+ likes) get visual highlighting
+
+**Educational Content:**
+- Shared materials support text, links, YouTube videos, and instructions
+- Materials section is collapsible to reduce initial page load
+- Educational level adaptation affects all content presentation

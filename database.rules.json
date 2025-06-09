@@ -79,6 +79,26 @@
         }
       }
     },
+    "teacherQuestions": {
+      "$sessionId": {
+        ".read": "true",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$questionId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.exists() ? newData.hasChildren(['questionId', 'sessionId', 'text', 'teacherId', 'order', 'source', 'status', 'createdAt']) : true"
+        }
+      }
+    },
+    "studentResponses": {
+      "$sessionId": {
+        ".read": "true",
+        ".write": "true",
+        "$responseId": {
+          ".write": "true",
+          ".validate": "newData.exists() ? newData.hasChildren(['responseId', 'questionId', 'sessionId', 'text', 'studentId', 'createdAt']) : true"
+        }
+      }
+    },
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",

@@ -322,6 +322,37 @@ export function getThemeConfig(level: EducationLevel) {
   return EDUCATION_LEVEL_CONFIGS[level].theme;
 }
 
+// 세션 모드 확장 타입 (기존 코드와 완전 호환)
+export type SessionMode = 'free_question' | 'teacher_led';
+
+export interface SessionModeConfig {
+  mode: SessionMode;
+  displayName: string;
+  description: string;
+  icon: string;
+  benefits: string[];
+  suitableFor: string[];
+}
+
+export const SESSION_MODE_CONFIGS: Record<SessionMode, SessionModeConfig> = {
+  'free_question': {
+    mode: 'free_question',
+    displayName: '자유 질문 모드',
+    description: '학생들이 자유롭게 질문하는 방식',
+    icon: '💭',
+    benefits: ['창의적 사고 유발', '자발적 참여', '다양한 관점'],
+    suitableFor: ['토론 수업', '탐구 활동', '창의 수업']
+  },
+  'teacher_led': {
+    mode: 'teacher_led',
+    displayName: '교사 주도 Q&A 모드',
+    description: '교사가 질문하고 학생들이 답변하는 방식',
+    icon: '🎯',
+    benefits: ['구조화된 학습', '목표 지향적', '체계적 평가'],
+    suitableFor: ['형성평가', '개념 확인', '이해도 점검']
+  }
+};
+
 // 2024년 성인 학습 트렌드에 따른 추천 세션 타입
 export function getRecommendedSessionTypes(level: EducationLevel): string[] {
   const weights = EDUCATION_LEVEL_CONFIGS[level].sessionTypeWeights;
@@ -329,4 +360,8 @@ export function getRecommendedSessionTypes(level: EducationLevel): string[] {
     .sort(([, a], [, b]) => b - a)
     .slice(0, 3)
     .map(([type]) => type);
+}
+
+export function getSessionModeConfig(mode: SessionMode): SessionModeConfig {
+  return SESSION_MODE_CONFIGS[mode];
 }
