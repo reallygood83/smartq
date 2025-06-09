@@ -366,7 +366,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       {/* 교사 주도 질문 관리 (교사 주도 모드에서만 표시) */}
       {session?.interactionMode === 'teacher_led' && (
         <div ref={teacherQuestionRef}>
-          <TeacherQuestionManager sessionId={sessionId} />
+          <TeacherQuestionManager sessionId={sessionId} session={session} />
         </div>
       )}
 

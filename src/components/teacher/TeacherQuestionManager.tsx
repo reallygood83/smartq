@@ -8,19 +8,23 @@ import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { TeacherQuestion, CreateTeacherQuestionRequest, ActivateQuestionRequest } from '@/types/teacher-led'
 import StudentResponseAnalysisDashboard from './StudentResponseAnalysisDashboard'
+import QuestionTemplates from './QuestionTemplates'
+import { Session } from '@/lib/utils'
 
 interface TeacherQuestionManagerProps {
   sessionId: string
   onQuestionActivated?: (questionId: string) => void
+  session?: Session // 세션 정보를 받아서 템플릿 필터링에 사용
 }
 
-export default function TeacherQuestionManager({ sessionId, onQuestionActivated }: TeacherQuestionManagerProps) {
+export default function TeacherQuestionManager({ sessionId, onQuestionActivated, session }: TeacherQuestionManagerProps) {
   const { user } = useAuth()
   const [questions, setQuestions] = useState<TeacherQuestion[]>([])
   const [newQuestion, setNewQuestion] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null)
   const [analysisQuestionId, setAnalysisQuestionId] = useState<string | null>(null)
+  const [showTemplates, setShowTemplates] = useState(false)
 
   // 실시간 질문 목록 동기화
   useEffect(() => {
@@ -186,6 +190,12 @@ export default function TeacherQuestionManager({ sessionId, onQuestionActivated 
     }
   }
 
+  // 템플릿 선택 핸들러
+  const handleTemplateSelect = (template: string) => {
+    setNewQuestion(template)
+    setShowTemplates(false)
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -243,9 +253,28 @@ export default function TeacherQuestionManager({ sessionId, onQuestionActivated 
             >
               💾 대기열 추가
             </Button>
+            <Button 
+              onClick={() => setShowTemplates(!showTemplates)}
+              variant="outline"
+              size="sm"
+            >
+              📝 템플릿
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* 질문 템플릿 섹션 */}
+      {showTemplates && (
+        <div className="mb-6">
+          <QuestionTemplates
+            onSelectTemplate={handleTemplateSelect}
+            sessionType={session?.sessionType}
+            subjects={session?.subjects}
+            onClose={() => setShowTemplates(false)}
+          />
+        </div>
+      )}
       
       {/* 질문 목록 */}
       <div>

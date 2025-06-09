@@ -5,6 +5,7 @@ import { Button } from '@/components/common/Button'
 import { Card } from '@/components/common/Card'
 import { SessionType, Subject, Session, Material, generateSessionCode, getSubjectLabel, getSubjectColor } from '@/lib/utils'
 import { SessionMode, SESSION_MODE_CONFIGS } from '@/types/education'
+import QuestionTemplates from './QuestionTemplates'
 import { useAuth } from '@/contexts/AuthContext'
 import { database } from '@/lib/firebase'
 import { ref, push, set } from 'firebase/database'
@@ -26,6 +27,7 @@ export default function CreateSessionForm() {
   // 새 필드: 상호작용 모드 (기본값은 기존 방식)
   const [interactionMode, setInteractionMode] = useState<SessionMode>('free_question')
   const [preparedQuestions, setPreparedQuestions] = useState<string[]>([''])
+  const [showQuestionTemplates, setShowQuestionTemplates] = useState(false)
 
   // Material form state
   const [newMaterial, setNewMaterial] = useState<Material>({
@@ -69,6 +71,22 @@ export default function CreateSessionForm() {
     if (preparedQuestions.length > 1) {
       setPreparedQuestions(prev => prev.filter((_, i) => i !== index))
     }
+  }
+
+  // 템플릿 선택 핸들러
+  const handleTemplateSelect = (template: string, index?: number) => {
+    if (index !== undefined) {
+      updateQuestion(index, template)
+    } else {
+      // 빈 질문 슬롯 찾기 또는 새로 추가
+      const emptyIndex = preparedQuestions.findIndex(q => !q.trim())
+      if (emptyIndex !== -1) {
+        updateQuestion(emptyIndex, template)
+      } else {
+        setPreparedQuestions(prev => [...prev, template])
+      }
+    }
+    setShowQuestionTemplates(false)
   }
 
   const handleCreateSession = async () => {
@@ -434,16 +452,39 @@ export default function CreateSessionForm() {
                   </div>
                 ))}
                 
-                <Button
-                  type="button"
-                  onClick={addQuestion}
-                  variant="outline"
-                  size="sm"
-                  className="w-full mt-2"
-                >
-                  + 질문 추가
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={addQuestion}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    + 질문 추가
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setShowQuestionTemplates(!showQuestionTemplates)}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    📝 템플릿 보기
+                  </Button>
+                </div>
               </div>
+
+              {/* 질문 템플릿 섹션 */}
+              {showQuestionTemplates && (
+                <div className="mt-4">
+                  <QuestionTemplates
+                    onSelectTemplate={handleTemplateSelect}
+                    sessionType={sessionType}
+                    subjects={subjects}
+                    onClose={() => setShowQuestionTemplates(false)}
+                  />
+                </div>
+              )}
               
               {/* 질문 작성 팁 */}
               <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
