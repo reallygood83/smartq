@@ -238,15 +238,14 @@ export default function StudentSessionPage() {
         {sharedContents.length > 0 && (
           <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold" style={{ color: theme.colors.text.primary }}>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 📢 {isAdultEducationSession 
                   ? adapt('강의자료', '교수자료', '전문자료') 
                   : adapt('선생님 공유 자료', '선생님 수업자료', '교사 학습자료')} ({sharedContents.length}개)
               </h2>
               <button
                 onClick={() => setIsMaterialsExpanded(!isMaterialsExpanded)}
-                className="flex items-center space-x-2 px-3 py-1 rounded-md transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-                style={{ color: theme.colors.text.secondary }}
+                className="flex items-center space-x-2 px-3 py-1 rounded-md transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-white"
               >
                 <span className="text-sm font-medium">
                   {isMaterialsExpanded ? '접기' : '펼치기'}
@@ -313,7 +312,7 @@ export default function StudentSessionPage() {
                     </span>
                     <div className="flex-1">
                       <h3 className={`text-lg font-medium mb-2 ${
-                        content.type === 'instruction' ? 'text-orange-900 dark:text-orange-200' : 'text-gray-900 dark:text-gray-100'
+                        content.type === 'instruction' ? 'text-orange-900 dark:text-orange-200' : 'text-gray-900 dark:text-white'
                       }`}>
                         {content.title}
                       </h3>
@@ -350,7 +349,7 @@ export default function StudentSessionPage() {
                           <div className={`whitespace-pre-wrap ${
                             content.type === 'instruction' 
                               ? 'text-orange-800 dark:text-orange-200' 
-                              : 'text-gray-900 dark:text-gray-100'
+                              : 'text-gray-900 dark:text-white'
                           }`}>
                             {/* 개념 설명인 경우 특별한 포맷팅 */}
                             {content.title.startsWith('개념 설명:') ? (
@@ -411,7 +410,7 @@ export default function StudentSessionPage() {
 
         {/* 질문 입력 - 교육 레벨 적응형 */}
         <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
-          <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             {isAdultEducationSession 
               ? adapt('질문 및 토론', '질의응답', '전문적 질문') 
               : adapt('질문하기', '궁금한 것 물어보기', '질문 작성')}
@@ -421,7 +420,7 @@ export default function StudentSessionPage() {
 
         {/* 질문 목록 - 교육 레벨 적응형 */}
         <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
-          <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             💬 {isAdultEducationSession 
               ? adapt('참여자 질의응답', '토론 및 질의', '전문적 대화') 
               : adapt('우리들의 질문 대화', '친구들과 질문 나누기', '학습자 질문 공간')}
@@ -432,7 +431,7 @@ export default function StudentSessionPage() {
         {/* 멘토-멘티 매칭 시스템 - 대학생/성인 세션용 */}
         {isAdultEducationSession && session && (
           <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
-            <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
               🤝 {adapt('멘토-멘티 매칭', '전문가 네트워킹', '동료 학습 시스템')}
             </h2>
             <MentorshipAccess sessionId={session.sessionId} />
@@ -445,12 +444,12 @@ export default function StudentSessionPage() {
             {/* 질문 그룹화 결과 */}
             {analysisResult.clusteredQuestions && analysisResult.clusteredQuestions.length > 0 && (
               <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
-                <h2 className="text-xl font-semibold mb-6" style={{ color: theme.colors.text.primary }}>
+                <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">
                   🧩 {isAdultEducationSession 
                     ? adapt('질문 주제별 분석', '토론 주제 분류', '전문 영역별 정리') 
                     : adapt('우리 질문들의 주제별 정리', '질문 묶어보기', '학습 주제 구분')}
                 </h2>
-                <p className="mb-6 text-sm" style={{ color: theme.colors.text.secondary }}>
+                <p className="mb-6 text-sm text-gray-600 dark:text-white">
                   {isAdultEducationSession 
                     ? adapt('제출된 질문들을 관련 주제별로 분류하여 체계적으로 정리했습니다.', '토론 주제를 영역별로 구분하여 분석했습니다.', '전문 영역별로 질문을 분류했습니다.')
                     : adapt('선생님이 여러분의 질문들을 비슷한 주제끼리 묶어서 정리해주셨어요!', '질문들을 비슷한 내용끼리 모아서 정리했어요!', '학습 주제별로 질문을 나누어 보았어요!')}
@@ -505,7 +504,7 @@ export default function StudentSessionPage() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   🎯 추천 학습 활동
                 </h2>
-                <p className="text-gray-600 dark:text-gray-200 mb-6 text-sm">
+                <p className="text-gray-600 dark:text-white mb-6 text-sm">
                   여러분의 질문을 바탕으로 선생님이 준비한 재미있는 학습 활동들이에요!
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -568,7 +567,7 @@ export default function StudentSessionPage() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   📚 오늘 배운 중요한 개념들
                 </h2>
-                <p className="text-gray-600 dark:text-gray-200 mb-6 text-sm">
+                <p className="text-gray-600 dark:text-white mb-6 text-sm">
                   질문 속에 나온 중요한 개념들을 쉽게 정리해두었어요. 복습할 때 활용해보세요!
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

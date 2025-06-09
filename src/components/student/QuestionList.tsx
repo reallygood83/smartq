@@ -85,12 +85,12 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium mb-2" style={{ color: theme.colors.text.primary }}>
+        <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">
           {isAdultEducationSession 
             ? adapt('아직 질의응답이 없습니다', '질문이 제출되지 않았습니다', '토론 참여를 기다리고 있습니다')
             : adapt('아직 제출된 질문이 없습니다', '질문이 아직 없어요', '첫 질문을 기다리고 있어요')}
         </h3>
-        <p style={{ color: theme.colors.text.secondary }}>
+        <p className="text-gray-600 dark:text-white">
           {isAdultEducationSession 
             ? adapt('첫 번째 질문을 제출하여 토론을 시작해보세요!', '질의응답을 시작해주세요!', '전문적인 질문으로 시작해보세요!')
             : adapt('첫 번째 질문을 작성해보세요!', '궁금한 것을 물어보세요!', '질문해주세요!')}
@@ -143,7 +143,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
 
   return (
     <div className="space-y-3">
-      <div className="text-sm mb-4 text-center" style={{ color: theme.colors.text.secondary }}>
+      <div className="text-sm mb-4 text-center text-gray-600 dark:text-white">
         💬 {isAdultEducationSession 
           ? adapt(`총 ${questions.length}개의 질의응답`, `${questions.length}개의 토론 질문`, `${questions.length}개의 전문 질문`)
           : adapt(`총 ${questions.length}개의 질문이 있습니다`, `${questions.length}개의 질문이 있어요`, `질문이 ${questions.length}개 있어요`)}
@@ -285,7 +285,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
       {/* 스크롤 안내 */}
       {questions.length > (isAdultEducationSession ? 8 : 5) && (
         <div className="text-center">
-          <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
+          <span className="text-xs text-gray-600 dark:text-white">
             {isAdultEducationSession 
               ? adapt('👆 스크롤하여 이전 질의응답 확인', '👆 위로 스크롤하여 더 많은 토론 내용 보기', '👆 스크롤로 전체 대화 내용 확인')
               : adapt('👆 위로 스크롤하여 더 많은 질문을 볼 수 있어요', '👆 스크롤해서 다른 질문들도 봐요', '👆 위로 올려서 더 보기')}
