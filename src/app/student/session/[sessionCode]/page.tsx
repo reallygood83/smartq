@@ -26,6 +26,7 @@ export default function StudentSessionPage() {
   const [analysisResult, setAnalysisResult] = useState<MultiSubjectAnalysisResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [isMaterialsExpanded, setIsMaterialsExpanded] = useState(false)
   
   // Detect if this is an adult education session based on session type or isAdultEducation flag
   const isAdultEducationSession = session?.isAdultEducation || 
@@ -236,12 +237,65 @@ export default function StudentSessionPage() {
         {/* 공유 자료 - 교육 레벨에 따른 적응형 제목 */}
         {sharedContents.length > 0 && (
           <Card className="p-6 mb-6" style={{ backgroundColor: theme.colors.background.primary }}>
-            <h2 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
-              📢 {isAdultEducationSession 
-                ? adapt('강의자료', '교수자료', '전문자료') 
-                : adapt('선생님 공유 자료', '선생님 수업자료', '교사 학습자료')} ({sharedContents.length}개)
-            </h2>
-            <div className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold" style={{ color: theme.colors.text.primary }}>
+                📢 {isAdultEducationSession 
+                  ? adapt('강의자료', '교수자료', '전문자료') 
+                  : adapt('선생님 공유 자료', '선생님 수업자료', '교사 학습자료')} ({sharedContents.length}개)
+              </h2>
+              <button
+                onClick={() => setIsMaterialsExpanded(!isMaterialsExpanded)}
+                className="flex items-center space-x-2 px-3 py-1 rounded-md transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                style={{ color: theme.colors.text.secondary }}
+              >
+                <span className="text-sm font-medium">
+                  {isMaterialsExpanded ? '접기' : '펼치기'}
+                </span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${isMaterialsExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+
+            {/* 접힌 상태일 때 요약 정보 표시 */}
+            {!isMaterialsExpanded && (
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+                      자료 {sharedContents.length}개
+                    </span>
+                    <div className="flex space-x-2">
+                      {sharedContents.slice(0, 4).map((content, index) => (
+                        <span key={index} className="text-lg" title={content.title}>
+                          {content.type === 'text' ? '📄' : 
+                           content.type === 'link' ? '🔗' : 
+                           content.type === 'youtube' ? '🎬' : '📋'}
+                        </span>
+                      ))}
+                      {sharedContents.length > 4 && (
+                        <span className="text-sm text-gray-500 dark:text-gray-400">+{sharedContents.length - 4}</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsMaterialsExpanded(true)}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium"
+                  >
+                    자료 보기
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 펼친 상태일 때 전체 자료 표시 */}
+            {isMaterialsExpanded && (
+              <div className="space-y-4">
               {sharedContents.map((content) => (
                 <div
                   key={content.contentId}
@@ -350,7 +404,8 @@ export default function StudentSessionPage() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </Card>
         )}
 
