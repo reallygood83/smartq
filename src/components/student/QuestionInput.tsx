@@ -14,7 +14,7 @@ interface QuestionInputProps {
 export default function QuestionInput({ sessionId, sessionType }: QuestionInputProps) {
   const [questionText, setQuestionText] = useState('')
   const [studentName, setStudentName] = useState('')
-  const [isAnonymous, setIsAnonymous] = useState(true)
+  const [isAnonymous, setIsAnonymous] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [studentId, setStudentId] = useState('')
 

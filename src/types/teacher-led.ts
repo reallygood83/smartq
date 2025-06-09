@@ -69,7 +69,11 @@ export interface CollectiveAnalysis {
   };
 }
 
+// 분석 결과 타입
 export interface StudentResponseAnalysis {
+  analysisId: string;
+  sessionId: string;
+  questionId: string;
   question: {
     questionId: string;
     text: string;
@@ -77,6 +81,50 @@ export interface StudentResponseAnalysis {
   };
   individualAnalyses: ResponseAnalysis[];
   collectiveAnalysis: CollectiveAnalysis;
+  generatedAt: number;
+}
+
+// 종합 분석 결과 타입
+export interface ComprehensiveAnalysis {
+  analysisId: string;
+  sessionId: string;
+  questionId: string;
+  question: {
+    questionId: string;
+    text: string;
+    responseCount: number;
+  };
+  responseTypeDistribution: {
+    correctUnderstanding: number; // 정확한 이해
+    partialUnderstanding: number; // 부분적 이해
+    misconception: number; // 오개념
+    creativeApproach: number; // 창의적 접근
+    offTopic: number; // 주제 벗어남
+  };
+  comprehensionLevelDistribution: {
+    excellent: number; // 90-100%
+    good: number; // 70-89%
+    fair: number; // 50-69%
+    needsImprovement: number; // 0-49%
+  };
+  keyInsights: {
+    commonUnderstandings: string[]; // 공통적으로 잘 이해한 부분
+    commonDifficulties: string[]; // 공통적으로 어려워하는 부분
+    misconceptionPatterns: string[]; // 주요 오개념 패턴
+    creativeIdeas: string[]; // 창의적/독창적 아이디어
+  };
+  classroomRecommendations: {
+    immediateActions: string[]; // 즉시 필요한 교육 조치
+    conceptsToClarify: string[]; // 추가 설명이 필요한 개념
+    suggestedActivities: string[]; // 권장 학습 활동
+    exemplaryResponses: string[]; // 우수 답변 예시
+  };
+  overallAssessment: {
+    classUnderstandingLevel: number; // 0-100
+    engagementLevel: number; // 0-100
+    readinessForNextTopic: boolean;
+    additionalSupportNeeded: string[];
+  };
   generatedAt: number;
 }
 

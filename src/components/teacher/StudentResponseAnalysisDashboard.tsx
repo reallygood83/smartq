@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { getStoredApiKey } from '@/lib/encryption'
-import { TeacherQuestion, StudentResponse, StudentResponseAnalysis } from '@/types/teacher-led'
+import { TeacherQuestion, StudentResponse, StudentResponseAnalysis, ComprehensiveAnalysis } from '@/types/teacher-led'
 
 interface StudentResponseAnalysisDashboardProps {
   sessionId: string
@@ -24,9 +24,12 @@ export default function StudentResponseAnalysisDashboard({
   const [question, setQuestion] = useState<TeacherQuestion | null>(null)
   const [responses, setResponses] = useState<StudentResponse[]>([])
   const [analysis, setAnalysis] = useState<StudentResponseAnalysis | null>(null)
+  const [comprehensiveAnalysis, setComprehensiveAnalysis] = useState<ComprehensiveAnalysis | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [savedAnalyses, setSavedAnalyses] = useState<StudentResponseAnalysis[]>([])
+  const [savedComprehensiveAnalyses, setSavedComprehensiveAnalyses] = useState<ComprehensiveAnalysis[]>([])
+  const [analysisMode, setAnalysisMode] = useState<'comprehensive' | 'individual'>('comprehensive')
 
   // 질문과 답변 실시간 동기화
   useEffect(() => {
@@ -57,7 +60,7 @@ export default function StudentResponseAnalysisDashboard({
       }
     })
 
-    // 저장된 분석 결과 로드
+    // 저장된 개별 분석 결과 로드
     const analysesRef = ref(database, `questionAnalyses/${sessionId}`)
     const unsubscribeAnalyses = onValue(analysesRef, (snapshot) => {
       const data = snapshot.val()
@@ -68,7 +71,7 @@ export default function StudentResponseAnalysisDashboard({
         setSavedAnalyses(questionAnalyses)
         
         // 가장 최신 분석 결과를 현재 분석으로 설정
-        if (questionAnalyses.length > 0) {
+        if (questionAnalyses.length > 0 && analysisMode === 'individual') {
           setAnalysis(questionAnalyses[0])
         }
       } else {
@@ -76,12 +79,32 @@ export default function StudentResponseAnalysisDashboard({
       }
     })
 
+    // 저장된 종합 분석 결과 로드
+    const comprehensiveRef = ref(database, `comprehensiveAnalyses/${sessionId}`)
+    const unsubscribeComprehensive = onValue(comprehensiveRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const allAnalyses = Object.values(data) as ComprehensiveAnalysis[]
+        const questionAnalyses = allAnalyses.filter(a => a.questionId === questionId)
+        questionAnalyses.sort((a, b) => b.generatedAt - a.generatedAt)
+        setSavedComprehensiveAnalyses(questionAnalyses)
+        
+        // 가장 최신 분석 결과를 현재 분석으로 설정
+        if (questionAnalyses.length > 0 && analysisMode === 'comprehensive') {
+          setComprehensiveAnalysis(questionAnalyses[0])
+        }
+      } else {
+        setSavedComprehensiveAnalyses([])
+      }
+    })
+
     return () => {
       unsubscribeQuestion()
       unsubscribeResponses()
       unsubscribeAnalyses()
+      unsubscribeComprehensive()
     }
-  }, [sessionId, questionId])
+  }, [sessionId, questionId, analysisMode])
 
   // AI 분석 실행
   const runAnalysis = async () => {
@@ -97,7 +120,11 @@ export default function StudentResponseAnalysisDashboard({
     setError(null)
 
     try {
-      const response = await fetch('/api/ai/analyze-student-responses', {
+      const endpoint = analysisMode === 'comprehensive' 
+        ? '/api/ai/analyze-comprehensive'
+        : '/api/ai/analyze-student-responses'
+        
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +142,11 @@ export default function StudentResponseAnalysisDashboard({
 
       const result = await response.json()
       if (result.success) {
-        setAnalysis(result.analysis)
+        if (analysisMode === 'comprehensive') {
+          setComprehensiveAnalysis(result.analysis)
+        } else {
+          setAnalysis(result.analysis)
+        }
       } else {
         throw new Error(result.error || '분석 실패')
       }
@@ -229,18 +260,47 @@ export default function StudentResponseAnalysisDashboard({
 
         {responses.length > 0 && (
           <div className="mt-6 flex flex-col items-center gap-4">
+            {/* 분석 모드 선택 */}
+            <div className="text-center mb-4">
+              <div className="flex gap-2 justify-center mb-2">
+                <Button
+                  variant={analysisMode === 'comprehensive' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setAnalysisMode('comprehensive')}
+                >
+                  📋 종합 분석 (추천)
+                </Button>
+                <Button
+                  variant={analysisMode === 'individual' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setAnalysisMode('individual')}
+                >
+                  👤 개별 분석
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {analysisMode === 'comprehensive' 
+                  ? '✅ 빠른 전체 현황 파악 및 학습 방향 제시 (토큰 절약)'
+                  : '⚠️ 학생별 세부 분석 및 피드백 (많은 토큰 소모)'
+                }
+              </p>
+            </div>
+            
             <Button
               onClick={runAnalysis}
               disabled={isAnalyzing || responses.length === 0}
               isLoading={isAnalyzing}
             >
-              🤖 {savedAnalyses.length > 0 ? '새로운 AI 분석 실행' : 'AI 분석 실행'}
+              🤖 {analysisMode === 'comprehensive' 
+                ? (savedComprehensiveAnalyses.length > 0 ? '새로운 종합 분석 실행' : '종합 분석 실행')
+                : (savedAnalyses.length > 0 ? '새로운 개별 분석 실행' : '개별 분석 실행')
+              }
             </Button>
             
-            {savedAnalyses.length > 1 && (
+            {analysisMode === 'individual' && savedAnalyses.length > 1 && (
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                  📊 이전 분석 결과 ({savedAnalyses.length}개)
+                  📊 이전 개별 분석 결과 ({savedAnalyses.length}개)
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {savedAnalyses.slice(1).map((savedAnalysis, index) => (
@@ -249,6 +309,27 @@ export default function StudentResponseAnalysisDashboard({
                       variant="outline"
                       size="sm"
                       onClick={() => setAnalysis(savedAnalysis)}
+                      className="text-xs"
+                    >
+                      #{index + 2} ({new Date(savedAnalysis.generatedAt).toLocaleTimeString()})
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {analysisMode === 'comprehensive' && savedComprehensiveAnalyses.length > 1 && (
+              <div className="text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                  📋 이전 종합 분석 결과 ({savedComprehensiveAnalyses.length}개)
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {savedComprehensiveAnalyses.slice(1).map((savedAnalysis, index) => (
+                    <Button
+                      key={savedAnalysis.generatedAt}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setComprehensiveAnalysis(savedAnalysis)}
                       className="text-xs"
                     >
                       #{index + 2} ({new Date(savedAnalysis.generatedAt).toLocaleTimeString()})
@@ -268,7 +349,236 @@ export default function StudentResponseAnalysisDashboard({
       </Card>
 
       {/* AI 분석 결과 */}
-      {analysis && (
+      {analysisMode === 'comprehensive' && comprehensiveAnalysis ? (
+        {/* 종합 분석 결과 */}
+        <>
+          {/* 전체 평가 */}
+          <Card className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                📋 종합 분석 결과
+              </h3>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                생성: {new Date(comprehensiveAnalysis.generatedAt).toLocaleString()}
+              </div>
+            </div>
+
+            {/* 전체 평가 지표 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-center">
+                <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                  학급 이해도
+                </h4>
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-300">
+                  {comprehensiveAnalysis.overallAssessment.classUnderstandingLevel}%
+                </div>
+              </div>
+              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
+                <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
+                  참여도
+                </h4>
+                <div className="text-3xl font-bold text-green-600 dark:text-green-300">
+                  {comprehensiveAnalysis.overallAssessment.engagementLevel}%
+                </div>
+              </div>
+              <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center">
+                <h4 className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-2">
+                  다음 주제 준비도
+                </h4>
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-300">
+                  {comprehensiveAnalysis.overallAssessment.readinessForNextTopic ? '✅ 준비됨' : '⚠️ 보충 필요'}
+                </div>
+              </div>
+            </div>
+
+            {/* 답변 유형 분포 */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">📈 답변 유형 분포</h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">정확한 이해</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-green-600 h-2 rounded-full"
+                        style={{ width: `${(comprehensiveAnalysis.responseTypeDistribution.correctUnderstanding / responses.length) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium">{comprehensiveAnalysis.responseTypeDistribution.correctUnderstanding}명</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">부분적 이해</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full"
+                        style={{ width: `${(comprehensiveAnalysis.responseTypeDistribution.partialUnderstanding / responses.length) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium">{comprehensiveAnalysis.responseTypeDistribution.partialUnderstanding}명</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">오개념</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-orange-600 h-2 rounded-full"
+                        style={{ width: `${(comprehensiveAnalysis.responseTypeDistribution.misconception / responses.length) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium">{comprehensiveAnalysis.responseTypeDistribution.misconception}명</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">창의적 접근</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-purple-600 h-2 rounded-full"
+                        style={{ width: `${(comprehensiveAnalysis.responseTypeDistribution.creativeApproach / responses.length) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium">{comprehensiveAnalysis.responseTypeDistribution.creativeApproach}명</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* 핵심 통찰 */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              🔍 핵심 통찰
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-green-700 dark:text-green-300 mb-3">✨ 공통적으로 잘 이해한 부분</h4>
+                <ul className="space-y-1">
+                  {comprehensiveAnalysis.keyInsights.commonUnderstandings.map((understanding, index) => (
+                    <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
+                      <span className="text-green-500 mr-2">•</span>
+                      {understanding}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-orange-700 dark:text-orange-300 mb-3">🎯 공통적으로 어려워하는 부분</h4>
+                <ul className="space-y-1">
+                  {comprehensiveAnalysis.keyInsights.commonDifficulties.map((difficulty, index) => (
+                    <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
+                      <span className="text-orange-500 mr-2">•</span>
+                      {difficulty}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {comprehensiveAnalysis.keyInsights.misconceptionPatterns.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-red-700 dark:text-red-300 mb-3">⚠️ 주요 오개념 패턴</h4>
+                  <ul className="space-y-1">
+                    {comprehensiveAnalysis.keyInsights.misconceptionPatterns.map((pattern, index) => (
+                      <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
+                        <span className="text-red-500 mr-2">•</span>
+                        {pattern}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {comprehensiveAnalysis.keyInsights.creativeIdeas.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-purple-700 dark:text-purple-300 mb-3">💡 창의적 아이디어</h4>
+                  <ul className="space-y-1">
+                    {comprehensiveAnalysis.keyInsights.creativeIdeas.map((idea, index) => (
+                      <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
+                        <span className="text-purple-500 mr-2">•</span>
+                        {idea}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* 수업 개선 제안 */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              🏫 수업 개선 제안
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-red-600 dark:text-red-300 mb-3">🚨 즉시 필요한 조치</h4>
+                <ul className="space-y-2">
+                  {comprehensiveAnalysis.classroomRecommendations.immediateActions.map((action, index) => (
+                    <li key={index} className="text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded">
+                      {action}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-blue-600 dark:text-blue-300 mb-3">📚 추가 설명이 필요한 개념</h4>
+                <ul className="space-y-2">
+                  {comprehensiveAnalysis.classroomRecommendations.conceptsToClarify.map((concept, index) => (
+                    <li key={index} className="text-sm bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
+                      {concept}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-green-600 dark:text-green-300 mb-3">🎯 권장 학습 활동</h4>
+                <ul className="space-y-2">
+                  {comprehensiveAnalysis.classroomRecommendations.suggestedActivities.map((activity, index) => (
+                    <li key={index} className="text-sm bg-green-50 dark:bg-green-900/20 p-3 rounded">
+                      {activity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {comprehensiveAnalysis.classroomRecommendations.exemplaryResponses.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-purple-600 dark:text-purple-300 mb-3">⭐ 우수 답변 예시</h4>
+                  <ul className="space-y-2">
+                    {comprehensiveAnalysis.classroomRecommendations.exemplaryResponses.map((response, index) => (
+                      <li key={index} className="text-sm bg-purple-50 dark:bg-purple-900/20 p-3 rounded italic">
+                        "{response}"
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {comprehensiveAnalysis.overallAssessment.additionalSupportNeeded.length > 0 && (
+              <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
+                  📌 추가 지원 필요 영역
+                </h4>
+                <ul className="space-y-1">
+                  {comprehensiveAnalysis.overallAssessment.additionalSupportNeeded.map((support, index) => (
+                    <li key={index} className="text-sm text-yellow-800 dark:text-yellow-200">
+                      • {support}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Card>
+        </>
+      ) : analysisMode === 'individual' && analysis ? (
         <>
           {/* 전체 인사이트 */}
           <Card className="p-6">
@@ -472,7 +782,7 @@ export default function StudentResponseAnalysisDashboard({
             </div>
           </Card>
         </>
-      )}
+      ) : null}
     </div>
   )
 }

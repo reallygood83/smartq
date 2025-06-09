@@ -19,7 +19,7 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
   const [myResponse, setMyResponse] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
-  const [isAnonymous, setIsAnonymous] = useState(true)
+  const [isAnonymous, setIsAnonymous] = useState(false)
 
   // 활성 질문 실시간 동기화
   useEffect(() => {
@@ -198,18 +198,37 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
             </div>
           </div>
 
-          {/* 익명 설정 */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="anonymous"
-              checked={isAnonymous}
-              onChange={(e) => setIsAnonymous(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="anonymous" className="text-sm text-gray-700 dark:text-gray-100">
-              익명으로 답변하기
-            </label>
+          {/* 실명/익명 설정 */}
+          <div className="space-y-3">
+            {!isAnonymous && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">
+                  학생 이름
+                </label>
+                <input
+                  type="text"
+                  value={studentName || ''}
+                  placeholder="이름을 입력하세요"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-200"
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  ※ 실명은 세션 접속 시 입력한 이름으로 표시됩니다
+                </p>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="anonymous"
+                checked={isAnonymous}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="anonymous" className="text-sm text-gray-700 dark:text-gray-100">
+                익명으로 답변하기
+              </label>
+            </div>
           </div>
 
           {/* 제출 버튼 */}
