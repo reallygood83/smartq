@@ -135,7 +135,7 @@ export default function StudentSessionPage() {
             <p className="text-gray-600 dark:text-gray-200 mb-6">
               입력하신 접속 코드 <span className="font-mono font-bold text-red-600">{sessionCode}</span>에 해당하는 세션이 없습니다.
             </p>
-            <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>확인해주세요:</strong>
                 <br />• 접속 코드를 정확히 입력했는지 확인
@@ -188,7 +188,7 @@ export default function StudentSessionPage() {
 
           {/* 학습 목표 */}
           {session.learningGoals && (
-            <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
               <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-1">학습 목표</h3>
               <p className="text-sm text-blue-800 dark:text-blue-200">{session.learningGoals}</p>
             </div>
@@ -249,7 +249,7 @@ export default function StudentSessionPage() {
                             href={content.content}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-500 break-all font-medium"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 break-all font-medium"
                           >
                             {content.content}
                             <span className="ml-2 text-sm">↗</span>
@@ -364,27 +364,27 @@ export default function StudentSessionPage() {
                 </p>
                 <div className="space-y-4">
                   {analysisResult.clusteredQuestions.map((cluster) => (
-                    <div key={cluster.clusterId} className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                    <div key={cluster.clusterId} className="border border-purple-200 dark:border-purple-600 rounded-lg p-4 bg-purple-50 dark:bg-purple-900/30">
                       <div className="flex items-start mb-3">
                         <div className="bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mr-3">
                           {cluster.clusterId}
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-purple-900 mb-2">
+                          <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-200 mb-2">
                             📋 {cluster.clusterTitle}
                           </h3>
-                          <p className="text-purple-700 text-sm mb-3">
+                          <p className="text-purple-700 dark:text-purple-300 text-sm mb-3">
                             {cluster.clusterSummary}
                           </p>
                         </div>
                       </div>
                       
                       <div className="ml-11">
-                        <div className="bg-white p-3 rounded-md mb-3">
-                          <h4 className="text-sm font-medium text-purple-800 mb-2">
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-md mb-3">
+                          <h4 className="text-sm font-medium text-purple-800 dark:text-purple-200 mb-2">
                             이 주제에 포함된 질문들:
                           </h4>
-                          <ul className="text-sm text-purple-700 space-y-1">
+                          <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
                             {cluster.questions.map((question, index) => (
                               <li key={index} className="flex items-start">
                                 <span className="text-purple-400 mr-2">💭</span>
@@ -394,8 +394,8 @@ export default function StudentSessionPage() {
                           </ul>
                         </div>
                         
-                        <div className="bg-purple-100 p-3 rounded-md">
-                          <p className="text-xs text-purple-600">
+                        <div className="bg-purple-100 dark:bg-purple-800/30 p-3 rounded-md">
+                          <p className="text-xs text-purple-600 dark:text-purple-300">
                             💡 <strong>학습 팁:</strong> {cluster.combinationGuide}
                           </p>
                         </div>
@@ -417,9 +417,9 @@ export default function StudentSessionPage() {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {analysisResult.recommendedActivities.map((activity) => (
-                    <div key={activity.activityId} className="border border-green-200 rounded-lg p-4 bg-green-50">
+                    <div key={activity.activityId} className="border border-green-200 dark:border-green-600 rounded-lg p-4 bg-green-50 dark:bg-green-900/30">
                       <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-green-900">
+                        <h3 className="text-lg font-semibold text-green-900 dark:text-green-200">
                           🎮 {activity.activityTitle}
                         </h3>
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -480,7 +480,7 @@ export default function StudentSessionPage() {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {analysisResult.conceptDefinitions.map((concept, index) => (
-                    <div key={index} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <div key={index} className="border border-blue-200 dark:border-blue-600 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/30">
                       <div className="flex items-start mb-3">
                         <div className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mr-3">
                           📖
@@ -503,8 +503,8 @@ export default function StudentSessionPage() {
                           </div>
                         )}
                         
-                        <div className="bg-blue-100 p-3 rounded-md">
-                          <p className="text-xs text-blue-600">
+                        <div className="bg-blue-100 dark:bg-blue-800/30 p-3 rounded-md">
+                          <p className="text-xs text-blue-600 dark:text-blue-300">
                             ✨ <strong>복습 팁:</strong> 이 개념을 친구나 가족에게 설명해보세요!
                           </p>
                         </div>
