@@ -75,8 +75,20 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
       return
     }
 
+    if (!database) {
+      alert('데이터베이스 연결에 문제가 있습니다. 페이지를 새로고침해주세요.')
+      return
+    }
+
     setIsSubmitting(true)
     try {
+      console.log('질문 제출 시작:', {
+        sessionId,
+        studentId,
+        isAnonymous,
+        textLength: questionText.trim().length
+      })
+
       const questionsRef = ref(database, `questions/${sessionId}`)
       const newQuestionRef = push(questionsRef)
       
@@ -90,7 +102,9 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
         sessionId
       }
 
+      console.log('질문 데이터:', questionData)
       await set(newQuestionRef, questionData)
+      console.log('질문 제출 성공')
       
       // 폼 초기화
       setQuestionText('')
@@ -99,7 +113,26 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
       alert('질문이 성공적으로 제출되었습니다!')
     } catch (error) {
       console.error('질문 제출 오류:', error)
-      alert('질문 제출에 실패했습니다. 다시 시도해주세요.')
+      console.error('오류 상세:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        code: (error as any)?.code,
+        details: (error as any)?.details
+      })
+      
+      let errorMessage = '질문 제출에 실패했습니다.'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('permission') || error.message.includes('PERMISSION_DENIED')) {
+          errorMessage = '권한 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        } else if (error.message.includes('network') || error.message.includes('offline')) {
+          errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.'
+        } else {
+          errorMessage = `오류: ${error.message}`
+        }
+      }
+      
+      alert(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
