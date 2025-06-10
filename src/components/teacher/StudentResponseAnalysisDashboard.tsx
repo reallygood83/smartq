@@ -275,6 +275,10 @@ export default function StudentResponseAnalysisDashboard({
 
         {responses.length > 0 && (
           <div className="mt-6 flex flex-col items-center gap-4">
+            {/* 디버깅 정보 */}
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              디버깅: 답변 {responses.length}개, 분석 상태: {isAnalyzing ? '진행중' : '대기중'}
+            </div>
             {/* 분석 모드 선택 */}
             <div className="text-center mb-4">
               <div className="flex gap-2 justify-center mb-2">
@@ -306,14 +310,28 @@ export default function StudentResponseAnalysisDashboard({
             
             <div className="flex gap-2">
               <Button
-                onClick={() => runAnalysis(false)}
+                onClick={() => {
+                  console.log('Analysis button clicked (no save):', {
+                    responses: responses.length,
+                    isAnalyzing,
+                    analysisMode
+                  })
+                  runAnalysis(false)
+                }}
                 disabled={isAnalyzing || responses.length === 0}
                 isLoading={isAnalyzing}
               >
                 🤖 {analysisMode === 'comprehensive' ? '종합 분석 실행' : '개별 분석 실행'}
               </Button>
               <Button
-                onClick={() => runAnalysis(true)}
+                onClick={() => {
+                  console.log('Analysis with save button clicked:', {
+                    responses: responses.length,
+                    isAnalyzing,
+                    analysisMode
+                  })
+                  runAnalysis(true)
+                }}
                 disabled={isAnalyzing || responses.length === 0}
                 variant="outline"
                 isLoading={isAnalyzing}
