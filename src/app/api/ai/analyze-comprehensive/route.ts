@@ -9,7 +9,9 @@ import { EducationLevel } from '@/types/education'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== Comprehensive Analysis API Start ===')
     const { questionId, sessionId, apiKey, saveAnalysis = false } = await request.json()
+    console.log('Request params:', { questionId, sessionId, hasApiKey: !!apiKey, saveAnalysis })
 
     // 입력 검증
     if (!questionId || !sessionId || !apiKey) {
@@ -23,8 +25,12 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
+    // Firebase 연결 확인
+    console.log('Firebase database instance available:', !!database)
+    
     // 세션 정보 조회
     const sessionRef = ref(database, `sessions/${sessionId}`)
+    console.log('Fetching session data from:', `sessions/${sessionId}`)
     const sessionSnapshot = await get(sessionRef)
     
     if (!sessionSnapshot.exists()) {
@@ -235,14 +241,24 @@ ${targetResponses.map((r, i) => `${i + 1}. ${r.isAnonymous ? '익명' : r.studen
 
     // saveAnalysis가 true일 때만 Firebase에 저장
     console.log('Save analysis parameter:', saveAnalysis)
+    console.log('Analysis data to save:', JSON.stringify(analysisData, null, 2))
     if (saveAnalysis) {
       try {
         const analysisRef = ref(database, `comprehensiveAnalyses/${sessionId}/${analysisId}`)
         console.log('Saving comprehensive analysis to:', `comprehensiveAnalyses/${sessionId}/${analysisId}`)
+        console.log('Firebase database instance:', !!database)
         await set(analysisRef, analysisData)
         console.log('Comprehensive analysis saved successfully')
+        
+        // 저장 후 다시 읽어서 확인
+        const savedData = await get(analysisRef)
+        console.log('Verification - saved data exists:', savedData.exists())
+        if (savedData.exists()) {
+          console.log('Verification - saved data:', savedData.val())
+        }
       } catch (error) {
         console.error('분석 결과 저장 실패:', error)
+        console.error('Error details:', error.message, error.code)
         // 저장 실패해도 결과는 반환
       }
     } else {
