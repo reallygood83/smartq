@@ -107,6 +107,7 @@ export default function AnalysisHistoryDashboard({
       const comprehensiveRef = ref(database, `comprehensiveAnalyses/${sId}`)
       const unsubComprehensive = onValue(comprehensiveRef, (snapshot) => {
         const data = snapshot.val()
+        console.log(`Comprehensive analyses for session ${sId}:`, data)
         if (data) {
           const comprehensiveAnalyses = Object.values(data) as ComprehensiveAnalysis[]
           const comprehensiveWithSession = comprehensiveAnalyses.map(analysis => ({
@@ -131,6 +132,7 @@ export default function AnalysisHistoryDashboard({
       const individualRef = ref(database, `questionAnalyses/${sId}`)
       const unsubIndividual = onValue(individualRef, (snapshot) => {
         const data = snapshot.val()
+        console.log(`Individual analyses for session ${sId}:`, data)
         if (data) {
           const individualAnalyses = Object.values(data) as StudentResponseAnalysis[]
           const individualWithSession = individualAnalyses.map(analysis => ({
@@ -154,6 +156,7 @@ export default function AnalysisHistoryDashboard({
       unsubscribes.push(unsubComprehensive, unsubIndividual)
     }
 
+    console.log('Loading analyses for sessions:', sessionIds)
     sessionIds.forEach(loadAnalysisForSession)
     setLoading(false)
 

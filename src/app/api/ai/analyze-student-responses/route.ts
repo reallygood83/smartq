@@ -319,14 +319,19 @@ ${targetResponses.map((r, i) => `${i + 1}. ${r.isAnonymous ? '익명' : r.studen
     }
 
     // saveAnalysis가 true일 때만 Firebase에 저장
+    console.log('Save analysis parameter:', saveAnalysis)
     if (saveAnalysis) {
       try {
         const analysisRef = ref(database, `questionAnalyses/${sessionId}/${analysisId}`)
+        console.log('Saving individual analysis to:', `questionAnalyses/${sessionId}/${analysisId}`)
         await set(analysisRef, analysisData)
+        console.log('Individual analysis saved successfully')
       } catch (error) {
         console.error('분석 결과 저장 실패:', error)
-        // 저장 실패해도 결과는 반홑
+        // 저장 실패해도 결과는 반환
       }
+    } else {
+      console.log('Analysis not saved (saveAnalysis is false)')
     }
 
     return NextResponse.json({
