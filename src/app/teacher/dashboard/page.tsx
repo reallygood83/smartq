@@ -6,6 +6,7 @@ import Footer from '@/components/common/Footer'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import SessionList from '@/components/teacher/SessionList'
+import AnalysisHistoryDashboard from '@/components/teacher/AnalysisHistoryDashboard'
 import { redirect } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -19,6 +20,7 @@ export default function TeacherDashboardPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [latestSessionWithAnalysis, setLatestSessionWithAnalysis] = useState<Session | null>(null)
+  const [activeTab, setActiveTab] = useState<'sessions' | 'analysis'>('sessions')
 
   useEffect(() => {
     setMounted(true)
@@ -122,8 +124,35 @@ export default function TeacherDashboardPage() {
           </div>
         </div>
 
-        {/* 빠른 시작 가이드 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* 탭 네비게이션 */}
+        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg mb-8">
+          <button
+            onClick={() => setActiveTab('sessions')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'sessions'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            🏠 세션 관리
+          </button>
+          <button
+            onClick={() => setActiveTab('analysis')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'analysis'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            📊 AI 분석 기록
+          </button>
+        </div>
+
+        {/* 콘텐츠 영역 */}
+        {activeTab === 'sessions' && (
+          <>
+            {/* 빠른 시작 가이드 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
@@ -207,10 +236,10 @@ export default function TeacherDashboardPage() {
               </Button>
             )}
           </Card>
-        </div>
+            </div>
 
-        {/* 멘토-멘티 매칭 시스템 */}
-        {sessions.some(session => session.isAdultEducation) && (
+            {/* 멘토-멘티 매칭 시스템 */}
+            {sessions.some(session => session.isAdultEducation) && (
           <Card className="p-6 mb-8 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-purple-200 dark:border-purple-600">
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-3">
@@ -268,30 +297,36 @@ export default function TeacherDashboardPage() {
               </div>
             </div>
           </Card>
+            )}
+
+            {/* 세션 목록 */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  내 세션 목록
+                </h2>
+                <Link href="/teacher/session/create">
+                  <Button size="sm">
+                    + 새 세션
+                  </Button>
+                </Link>
+              </div>
+              
+              <SessionList 
+                sessions={sessions}
+                loading={sessionsLoading}
+                onSessionDeleted={(sessionId) => {
+                  // 실시간 Firebase 리스너가 자동으로 처리하므로 별도 작업 불필요
+                  console.log('세션 삭제됨:', sessionId)
+                }}
+              />
+            </Card>
+          </>
         )}
 
-        {/* 세션 목록 */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              내 세션 목록
-            </h2>
-            <Link href="/teacher/session/create">
-              <Button variant="outline" size="sm">
-                + 새 세션
-              </Button>
-            </Link>
-          </div>
-          
-          <SessionList 
-            sessions={sessions}
-            loading={sessionsLoading}
-            onSessionDeleted={(sessionId) => {
-              // 실시간 Firebase 리스너가 자동으로 처리하므로 별도 작업 불필요
-              console.log('세션 삭제됨:', sessionId)
-            }}
-          />
-        </Card>
+        {activeTab === 'analysis' && (
+          <AnalysisHistoryDashboard showAllSessions={true} />
+        )}
 
         {/* 사용 가이드 링크 */}
         <div className="mt-8 text-center">
