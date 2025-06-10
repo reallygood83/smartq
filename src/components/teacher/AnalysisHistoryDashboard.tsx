@@ -358,13 +358,13 @@ export default function AnalysisHistoryDashboard({
               <div className="space-y-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                   <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                    세션: {selectedAnalysis.session.title}
+                    세션: {selectedAnalysis.session?.title || '제목 없음'}
                   </h4>
                   <p className="text-blue-800 dark:text-blue-200 text-sm">
-                    질문: {selectedAnalysis.question?.text}
+                    질문: {selectedAnalysis.question?.text || '질문 정보 없음'}
                   </p>
                   <p className="text-blue-600 dark:text-blue-300 text-xs mt-2">
-                    분석 일시: {new Date(selectedAnalysis.analysis.generatedAt).toLocaleString('ko-KR')}
+                    분석 일시: {selectedAnalysis.analysis?.generatedAt ? new Date(selectedAnalysis.analysis.generatedAt).toLocaleString('ko-KR') : '날짜 정보 없음'}
                   </p>
                 </div>
                 
