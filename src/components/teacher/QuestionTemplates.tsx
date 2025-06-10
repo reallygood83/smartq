@@ -148,7 +148,7 @@ export default function QuestionTemplates({
     }
     
     // 교과목 필터 (선택사항)
-    if (subjects.length > 0 && !subjects.some(subject => template.subjects.includes(subject))) {
+    if (subjects && subjects.length > 0 && !subjects.some(subject => template.subjects.includes(subject))) {
       return false
     }
     

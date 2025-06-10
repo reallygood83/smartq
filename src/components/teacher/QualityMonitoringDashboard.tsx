@@ -82,7 +82,7 @@ export default function QualityMonitoringDashboard({
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
     
-    if (isMonitoring && userApiKey && questions.length > 0) {
+    if (isMonitoring && userApiKey && questions && questions.length > 0) {
       interval = setInterval(() => {
         handleQualityAnalysis(false) // 조용한 업데이트 (로딩 표시 없음)
       }, 30000) // 30초마다
@@ -365,9 +365,9 @@ export default function QualityMonitoringDashboard({
           </Card>
 
           {/* 개선 신호 감지 */}
-          {(qualityMetrics.improvementSignals.comprehensionIssues.length > 0 || 
-            qualityMetrics.improvementSignals.engagementDecline.length > 0 || 
-            qualityMetrics.improvementSignals.pacingProblems.length > 0) && (
+          {(qualityMetrics?.improvementSignals?.comprehensionIssues?.length > 0 || 
+            qualityMetrics?.improvementSignals?.engagementDecline?.length > 0 || 
+            qualityMetrics?.improvementSignals?.pacingProblems?.length > 0) && (
             <Card>
               <h4 className="font-medium mb-4 text-red-700">⚠️ 개선 신호 감지</h4>
               

@@ -237,7 +237,7 @@ export default function LearnerAnalysisDashboard({
               <div>
                 <h4 className="font-medium mb-3 text-green-700">💪 강점 영역</h4>
                 <ul className="space-y-2">
-                  {analysisResult.learningProgress.strengthAreas.map((strength, index) => (
+                  {analysisResult.learningProgress.strengthAreas?.map((strength, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-green-500 mr-2 mt-0.5">✓</span>
                       <span className="text-sm">{strength}</span>
@@ -249,7 +249,7 @@ export default function LearnerAnalysisDashboard({
               <div>
                 <h4 className="font-medium mb-3 text-orange-700">🎯 도전 영역</h4>
                 <ul className="space-y-2">
-                  {analysisResult.learningProgress.challengeAreas.map((challenge, index) => (
+                  {analysisResult.learningProgress.challengeAreas?.map((challenge, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-orange-500 mr-2 mt-0.5">⚡</span>
                       <span className="text-sm">{challenge}</span>
@@ -262,7 +262,7 @@ export default function LearnerAnalysisDashboard({
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <h4 className="font-medium mb-3 text-blue-900">📋 진전 지표</h4>
               <ul className="space-y-2">
-                {analysisResult.learningProgress.progressIndicators.map((indicator, index) => (
+                {analysisResult.learningProgress.progressIndicators?.map((indicator, index) => (
                   <li key={index} className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-0.5">📌</span>
                     <span className="text-sm text-blue-800">{indicator}</span>
@@ -282,7 +282,7 @@ export default function LearnerAnalysisDashboard({
               <div>
                 <h4 className="font-medium mb-3 text-purple-700">📈 다음 단계</h4>
                 <div className="space-y-2">
-                  {analysisResult.recommendations.nextSteps.map((step, index) => (
+                  {analysisResult.recommendations.nextSteps?.map((step, index) => (
                     <div key={index} className="flex items-start p-3 bg-purple-50 border border-purple-200 rounded-lg">
                       <span className="text-purple-600 mr-2 mt-0.5 font-bold">{index + 1}</span>
                       <span className="text-sm">{step}</span>
@@ -295,7 +295,7 @@ export default function LearnerAnalysisDashboard({
                 <div>
                   <h4 className="font-medium mb-3 text-indigo-700">📚 추가 학습 자료</h4>
                   <ul className="space-y-2">
-                    {analysisResult.recommendations.additionalResources.map((resource, index) => (
+                    {analysisResult.recommendations.additionalResources?.map((resource, index) => (
                       <li key={index} className="flex items-start">
                         <span className="text-indigo-500 mr-2 mt-0.5">📖</span>
                         <span className="text-sm">{resource}</span>
@@ -307,7 +307,7 @@ export default function LearnerAnalysisDashboard({
                 <div>
                   <h4 className="font-medium mb-3 text-teal-700">🏃‍♂️ 실습 활동</h4>
                   <ul className="space-y-2">
-                    {analysisResult.recommendations.practiceActivities.map((activity, index) => (
+                    {analysisResult.recommendations.practiceActivities?.map((activity, index) => (
                       <li key={index} className="flex items-start">
                         <span className="text-teal-500 mr-2 mt-0.5">🔨</span>
                         <span className="text-sm">{activity}</span>
@@ -320,7 +320,7 @@ export default function LearnerAnalysisDashboard({
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <h4 className="font-medium mb-3 text-yellow-900">🤔 자기 성찰 질문</h4>
                 <ul className="space-y-2">
-                  {analysisResult.recommendations.selfReflectionQuestions.map((question, index) => (
+                  {analysisResult.recommendations.selfReflectionQuestions?.map((question, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-yellow-600 mr-2 mt-0.5">❓</span>
                       <span className="text-sm text-yellow-800">{question}</span>
@@ -352,7 +352,7 @@ export default function LearnerAnalysisDashboard({
               <div>
                 <h4 className="font-medium mb-3 text-orange-700">🏆 외적 동기 요인</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {analysisResult.motivationFactors.extrinsicFactors.map((factor, index) => (
+                  {analysisResult.motivationFactors.extrinsicFactors?.map((factor, index) => (
                     <div key={index} className="flex items-start p-3 bg-orange-50 border border-orange-200 rounded-lg">
                       <span className="text-orange-600 mr-2 mt-0.5">🎯</span>
                       <span className="text-sm">{factor}</span>
@@ -364,7 +364,7 @@ export default function LearnerAnalysisDashboard({
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <h4 className="font-medium mb-3 text-green-900">🌱 지속성 유지 팁</h4>
                 <ul className="space-y-2">
-                  {analysisResult.motivationFactors.sustainabilityTips.map((tip, index) => (
+                  {analysisResult.motivationFactors.sustainabilityTips?.map((tip, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-green-600 mr-2 mt-0.5">💡</span>
                       <span className="text-sm text-green-800">{tip}</span>

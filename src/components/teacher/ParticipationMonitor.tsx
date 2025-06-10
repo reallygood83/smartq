@@ -52,31 +52,42 @@ export default function ParticipationMonitor({ sessionId, activeQuestionId }: Pa
       const data = snapshot.val()
       
       if (data) {
-        // 현재 활성 질문에 대한 답변만 필터링
-        const currentQuestionResponses = Object.values(data)
-          .filter((response: any) => response.questionId === activeQuestionId) as StudentResponse[]
+        try {
+          // 현재 활성 질문에 대한 답변만 필터링
+          const currentQuestionResponses = Object.values(data)
+            .filter((response: any) => response && response.questionId === activeQuestionId) as StudentResponse[]
 
-        const responseCount = currentQuestionResponses.length
-        const totalStudents = Math.max(studentConnections.size, responseCount) // 최소한 답변한 학생 수는 보장
+          const responseCount = currentQuestionResponses.length
+          const totalStudents = Math.max(studentConnections.size, responseCount) // 최소한 답변한 학생 수는 보장
 
-        // 답변 길이 분석
-        const lengths = currentQuestionResponses.map(r => r.text.length)
-        const avgLength = lengths.length > 0 ? lengths.reduce((a, b) => a + b, 0) / lengths.length : 0
+          // 답변 길이 분석
+          const lengths = currentQuestionResponses.map(r => r?.text?.length || 0)
+          const avgLength = lengths.length > 0 ? lengths.reduce((a, b) => a + b, 0) / lengths.length : 0
 
-        // 답변 길이별 분포
-        const distribution = {
-          short: lengths.filter(len => len < 20).length,
-          medium: lengths.filter(len => len >= 20 && len <= 100).length,
-          long: lengths.filter(len => len > 100).length
+          // 답변 길이별 분포
+          const distribution = {
+            short: lengths.filter(len => len < 20).length,
+            medium: lengths.filter(len => len >= 20 && len <= 100).length,
+            long: lengths.filter(len => len > 100).length
+          }
+
+          setMetrics({
+            totalConnectedStudents: totalStudents,
+            totalResponsesForCurrentQuestion: responseCount,
+            participationRate: totalStudents > 0 ? (responseCount / totalStudents) * 100 : 0,
+            avgResponseLength: Math.round(avgLength),
+            responseDistribution: distribution
+          })
+        } catch (error) {
+          console.error('참여도 모니터링 데이터 처리 오류:', error)
+          setMetrics(prev => ({
+            ...prev,
+            totalResponsesForCurrentQuestion: 0,
+            participationRate: 0,
+            avgResponseLength: 0,
+            responseDistribution: { short: 0, medium: 0, long: 0 }
+          }))
         }
-
-        setMetrics({
-          totalConnectedStudents: totalStudents,
-          totalResponsesForCurrentQuestion: responseCount,
-          participationRate: totalStudents > 0 ? (responseCount / totalStudents) * 100 : 0,
-          avgResponseLength: Math.round(avgLength),
-          responseDistribution: distribution
-        })
       } else {
         setMetrics(prev => ({
           ...prev,

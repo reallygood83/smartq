@@ -457,7 +457,7 @@ export default function StudentResponseAnalysisDashboard({
                             </div>
                             <div className="mt-2 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
                               <span>📝 답변: {savedAnalysis.question.responseCount}개</span>
-                              <span>📈 평균 이해도: {Math.round(savedAnalysis.individualAnalyses.reduce((acc, ind) => acc + ind.analysisResults.comprehensionScore, 0) / savedAnalysis.individualAnalyses.length)}%</span>
+                              <span>📈 평균 이해도: {savedAnalysis.individualAnalyses && savedAnalysis.individualAnalyses.length > 0 ? Math.round(savedAnalysis.individualAnalyses.reduce((acc, ind) => acc + (ind?.analysisResults?.comprehensionScore || 0), 0) / savedAnalysis.individualAnalyses.length) : 0}%</span>
                               <span>🎯 분석 대상: {savedAnalysis.individualAnalyses.length}명</span>
                             </div>
                           </div>

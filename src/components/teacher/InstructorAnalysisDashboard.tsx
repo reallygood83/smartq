@@ -220,7 +220,7 @@ export default function InstructorAnalysisDashboard({
               <div>
                 <h4 className="font-medium mb-3 text-green-700">🌟 강점 영역</h4>
                 <ul className="space-y-2">
-                  {analysisResult.teachingInsights.strengthAreas.map((strength, index) => (
+                  {analysisResult.teachingInsights.strengthAreas?.map((strength, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-green-500 mr-2 mt-0.5">✓</span>
                       <span className="text-sm">{strength}</span>
@@ -232,7 +232,7 @@ export default function InstructorAnalysisDashboard({
               <div>
                 <h4 className="font-medium mb-3 text-orange-700">🎯 개발 영역</h4>
                 <ul className="space-y-2">
-                  {analysisResult.teachingInsights.developmentAreas.map((area, index) => (
+                  {analysisResult.teachingInsights.developmentAreas?.map((area, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-orange-500 mr-2 mt-0.5">⚡</span>
                       <span className="text-sm">{area}</span>
@@ -245,7 +245,7 @@ export default function InstructorAnalysisDashboard({
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <h4 className="font-medium mb-3 text-blue-900">📚 교수법 팁</h4>
               <ul className="space-y-2">
-                {analysisResult.teachingInsights.pedagogicalTips.map((tip, index) => (
+                {analysisResult.teachingInsights.pedagogicalTips?.map((tip, index) => (
                   <li key={index} className="flex items-start">
                     <span className="text-blue-600 mr-2 mt-0.5">💡</span>
                     <span className="text-sm text-blue-800">{tip}</span>
@@ -280,7 +280,7 @@ export default function InstructorAnalysisDashboard({
               <div>
                 <h4 className="font-medium mb-3">⚠️ 우선 개선 영역</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {analysisResult.improvementAreas.map((area, index) => (
+                  {analysisResult.improvementAreas?.map((area, index) => (
                     <div key={index} className="flex items-start p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <span className="text-yellow-600 mr-2 mt-0.5">⚠</span>
                       <span className="text-sm">{area}</span>
@@ -292,7 +292,7 @@ export default function InstructorAnalysisDashboard({
               <div>
                 <h4 className="font-medium mb-3">📋 다음 단계 액션 플랜</h4>
                 <div className="space-y-2">
-                  {analysisResult.nextSteps.map((step, index) => (
+                  {analysisResult.nextSteps?.map((step, index) => (
                     <div key={index} className="flex items-start p-3 bg-green-50 border border-green-200 rounded-lg">
                       <span className="text-green-600 mr-2 mt-0.5 font-bold">{index + 1}</span>
                       <span className="text-sm">{step}</span>
