@@ -297,44 +297,104 @@ export default function StudentResponseAnalysisDashboard({
               }
             </Button>
             
-            {analysisMode === 'individual' && savedAnalyses.length > 1 && (
-              <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                  📊 이전 개별 분석 결과 ({savedAnalyses.length}개)
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {savedAnalyses.slice(1).map((savedAnalysis, index) => (
-                    <Button
-                      key={savedAnalysis.generatedAt}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAnalysis(savedAnalysis)}
-                      className="text-xs"
-                    >
-                      #{index + 2} ({new Date(savedAnalysis.generatedAt).toLocaleTimeString()})
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {analysisMode === 'comprehensive' && savedComprehensiveAnalyses.length > 1 && (
-              <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                  📋 이전 종합 분석 결과 ({savedComprehensiveAnalyses.length}개)
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {savedComprehensiveAnalyses.slice(1).map((savedAnalysis, index) => (
-                    <Button
-                      key={savedAnalysis.generatedAt}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setComprehensiveAnalysis(savedAnalysis)}
-                      className="text-xs"
-                    >
-                      #{index + 2} ({new Date(savedAnalysis.generatedAt).toLocaleTimeString()})
-                    </Button>
-                  ))}
+            {/* 이전 분석 기록 - 개선된 버전 */}
+            {((analysisMode === 'individual' && savedAnalyses.length > 0) || 
+              (analysisMode === 'comprehensive' && savedComprehensiveAnalyses.length > 0)) && (
+              <div className="w-full">
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="text-md font-semibold mb-3 text-gray-900 dark:text-white">
+                    📚 이전 분석 기록 
+                    ({analysisMode === 'comprehensive' ? savedComprehensiveAnalyses.length : savedAnalyses.length}개)
+                  </h4>
+                  
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {analysisMode === 'comprehensive' 
+                      ? savedComprehensiveAnalyses.map((savedAnalysis, index) => (
+                          <div 
+                            key={savedAnalysis.analysisId} 
+                            className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                              comprehensiveAnalysis?.analysisId === savedAnalysis.analysisId
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
+                                : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                            onClick={() => setComprehensiveAnalysis(savedAnalysis)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                  📋 종합 분석 #{index + 1}
+                                </span>
+                                {comprehensiveAnalysis?.analysisId === savedAnalysis.analysisId && (
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 text-xs rounded-full">
+                                    현재 보기
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {new Date(savedAnalysis.generatedAt).toLocaleDateString('ko-KR')}
+                                </div>
+                                <div className="text-xs text-gray-400 dark:text-gray-500">
+                                  {new Date(savedAnalysis.generatedAt).toLocaleTimeString('ko-KR')}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-2 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
+                              <span>📝 답변: {savedAnalysis.question.responseCount}개</span>
+                              <span>🎤 이해도: {savedAnalysis.overallAssessment.classUnderstandingLevel}%</span>
+                              <span>✨ 참여도: {savedAnalysis.overallAssessment.engagementLevel}%</span>
+                              {savedAnalysis.overallAssessment.readinessForNextTopic && (
+                                <span className="text-green-600 dark:text-green-400">✓ 다음 단계 준비됨</span>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      : savedAnalyses.map((savedAnalysis, index) => (
+                          <div 
+                            key={savedAnalysis.analysisId} 
+                            className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                              analysis?.analysisId === savedAnalysis.analysisId
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
+                                : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                            onClick={() => setAnalysis(savedAnalysis)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                  👤 개별 분석 #{index + 1}
+                                </span>
+                                {analysis?.analysisId === savedAnalysis.analysisId && (
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 text-xs rounded-full">
+                                    현재 보기
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {new Date(savedAnalysis.generatedAt).toLocaleDateString('ko-KR')}
+                                </div>
+                                <div className="text-xs text-gray-400 dark:text-gray-500">
+                                  {new Date(savedAnalysis.generatedAt).toLocaleTimeString('ko-KR')}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-2 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
+                              <span>📝 답변: {savedAnalysis.question.responseCount}개</span>
+                              <span>📈 평균 이해도: {Math.round(savedAnalysis.individualAnalyses.reduce((acc, ind) => acc + ind.analysisResults.comprehensionScore, 0) / savedAnalysis.individualAnalyses.length)}%</span>
+                              <span>🎯 분석 대상: {savedAnalysis.individualAnalyses.length}명</span>
+                            </div>
+                          </div>
+                        ))
+                    }
+                  </div>
+                  
+                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      💡 <strong>사용법:</strong> 위의 분석 기록을 클릭하면 해당 분석 결과를 다시 볼 수 있습니다. 
+                      시간에 따른 학습 진행 상황을 비교하거나 이전 피드백을 참고할 때 유용합니다.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
