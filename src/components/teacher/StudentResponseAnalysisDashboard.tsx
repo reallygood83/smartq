@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { database } from '@/lib/firebase'
-import { ref, onValue } from 'firebase/database'
+import { ref, onValue, set } from 'firebase/database'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
@@ -157,9 +157,26 @@ export default function StudentResponseAnalysisDashboard({
           setAnalysis(result.analysis)
         }
         
-        // 저장한 경우 알림 표시
+        // 클라이언트에서 Firebase에 저장
         if (shouldSave) {
-          alert('분석 결과가 저장되었습니다.')
+          try {
+            const analysisData = result.analysis
+            let saveRef
+            
+            if (analysisMode === 'comprehensive') {
+              saveRef = ref(database, `comprehensiveAnalyses/${sessionId}/${analysisData.analysisId}`)
+            } else {
+              saveRef = ref(database, `questionAnalyses/${sessionId}/${analysisData.analysisId}`)
+            }
+            
+            console.log('Client-side saving to:', saveRef.toString())
+            await set(saveRef, analysisData)
+            console.log('Client-side save successful')
+            alert('분석 결과가 저장되었습니다.')
+          } catch (saveError) {
+            console.error('클라이언트 저장 실패:', saveError)
+            alert('분석은 완료되었으나 저장에 실패했습니다. 다시 시도해주세요.')
+          }
         }
       } else {
         throw new Error(result.error || '분석 실패')
