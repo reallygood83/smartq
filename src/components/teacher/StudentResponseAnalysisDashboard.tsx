@@ -65,14 +65,19 @@ export default function StudentResponseAnalysisDashboard({
     const unsubscribeAnalyses = onValue(analysesRef, (snapshot) => {
       const data = snapshot.val()
       if (data) {
-        const allAnalyses = Object.values(data) as StudentResponseAnalysis[]
-        const questionAnalyses = allAnalyses.filter(a => a.questionId === questionId)
-        questionAnalyses.sort((a, b) => b.generatedAt - a.generatedAt)
-        setSavedAnalyses(questionAnalyses)
-        
-        // 가장 최신 분석 결과를 현재 분석으로 설정
-        if (questionAnalyses.length > 0 && analysisMode === 'individual') {
-          setAnalysis(questionAnalyses[0])
+        try {
+          const allAnalyses = Object.values(data) as StudentResponseAnalysis[]
+          const questionAnalyses = allAnalyses.filter(a => a && a.questionId === questionId) || []
+          questionAnalyses.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0))
+          setSavedAnalyses(questionAnalyses)
+          
+          // 가장 최신 분석 결과를 현재 분석으로 설정
+          if (questionAnalyses && questionAnalyses.length > 0 && analysisMode === 'individual') {
+            setAnalysis(questionAnalyses[0])
+          }
+        } catch (error) {
+          console.error('개별 분석 데이터 처리 오류:', error)
+          setSavedAnalyses([])
         }
       } else {
         setSavedAnalyses([])
@@ -84,14 +89,19 @@ export default function StudentResponseAnalysisDashboard({
     const unsubscribeComprehensive = onValue(comprehensiveRef, (snapshot) => {
       const data = snapshot.val()
       if (data) {
-        const allAnalyses = Object.values(data) as ComprehensiveAnalysis[]
-        const questionAnalyses = allAnalyses.filter(a => a.questionId === questionId)
-        questionAnalyses.sort((a, b) => b.generatedAt - a.generatedAt)
-        setSavedComprehensiveAnalyses(questionAnalyses)
-        
-        // 가장 최신 분석 결과를 현재 분석으로 설정
-        if (questionAnalyses.length > 0 && analysisMode === 'comprehensive') {
-          setComprehensiveAnalysis(questionAnalyses[0])
+        try {
+          const allAnalyses = Object.values(data) as ComprehensiveAnalysis[]
+          const questionAnalyses = allAnalyses.filter(a => a && a.questionId === questionId) || []
+          questionAnalyses.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0))
+          setSavedComprehensiveAnalyses(questionAnalyses)
+          
+          // 가장 최신 분석 결과를 현재 분석으로 설정
+          if (questionAnalyses && questionAnalyses.length > 0 && analysisMode === 'comprehensive') {
+            setComprehensiveAnalysis(questionAnalyses[0])
+          }
+        } catch (error) {
+          console.error('종합 분석 데이터 처리 오류:', error)
+          setSavedComprehensiveAnalyses([])
         }
       } else {
         setSavedComprehensiveAnalyses([])
