@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { database } from '@/lib/firebase'
 import { ref, get, set } from 'firebase/database'
-import { StudentResponse, TeacherQuestion } from '@/types/teacher-led'
+import { StudentResponse, TeacherQuestion, StudentResponseAnalysis } from '@/types/teacher-led'
 import { Session } from '@/lib/utils'
 import { getEducationLevelPrompts } from '@/lib/aiPrompts'
 import { EducationLevel } from '@/types/education'
@@ -310,7 +310,7 @@ ${targetResponses.map((r, i) => `${i + 1}. ${r.isAnonymous ? '익명' : r.studen
 
     // 분석 결과 생성
     const analysisId = `analysis_${Date.now()}`
-    const analysisData = {
+    const analysisData: StudentResponseAnalysis = {
       analysisId,
       sessionId,
       questionId: targetQuestion.questionId,

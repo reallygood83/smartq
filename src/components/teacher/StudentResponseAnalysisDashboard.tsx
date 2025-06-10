@@ -66,13 +66,40 @@ export default function StudentResponseAnalysisDashboard({
       const data = snapshot.val()
       if (data) {
         try {
-          const allAnalyses = Object.values(data) as StudentResponseAnalysis[]
-          const questionAnalyses = allAnalyses.filter(a => a && a.questionId === questionId) || []
+          const allAnalyses = Object.values(data)
+            .filter(item => item && typeof item === 'object' && item.analysisId && item.questionId) as StudentResponseAnalysis[]
+          const questionAnalyses = allAnalyses
+            .filter(a => a.questionId === questionId)
+            .map(analysis => ({
+              // 데이터 무결성 보장
+              ...analysis,
+              individualAnalyses: analysis.individualAnalyses || [],
+              collectiveAnalysis: {
+                ...analysis.collectiveAnalysis,
+                overallInsights: analysis.collectiveAnalysis?.overallInsights || {
+                  averageComprehension: 0,
+                  commonStrengths: [],
+                  commonChallenges: []
+                },
+                questionEffectiveness: analysis.collectiveAnalysis?.questionEffectiveness || {
+                  clarityScore: 0,
+                  engagementLevel: 0,
+                  cognitiveLevel: '미정'
+                },
+                teachingRecommendations: analysis.collectiveAnalysis?.teachingRecommendations || {
+                  immediateActions: [],
+                  followUpQuestions: [],
+                  reinforcementActivities: [],
+                  differentiationStrategies: []
+                }
+              }
+            }))
+          
           questionAnalyses.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0))
           setSavedAnalyses(questionAnalyses)
           
           // 가장 최신 분석 결과를 현재 분석으로 설정
-          if (questionAnalyses && questionAnalyses.length > 0 && analysisMode === 'individual') {
+          if (questionAnalyses.length > 0 && analysisMode === 'individual') {
             setAnalysis(questionAnalyses[0])
           }
         } catch (error) {
@@ -90,13 +117,45 @@ export default function StudentResponseAnalysisDashboard({
       const data = snapshot.val()
       if (data) {
         try {
-          const allAnalyses = Object.values(data) as ComprehensiveAnalysis[]
-          const questionAnalyses = allAnalyses.filter(a => a && a.questionId === questionId) || []
+          const allAnalyses = Object.values(data)
+            .filter(item => item && typeof item === 'object' && item.analysisId && item.questionId) as ComprehensiveAnalysis[]
+          const questionAnalyses = allAnalyses
+            .filter(a => a.questionId === questionId)
+            .map(analysis => ({
+              // 데이터 무결성 보장
+              ...analysis,
+              responseTypeDistribution: analysis.responseTypeDistribution || {
+                correctUnderstanding: 0,
+                partialUnderstanding: 0,
+                misconception: 0,
+                creativeApproach: 0,
+                offTopic: 0
+              },
+              keyInsights: analysis.keyInsights || {
+                commonUnderstandings: [],
+                commonDifficulties: [],
+                misconceptionPatterns: [],
+                creativeIdeas: []
+              },
+              classroomRecommendations: analysis.classroomRecommendations || {
+                immediateActions: [],
+                conceptsToClarify: [],
+                suggestedActivities: [],
+                exemplaryResponses: []
+              },
+              overallAssessment: analysis.overallAssessment || {
+                classUnderstandingLevel: 0,
+                engagementLevel: 0,
+                readinessForNextTopic: false,
+                additionalSupportNeeded: []
+              }
+            }))
+          
           questionAnalyses.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0))
           setSavedComprehensiveAnalyses(questionAnalyses)
           
           // 가장 최신 분석 결과를 현재 분석으로 설정
-          if (questionAnalyses && questionAnalyses.length > 0 && analysisMode === 'comprehensive') {
+          if (questionAnalyses.length > 0 && analysisMode === 'comprehensive') {
             setComprehensiveAnalysis(questionAnalyses[0])
           }
         } catch (error) {
@@ -200,6 +259,19 @@ export default function StudentResponseAnalysisDashboard({
   }
 
 
+  // 안전한 데이터 접근 헬퍼 함수들
+  const safeGetNumber = (value: any, defaultValue: number = 0): number => {
+    return typeof value === 'number' && !isNaN(value) ? value : defaultValue
+  }
+
+  const safeGetArray = <T>(value: any, defaultValue: T[] = []): T[] => {
+    return Array.isArray(value) ? value : defaultValue
+  }
+
+  const safeGetString = (value: any, defaultValue: string = ''): string => {
+    return typeof value === 'string' ? value : defaultValue
+  }
+
   const getComprehensionColor = (level: string) => {
     switch (level) {
       case 'excellent':
@@ -210,6 +282,10 @@ export default function StudentResponseAnalysisDashboard({
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
       case 'needs_improvement':
         return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
+      case 'unknown':
+      case null:
+      case undefined:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100'
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100'
     }
@@ -225,8 +301,12 @@ export default function StudentResponseAnalysisDashboard({
         return '보통'
       case 'needs_improvement':
         return '개선 필요'
+      case 'unknown':
+      case null:
+      case undefined:
+        return '정보 없음'
       default:
-        return level
+        return level || '정보 없음'
     }
   }
 
@@ -387,7 +467,49 @@ export default function StudentResponseAnalysisDashboard({
                                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
                                 : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                             }`}
-                            onClick={() => setComprehensiveAnalysis(savedAnalysis)}
+                            onClick={() => {
+                              console.log('Setting comprehensive analysis:', savedAnalysis)
+                              try {
+                                if (savedAnalysis?.analysisId && savedAnalysis.questionId) {
+                                  // 데이터 무결성 검증
+                                  const validAnalysis = {
+                                    ...savedAnalysis,
+                                    responseTypeDistribution: savedAnalysis.responseTypeDistribution || {
+                                      correctUnderstanding: 0,
+                                      partialUnderstanding: 0,
+                                      misconception: 0,
+                                      creativeApproach: 0,
+                                      offTopic: 0
+                                    },
+                                    keyInsights: savedAnalysis.keyInsights || {
+                                      commonUnderstandings: [],
+                                      commonDifficulties: [],
+                                      misconceptionPatterns: [],
+                                      creativeIdeas: []
+                                    },
+                                    classroomRecommendations: savedAnalysis.classroomRecommendations || {
+                                      immediateActions: [],
+                                      conceptsToClarify: [],
+                                      suggestedActivities: [],
+                                      exemplaryResponses: []
+                                    },
+                                    overallAssessment: savedAnalysis.overallAssessment || {
+                                      classUnderstandingLevel: 0,
+                                      engagementLevel: 0,
+                                      readinessForNextTopic: false,
+                                      additionalSupportNeeded: []
+                                    }
+                                  }
+                                  setComprehensiveAnalysis(validAnalysis)
+                                } else {
+                                  console.error('Invalid saved analysis data:', savedAnalysis)
+                                  alert('분석 데이터가 손상되었습니다. 다시 분석을 실행해주세요.')
+                                }
+                              } catch (error) {
+                                console.error('Error setting comprehensive analysis:', error)
+                                alert('분석 데이터를 불러오는 중 오류가 발생했습니다.')
+                              }
+                            }}
                           >
                             <div className="flex justify-between items-start">
                               <div className="flex items-center gap-2">
@@ -413,10 +535,10 @@ export default function StudentResponseAnalysisDashboard({
                               </div>
                             </div>
                             <div className="mt-2 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
-                              <span>📝 답변: {savedAnalysis.question.responseCount}개</span>
-                              <span>🎤 이해도: {savedAnalysis.overallAssessment.classUnderstandingLevel}%</span>
-                              <span>✨ 참여도: {savedAnalysis.overallAssessment.engagementLevel}%</span>
-                              {savedAnalysis.overallAssessment.readinessForNextTopic && (
+                              <span>📝 답변: {savedAnalysis.question?.responseCount || 0}개</span>
+                              <span>🎤 이해도: {savedAnalysis.overallAssessment?.classUnderstandingLevel || 0}%</span>
+                              <span>✨ 참여도: {savedAnalysis.overallAssessment?.engagementLevel || 0}%</span>
+                              {savedAnalysis.overallAssessment?.readinessForNextTopic && (
                                 <span className="text-green-600 dark:text-green-400">✓ 다음 단계 준비됨</span>
                               )}
                             </div>
@@ -430,7 +552,44 @@ export default function StudentResponseAnalysisDashboard({
                                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
                                 : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                             }`}
-                            onClick={() => setAnalysis(savedAnalysis)}
+                            onClick={() => {
+                              console.log('Setting individual analysis:', savedAnalysis)
+                              try {
+                                if (savedAnalysis?.analysisId && savedAnalysis.questionId) {
+                                  // 데이터 무결성 검증
+                                  const validAnalysis = {
+                                    ...savedAnalysis,
+                                    individualAnalyses: savedAnalysis.individualAnalyses || [],
+                                    collectiveAnalysis: {
+                                      ...savedAnalysis.collectiveAnalysis,
+                                      overallInsights: savedAnalysis.collectiveAnalysis?.overallInsights || {
+                                        averageComprehension: 0,
+                                        commonStrengths: [],
+                                        commonChallenges: []
+                                      },
+                                      questionEffectiveness: savedAnalysis.collectiveAnalysis?.questionEffectiveness || {
+                                        clarityScore: 0,
+                                        engagementLevel: 0,
+                                        cognitiveLevel: '미정'
+                                      },
+                                      teachingRecommendations: savedAnalysis.collectiveAnalysis?.teachingRecommendations || {
+                                        immediateActions: [],
+                                        followUpQuestions: [],
+                                        reinforcementActivities: [],
+                                        differentiationStrategies: []
+                                      }
+                                    }
+                                  }
+                                  setAnalysis(validAnalysis)
+                                } else {
+                                  console.error('Invalid saved analysis data:', savedAnalysis)
+                                  alert('분석 데이터가 손상되었습니다. 다시 분석을 실행해주세요.')
+                                }
+                              } catch (error) {
+                                console.error('Error setting individual analysis:', error)
+                                alert('분석 데이터를 불러오는 중 오류가 발생했습니다.')
+                              }
+                            }}
                           >
                             <div className="flex justify-between items-start">
                               <div className="flex items-center gap-2">
@@ -456,9 +615,18 @@ export default function StudentResponseAnalysisDashboard({
                               </div>
                             </div>
                             <div className="mt-2 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
-                              <span>📝 답변: {savedAnalysis.question.responseCount}개</span>
-                              <span>📈 평균 이해도: {savedAnalysis.individualAnalyses && savedAnalysis.individualAnalyses.length > 0 ? Math.round(savedAnalysis.individualAnalyses.reduce((acc, ind) => acc + (ind?.analysisResults?.comprehensionScore || 0), 0) / savedAnalysis.individualAnalyses.length) : 0}%</span>
-                              <span>🎯 분석 대상: {savedAnalysis.individualAnalyses.length}명</span>
+                              <span>📝 답변: {savedAnalysis.question?.responseCount || 0}개</span>
+                              <span>📈 평균 이해도: {
+                                savedAnalysis.individualAnalyses && savedAnalysis.individualAnalyses.length > 0 
+                                  ? Math.round(
+                                      savedAnalysis.individualAnalyses
+                                        .filter(ind => ind?.analysisResults?.comprehensionScore != null)
+                                        .reduce((acc, ind) => acc + (ind.analysisResults.comprehensionScore || 0), 0) / 
+                                      Math.max(savedAnalysis.individualAnalyses.filter(ind => ind?.analysisResults?.comprehensionScore != null).length, 1)
+                                    )
+                                  : 0
+                              }%</span>
+                              <span>🎯 분석 대상: {savedAnalysis.individualAnalyses?.length || 0}명</span>
                             </div>
                           </div>
                         ))
@@ -518,7 +686,7 @@ export default function StudentResponseAnalysisDashboard({
                   학급 이해도
                 </h4>
                 <div className="text-3xl font-bold text-blue-600 dark:text-blue-300">
-                  {comprehensiveAnalysis.overallAssessment.classUnderstandingLevel}%
+                  {safeGetNumber(comprehensiveAnalysis.overallAssessment?.classUnderstandingLevel)}%
                 </div>
               </div>
               <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
@@ -526,7 +694,7 @@ export default function StudentResponseAnalysisDashboard({
                   참여도
                 </h4>
                 <div className="text-3xl font-bold text-green-600 dark:text-green-300">
-                  {comprehensiveAnalysis.overallAssessment.engagementLevel}%
+                  {safeGetNumber(comprehensiveAnalysis.overallAssessment?.engagementLevel)}%
                 </div>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center">
@@ -534,7 +702,7 @@ export default function StudentResponseAnalysisDashboard({
                   다음 주제 준비도
                 </h4>
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-300">
-                  {comprehensiveAnalysis.overallAssessment.readinessForNextTopic ? '✅ 준비됨' : '⚠️ 보충 필요'}
+                  {comprehensiveAnalysis.overallAssessment?.readinessForNextTopic ? '✅ 준비됨' : '⚠️ 보충 필요'}
                 </div>
               </div>
             </div>
@@ -549,10 +717,10 @@ export default function StudentResponseAnalysisDashboard({
                     <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
                         className="bg-green-600 h-2 rounded-full"
-                        style={{ width: `${(comprehensiveAnalysis.responseTypeDistribution.correctUnderstanding / responses.length) * 100}%` }}
+                        style={{ width: `${responses.length > 0 ? ((comprehensiveAnalysis.responseTypeDistribution?.correctUnderstanding || 0) / responses.length) * 100 : 0}%` }}
                       />
                     </div>
-                    <span className="text-sm font-medium">{comprehensiveAnalysis.responseTypeDistribution.correctUnderstanding}명</span>
+                    <span className="text-sm font-medium">{safeGetNumber(comprehensiveAnalysis.responseTypeDistribution?.correctUnderstanding)}명</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -561,10 +729,10 @@ export default function StudentResponseAnalysisDashboard({
                     <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
                         className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${(comprehensiveAnalysis.responseTypeDistribution.partialUnderstanding / responses.length) * 100}%` }}
+                        style={{ width: `${responses.length > 0 ? ((comprehensiveAnalysis.responseTypeDistribution?.partialUnderstanding || 0) / responses.length) * 100 : 0}%` }}
                       />
                     </div>
-                    <span className="text-sm font-medium">{comprehensiveAnalysis.responseTypeDistribution.partialUnderstanding}명</span>
+                    <span className="text-sm font-medium">{safeGetNumber(comprehensiveAnalysis.responseTypeDistribution?.partialUnderstanding)}명</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -573,10 +741,10 @@ export default function StudentResponseAnalysisDashboard({
                     <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
                         className="bg-orange-600 h-2 rounded-full"
-                        style={{ width: `${(comprehensiveAnalysis.responseTypeDistribution.misconception / responses.length) * 100}%` }}
+                        style={{ width: `${responses.length > 0 ? ((comprehensiveAnalysis.responseTypeDistribution?.misconception || 0) / responses.length) * 100 : 0}%` }}
                       />
                     </div>
-                    <span className="text-sm font-medium">{comprehensiveAnalysis.responseTypeDistribution.misconception}명</span>
+                    <span className="text-sm font-medium">{safeGetNumber(comprehensiveAnalysis.responseTypeDistribution?.misconception)}명</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -585,10 +753,10 @@ export default function StudentResponseAnalysisDashboard({
                     <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
                         className="bg-purple-600 h-2 rounded-full"
-                        style={{ width: `${(comprehensiveAnalysis.responseTypeDistribution.creativeApproach / responses.length) * 100}%` }}
+                        style={{ width: `${responses.length > 0 ? ((comprehensiveAnalysis.responseTypeDistribution?.creativeApproach || 0) / responses.length) * 100 : 0}%` }}
                       />
                     </div>
-                    <span className="text-sm font-medium">{comprehensiveAnalysis.responseTypeDistribution.creativeApproach}명</span>
+                    <span className="text-sm font-medium">{safeGetNumber(comprehensiveAnalysis.responseTypeDistribution?.creativeApproach)}명</span>
                   </div>
                 </div>
               </div>
@@ -605,32 +773,40 @@ export default function StudentResponseAnalysisDashboard({
               <div>
                 <h4 className="font-medium text-green-700 dark:text-green-300 mb-3">✨ 공통적으로 잘 이해한 부분</h4>
                 <ul className="space-y-1">
-                  {comprehensiveAnalysis.keyInsights.commonUnderstandings.map((understanding, index) => (
-                    <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
-                      <span className="text-green-500 mr-2">•</span>
-                      {understanding}
-                    </li>
-                  ))}
+                  {safeGetArray(comprehensiveAnalysis.keyInsights?.commonUnderstandings).length > 0 ? (
+                    safeGetArray(comprehensiveAnalysis.keyInsights?.commonUnderstandings).map((understanding, index) => (
+                      <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
+                        <span className="text-green-500 mr-2">•</span>
+                        {safeGetString(understanding)}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-sm text-gray-500">데이터가 없습니다.</li>
+                  )}
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium text-orange-700 dark:text-orange-300 mb-3">🎯 공통적으로 어려워하는 부분</h4>
                 <ul className="space-y-1">
-                  {comprehensiveAnalysis.keyInsights.commonDifficulties.map((difficulty, index) => (
-                    <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
-                      <span className="text-orange-500 mr-2">•</span>
-                      {difficulty}
-                    </li>
-                  ))}
+                  {safeGetArray(comprehensiveAnalysis.keyInsights?.commonDifficulties).length > 0 ? (
+                    safeGetArray(comprehensiveAnalysis.keyInsights?.commonDifficulties).map((difficulty, index) => (
+                      <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
+                        <span className="text-orange-500 mr-2">•</span>
+                        {safeGetString(difficulty)}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-sm text-gray-500">데이터가 없습니다.</li>
+                  )}
                 </ul>
               </div>
 
-              {comprehensiveAnalysis.keyInsights.misconceptionPatterns.length > 0 && (
+              {comprehensiveAnalysis.keyInsights?.misconceptionPatterns?.length > 0 && (
                 <div>
                   <h4 className="font-medium text-red-700 dark:text-red-300 mb-3">⚠️ 주요 오개념 패턴</h4>
                   <ul className="space-y-1">
-                    {comprehensiveAnalysis.keyInsights.misconceptionPatterns.map((pattern, index) => (
+                    {comprehensiveAnalysis.keyInsights?.misconceptionPatterns?.map((pattern, index) => (
                       <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
                         <span className="text-red-500 mr-2">•</span>
                         {pattern}
@@ -640,11 +816,11 @@ export default function StudentResponseAnalysisDashboard({
                 </div>
               )}
 
-              {comprehensiveAnalysis.keyInsights.creativeIdeas.length > 0 && (
+              {comprehensiveAnalysis.keyInsights?.creativeIdeas?.length > 0 && (
                 <div>
                   <h4 className="font-medium text-purple-700 dark:text-purple-300 mb-3">💡 창의적 아이디어</h4>
                   <ul className="space-y-1">
-                    {comprehensiveAnalysis.keyInsights.creativeIdeas.map((idea, index) => (
+                    {comprehensiveAnalysis.keyInsights?.creativeIdeas?.map((idea, index) => (
                       <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
                         <span className="text-purple-500 mr-2">•</span>
                         {idea}
@@ -666,41 +842,41 @@ export default function StudentResponseAnalysisDashboard({
               <div>
                 <h4 className="font-medium text-red-600 dark:text-red-300 mb-3">🚨 즉시 필요한 조치</h4>
                 <ul className="space-y-2">
-                  {comprehensiveAnalysis.classroomRecommendations.immediateActions.map((action, index) => (
+                  {comprehensiveAnalysis.classroomRecommendations?.immediateActions?.map((action, index) => (
                     <li key={index} className="text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded">
                       {action}
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500 p-3">데이터가 없습니다.</li>}
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium text-blue-600 dark:text-blue-300 mb-3">📚 추가 설명이 필요한 개념</h4>
                 <ul className="space-y-2">
-                  {comprehensiveAnalysis.classroomRecommendations.conceptsToClarify.map((concept, index) => (
+                  {comprehensiveAnalysis.classroomRecommendations?.conceptsToClarify?.map((concept, index) => (
                     <li key={index} className="text-sm bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
                       {concept}
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500 p-3">데이터가 없습니다.</li>}
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium text-green-600 dark:text-green-300 mb-3">🎯 권장 학습 활동</h4>
                 <ul className="space-y-2">
-                  {comprehensiveAnalysis.classroomRecommendations.suggestedActivities.map((activity, index) => (
+                  {comprehensiveAnalysis.classroomRecommendations?.suggestedActivities?.map((activity, index) => (
                     <li key={index} className="text-sm bg-green-50 dark:bg-green-900/20 p-3 rounded">
                       {activity}
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500 p-3">데이터가 없습니다.</li>}
                 </ul>
               </div>
 
-              {comprehensiveAnalysis.classroomRecommendations.exemplaryResponses.length > 0 && (
+              {comprehensiveAnalysis.classroomRecommendations?.exemplaryResponses?.length > 0 && (
                 <div>
                   <h4 className="font-medium text-purple-600 dark:text-purple-300 mb-3">⭐ 우수 답변 예시</h4>
                   <ul className="space-y-2">
-                    {comprehensiveAnalysis.classroomRecommendations.exemplaryResponses.map((response, index) => (
+                    {comprehensiveAnalysis.classroomRecommendations?.exemplaryResponses?.map((response, index) => (
                       <li key={index} className="text-sm bg-purple-50 dark:bg-purple-900/20 p-3 rounded italic">
                         "{response}"
                       </li>
@@ -710,13 +886,13 @@ export default function StudentResponseAnalysisDashboard({
               )}
             </div>
 
-            {comprehensiveAnalysis.overallAssessment.additionalSupportNeeded.length > 0 && (
+            {comprehensiveAnalysis.overallAssessment?.additionalSupportNeeded?.length > 0 && (
               <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                 <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
                   📌 추가 지원 필요 영역
                 </h4>
                 <ul className="space-y-1">
-                  {comprehensiveAnalysis.overallAssessment.additionalSupportNeeded.map((support, index) => (
+                  {comprehensiveAnalysis.overallAssessment?.additionalSupportNeeded?.map((support, index) => (
                     <li key={index} className="text-sm text-yellow-800 dark:text-yellow-200">
                       • {support}
                     </li>
@@ -759,12 +935,12 @@ export default function StudentResponseAnalysisDashboard({
                 </h4>
                 <div className="flex items-center gap-3">
                   <div className="text-2xl font-bold text-blue-600 dark:text-blue-300">
-                    {analysis.collectiveAnalysis.overallInsights.averageComprehension}점
+                    {safeGetNumber(analysis.collectiveAnalysis?.overallInsights?.averageComprehension)}점
                   </div>
                   <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div 
                       className="bg-blue-600 h-2 rounded-full"
-                      style={{ width: `${analysis.collectiveAnalysis.overallInsights.averageComprehension}%` }}
+                      style={{ width: `${safeGetNumber(analysis.collectiveAnalysis?.overallInsights?.averageComprehension)}%` }}
                     />
                   </div>
                 </div>
@@ -778,15 +954,15 @@ export default function StudentResponseAnalysisDashboard({
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-green-700 dark:text-green-200">명확성</span>
-                    <span className="font-medium">{analysis.collectiveAnalysis.questionEffectiveness.clarityScore}점</span>
+                    <span className="font-medium">{analysis.collectiveAnalysis?.questionEffectiveness?.clarityScore || 0}점</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-green-700 dark:text-green-200">참여도</span>
-                    <span className="font-medium">{analysis.collectiveAnalysis.questionEffectiveness.engagementLevel}점</span>
+                    <span className="font-medium">{analysis.collectiveAnalysis?.questionEffectiveness?.engagementLevel || 0}점</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-green-700 dark:text-green-200">인지 수준</span>
-                    <span className="font-medium">{analysis.collectiveAnalysis.questionEffectiveness.cognitiveLevel}</span>
+                    <span className="font-medium">{analysis.collectiveAnalysis?.questionEffectiveness?.cognitiveLevel || '미정'}</span>
                   </div>
                 </div>
               </div>
@@ -797,24 +973,24 @@ export default function StudentResponseAnalysisDashboard({
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white mb-3">✨ 공통 강점</h4>
                 <ul className="space-y-1">
-                  {analysis.collectiveAnalysis.overallInsights.commonStrengths.map((strength, index) => (
+                  {analysis.collectiveAnalysis?.overallInsights?.commonStrengths?.map((strength, index) => (
                     <li key={index} className="text-sm text-green-700 dark:text-green-300 flex items-start">
                       <span className="text-green-500 mr-2">•</span>
                       {strength}
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500">데이터가 없습니다.</li>}
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white mb-3">🎯 공통 도전점</h4>
                 <ul className="space-y-1">
-                  {analysis.collectiveAnalysis.overallInsights.commonChallenges.map((challenge, index) => (
+                  {analysis.collectiveAnalysis?.overallInsights?.commonChallenges?.map((challenge, index) => (
                     <li key={index} className="text-sm text-orange-700 dark:text-orange-300 flex items-start">
                       <span className="text-orange-500 mr-2">•</span>
                       {challenge}
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500">데이터가 없습니다.</li>}
                 </ul>
               </div>
             </div>
@@ -827,7 +1003,7 @@ export default function StudentResponseAnalysisDashboard({
             </h3>
             
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {analysis.individualAnalyses.map((individual, index) => {
+              {analysis.individualAnalyses && analysis.individualAnalyses.length > 0 ? analysis.individualAnalyses.map((individual, index) => {
                 const response = responses.find(r => r.responseId === individual.responseId)
                 return (
                   <div key={individual.responseId} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
@@ -836,11 +1012,11 @@ export default function StudentResponseAnalysisDashboard({
                         <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                           답변 #{index + 1}
                         </span>
-                        <span className={`text-xs px-2 py-1 rounded ${getComprehensionColor(individual.analysisResults.comprehensionLevel)}`}>
-                          {getComprehensionLabel(individual.analysisResults.comprehensionLevel)}
+                        <span className={`text-xs px-2 py-1 rounded ${getComprehensionColor(individual.analysisResults?.comprehensionLevel || 'unknown')}`}>
+                          {getComprehensionLabel(individual.analysisResults?.comprehensionLevel || 'unknown')}
                         </span>
                         <span className="text-sm font-medium text-blue-600 dark:text-blue-300">
-                          {individual.analysisResults.comprehensionScore}점
+                          {individual.analysisResults?.comprehensionScore || 0}점
                         </span>
                       </div>
                     </div>
@@ -855,23 +1031,23 @@ export default function StudentResponseAnalysisDashboard({
                       <div>
                         <h5 className="text-sm font-medium text-green-700 dark:text-green-300 mb-2">강점</h5>
                         <ul className="text-xs space-y-1">
-                          {individual.analysisResults.keyStrengths.map((strength, i) => (
+                          {individual.analysisResults?.keyStrengths?.map((strength, i) => (
                             <li key={i} className="text-green-600 dark:text-green-400">• {strength}</li>
-                          ))}
+                          )) || <li className="text-gray-500">데이터 없음</li>}
                         </ul>
                       </div>
 
                       <div>
                         <h5 className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-2">개선점</h5>
                         <ul className="text-xs space-y-1">
-                          {individual.analysisResults.improvementAreas.map((area, i) => (
+                          {individual.analysisResults?.improvementAreas?.map((area, i) => (
                             <li key={i} className="text-orange-600 dark:text-orange-400">• {area}</li>
-                          ))}
+                          )) || <li className="text-gray-500">데이터 없음</li>}
                         </ul>
                       </div>
                     </div>
 
-                    {individual.analysisResults.detailedFeedback && (
+                    {individual.analysisResults?.detailedFeedback && (
                       <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
                         <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">상세 피드백</h5>
                         <p className="text-xs text-blue-800 dark:text-blue-200">{individual.analysisResults.detailedFeedback}</p>
@@ -879,7 +1055,11 @@ export default function StudentResponseAnalysisDashboard({
                     )}
                   </div>
                 )
-              })}
+              }) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <p>개별 분석 데이터가 없습니다.</p>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -893,24 +1073,24 @@ export default function StudentResponseAnalysisDashboard({
               <div>
                 <h4 className="font-medium text-red-600 dark:text-red-300 mb-3">🚨 즉시 조치사항</h4>
                 <ul className="space-y-2">
-                  {analysis.collectiveAnalysis.teachingRecommendations.immediateActions.map((action, index) => (
+                  {analysis.collectiveAnalysis?.teachingRecommendations?.immediateActions?.map((action, index) => (
                     <li key={index} className="text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded flex items-start">
                       <span className="text-red-500 mr-2">•</span>
                       <span className="text-red-700 dark:text-red-300">{action}</span>
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500 p-3">데이터가 없습니다.</li>}
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium text-blue-600 dark:text-blue-300 mb-3">❓ 후속 질문</h4>
                 <ul className="space-y-2">
-                  {analysis.collectiveAnalysis.teachingRecommendations.followUpQuestions.map((question, index) => (
+                  {analysis.collectiveAnalysis?.teachingRecommendations?.followUpQuestions?.map((question, index) => (
                     <li key={index} className="text-sm bg-blue-50 dark:bg-blue-900/20 p-3 rounded flex items-start">
                       <span className="text-blue-500 mr-2">•</span>
                       <span className="text-blue-700 dark:text-blue-300">{question}</span>
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500 p-3">데이터가 없습니다.</li>}
                 </ul>
               </div>
             </div>
@@ -919,24 +1099,24 @@ export default function StudentResponseAnalysisDashboard({
               <div>
                 <h4 className="font-medium text-green-600 dark:text-green-300 mb-3">🎯 강화 활동</h4>
                 <ul className="space-y-2">
-                  {analysis.collectiveAnalysis.teachingRecommendations.reinforcementActivities.map((activity, index) => (
+                  {analysis.collectiveAnalysis?.teachingRecommendations?.reinforcementActivities?.map((activity, index) => (
                     <li key={index} className="text-sm bg-green-50 dark:bg-green-900/20 p-3 rounded flex items-start">
                       <span className="text-green-500 mr-2">•</span>
                       <span className="text-green-700 dark:text-green-300">{activity}</span>
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500 p-3">데이터가 없습니다.</li>}
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium text-purple-600 dark:text-purple-300 mb-3">🎨 차별화 전략</h4>
                 <ul className="space-y-2">
-                  {analysis.collectiveAnalysis.teachingRecommendations.differentiationStrategies.map((strategy, index) => (
+                  {analysis.collectiveAnalysis?.teachingRecommendations?.differentiationStrategies?.map((strategy, index) => (
                     <li key={index} className="text-sm bg-purple-50 dark:bg-purple-900/20 p-3 rounded flex items-start">
                       <span className="text-purple-500 mr-2">•</span>
                       <span className="text-purple-700 dark:text-purple-300">{strategy}</span>
                     </li>
-                  ))}
+                  )) || <li className="text-sm text-gray-500 p-3">데이터가 없습니다.</li>}
                 </ul>
               </div>
             </div>
