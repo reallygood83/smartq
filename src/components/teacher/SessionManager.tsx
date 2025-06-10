@@ -111,9 +111,14 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
     const unsubscribeQuestions = onValue(questionsRef, (snapshot) => {
       const data = snapshot.val()
       if (data) {
-        const questionsList = Object.values(data) as Question[]
-        questionsList.sort((a, b) => b.createdAt - a.createdAt)
-        setQuestions(questionsList)
+        try {
+          const questionsList = Object.values(data).filter(item => item && typeof item === 'object') as Question[]
+          questionsList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+          setQuestions(questionsList)
+        } catch (error) {
+          console.error('질문 데이터 처리 오류:', error)
+          setQuestions([])
+        }
       } else {
         setQuestions([])
       }
@@ -124,9 +129,14 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
     const unsubscribeContents = onValue(sharedContentsRef, (snapshot) => {
       const data = snapshot.val()
       if (data) {
-        const contentsList = Object.values(data) as SharedContent[]
-        contentsList.sort((a, b) => b.createdAt - a.createdAt)
-        setSharedContents(contentsList)
+        try {
+          const contentsList = Object.values(data).filter(item => item && typeof item === 'object') as SharedContent[]
+          contentsList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+          setSharedContents(contentsList)
+        } catch (error) {
+          console.error('공유 콘텐츠 데이터 처리 오류:', error)
+          setSharedContents([])
+        }
       } else {
         setSharedContents([])
       }
@@ -375,11 +385,11 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
         <CollapsiblePanel
           title="학생 질문"
           icon="❓"
-          badge={questions.length}
+          badge={questions?.length || 0}
           defaultExpanded={true}
         >
 
-        {questions.length === 0 ? (
+        {!questions || questions.length === 0 ? (
           <div className="text-center py-12">
             <div className="mb-4">
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -402,7 +412,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           </div>
         ) : (
           <div className="space-y-4">
-            {questions.map((question, index) => (
+            {(questions || []).map((question, index) => (
               <div
                 key={question.questionId}
                 className="border border-gray-200 rounded-lg p-4"
@@ -435,7 +445,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
         <CollapsiblePanel
           title="콘텐츠 공유"
           icon="📄"
-          badge={sharedContents.length}
+          badge={sharedContents?.length || 0}
           defaultExpanded={false}
           headerActions={
             <Button
@@ -525,7 +535,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
         )}
 
         {/* 공유된 콘텐츠 목록 */}
-        {sharedContents.length === 0 ? (
+        {!sharedContents || sharedContents.length === 0 ? (
           <div className="text-center py-8">
             <div className="mb-4">
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
