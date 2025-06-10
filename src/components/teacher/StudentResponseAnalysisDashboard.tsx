@@ -123,6 +123,14 @@ export default function StudentResponseAnalysisDashboard({
       const endpoint = analysisMode === 'comprehensive' 
         ? '/api/ai/analyze-comprehensive'
         : '/api/ai/analyze-student-responses'
+      
+      console.log('Sending analysis request:', {
+        endpoint,
+        questionId,
+        sessionId,
+        saveAnalysis: shouldSave,
+        analysisMode
+      })
         
       const response = await fetch(endpoint, {
         method: 'POST',

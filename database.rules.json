@@ -1,13 +1,13 @@
 {
   "rules": {
     "sessions": {
-      ".indexOn": ["teacherId", "accessCode"],
+      ".indexOn": ["teacherId", "accessCode", "interactionMode"],
       ".read": "true",
       ".write": "auth != null",
       "$sessionId": {
         ".read": "true",
         ".write": "auth != null && (data.child('teacherId').val() == auth.uid || !data.exists())",
-        ".validate": "newData.exists() ? newData.hasChildren(['title', 'accessCode', 'sessionType', 'teacherId', 'createdAt']) : true"
+        ".validate": "newData.hasChildren(['title', 'accessCode', 'sessionType', 'teacherId', 'createdAt'])"
       }
     },
     "questions": {
@@ -16,16 +16,67 @@
         ".write": "true",
         "$questionId": {
           ".write": "true",
-          ".validate": "newData.exists() ? newData.hasChildren(['questionId', 'text', 'studentId', 'isAnonymous', 'createdAt', 'sessionId']) : true"
+          ".validate": "newData.hasChildren(['questionId', 'text', 'studentId', 'isAnonymous', 'createdAt', 'sessionId'])",
+          "likes": {
+            "$studentId": {
+              ".write": "true",
+              ".validate": "newData.isBoolean()"
+            }
+          }
+        }
+      }
+    },
+    "teacherQuestions": {
+      ".indexOn": ["sessionId", "teacherId", "status"],
+      "$sessionId": {
+        ".read": "true",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$questionId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['questionId', 'sessionId', 'text', 'teacherId', 'order', 'source', 'status', 'createdAt'])"
+        }
+      }
+    },
+    "studentResponses": {
+      ".indexOn": ["sessionId", "questionId", "createdAt"],
+      "$sessionId": {
+        ".read": "true",
+        ".write": "true",
+        "$responseId": {
+          ".write": "true",
+          ".validate": "newData.hasChildren(['responseId', 'questionId', 'sessionId', 'text', 'studentId', 'createdAt'])"
+        }
+      }
+    },
+    "questionAnalyses": {
+      ".indexOn": ["sessionId", "questionId", "generatedAt"],
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$analysisId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['analysisId', 'sessionId', 'questionId', 'generatedAt'])"
+        }
+      }
+    },
+    "comprehensiveAnalyses": {
+      ".indexOn": ["sessionId", "questionId", "generatedAt"],
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$analysisId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['analysisId', 'sessionId', 'questionId', 'generatedAt'])"
         }
       }
     },
     "sharedContents": {
       "$sessionId": {
-        ".read": "auth != null || root.child('sessions').child($sessionId).child('isPublic').val() == true",
+        ".read": "true",
         ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$contentId": {
-          ".write": "auth != null && (newData.child('teacherId').val() == auth.uid || root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid)"
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['contentId', 'sessionId', 'teacherId', 'createdAt'])"
         }
       }
     },
@@ -34,8 +85,8 @@
         ".read": "auth != null",
         ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$requestId": {
-          ".write": "auth != null",
-          ".validate": "newData.exists() ? newData.hasChildren(['requestId', 'sessionId', 'createdAt']) : true"
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['requestId', 'sessionId', 'createdAt'])"
         }
       }
     },
@@ -44,8 +95,8 @@
         ".read": "auth != null",
         ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$responseId": {
-          ".write": "auth != null",
-          ".validate": "newData.exists() ? newData.hasChildren(['responseId', 'requestId', 'sessionId', 'createdAt']) : true"
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['responseId', 'requestId', 'sessionId', 'createdAt'])"
         }
       }
     },
@@ -54,8 +105,8 @@
         ".read": "auth != null",
         ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$profileId": {
-          ".write": "auth != null",
-          ".validate": "newData.exists() ? newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt']) : true"
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt'])"
         }
       }
     },
@@ -64,8 +115,8 @@
         ".read": "auth != null",
         ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$matchId": {
-          ".write": "auth != null",
-          ".validate": "newData.exists() ? newData.hasChildren(['matchId', 'sessionId', 'mentorId', 'menteeId', 'createdAt']) : true"
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['matchId', 'sessionId', 'mentorId', 'menteeId', 'createdAt'])"
         }
       }
     },
@@ -74,38 +125,28 @@
         ".read": "auth != null",
         ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
         "$analysisId": {
-          ".write": "auth != null",
-          ".validate": "newData.exists() ? newData.hasChildren(['analysisId', 'sessionId', 'createdAt']) : true"
-        }
-      }
-    },
-    "teacherQuestions": {
-      "$sessionId": {
-        ".read": "true",
-        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
-        "$questionId": {
           ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
-          ".validate": "newData.exists() ? newData.hasChildren(['questionId', 'sessionId', 'text', 'teacherId', 'order', 'source', 'status', 'createdAt']) : true"
+          ".validate": "newData.hasChildren(['analysisId', 'sessionId', 'createdAt'])"
         }
       }
     },
-    "studentResponses": {
-      "$sessionId": {
-        ".read": "true",
-        ".write": "true",
-        "$responseId": {
-          ".write": "true",
-          ".validate": "newData.exists() ? newData.hasChildren(['responseId', 'questionId', 'sessionId', 'text', 'studentId', 'createdAt']) : true"
-        }
-      }
-    },
-    "questionAnalyses": {
+    "mentorProfiles": {
       "$sessionId": {
         ".read": "auth != null",
-        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
-        "$analysisId": {
-          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
-          ".validate": "newData.exists() ? newData.hasChildren(['analysisId', 'sessionId', 'questionId', 'generatedAt']) : true"
+        ".write": "auth != null",
+        "$profileId": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt'])"
+        }
+      }
+    },
+    "menteeProfiles": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$profileId": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt'])"
         }
       }
     },
