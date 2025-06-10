@@ -106,8 +106,8 @@ export default function StudentResponseAnalysisDashboard({
     }
   }, [sessionId, questionId, analysisMode])
 
-  // AI 분석 실행
-  const runAnalysis = async () => {
+  // AI 분석 실행 (저장 옵션 포함)
+  const runAnalysis = async (shouldSave: boolean = false) => {
     if (!user || responses.length === 0) return
 
     const apiKey = getStoredApiKey(user.uid)
@@ -132,7 +132,8 @@ export default function StudentResponseAnalysisDashboard({
         body: JSON.stringify({
           questionId,
           sessionId,
-          apiKey
+          apiKey,
+          saveAnalysis: shouldSave // 저장 여부 전달
         })
       })
 
@@ -147,6 +148,11 @@ export default function StudentResponseAnalysisDashboard({
         } else {
           setAnalysis(result.analysis)
         }
+        
+        // 저장한 경우 알림 표시
+        if (shouldSave) {
+          alert('분석 결과가 저장되었습니다.')
+        }
       } else {
         throw new Error(result.error || '분석 실패')
       }
@@ -157,6 +163,7 @@ export default function StudentResponseAnalysisDashboard({
       setIsAnalyzing(false)
     }
   }
+
 
   const getComprehensionColor = (level: string) => {
     switch (level) {
@@ -284,18 +291,28 @@ export default function StudentResponseAnalysisDashboard({
                   : '⚠️ 학생별 세부 분석 및 피드백 (많은 토큰 소모)'
                 }
               </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                💡 분석 후 저장 버튼을 사용하면 분석 기록에 저장됩니다.
+              </p>
             </div>
             
-            <Button
-              onClick={runAnalysis}
-              disabled={isAnalyzing || responses.length === 0}
-              isLoading={isAnalyzing}
-            >
-              🤖 {analysisMode === 'comprehensive' 
-                ? (savedComprehensiveAnalyses.length > 0 ? '새로운 종합 분석 실행' : '종합 분석 실행')
-                : (savedAnalyses.length > 0 ? '새로운 개별 분석 실행' : '개별 분석 실행')
-              }
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => runAnalysis(false)}
+                disabled={isAnalyzing || responses.length === 0}
+                isLoading={isAnalyzing}
+              >
+                🤖 {analysisMode === 'comprehensive' ? '종합 분석 실행' : '개별 분석 실행'}
+              </Button>
+              <Button
+                onClick={() => runAnalysis(true)}
+                disabled={isAnalyzing || responses.length === 0}
+                variant="outline"
+                isLoading={isAnalyzing}
+              >
+                💾 분석 후 저장
+              </Button>
+            </div>
             
             {/* 이전 분석 기록 - 개선된 버전 */}
             {((analysisMode === 'individual' && savedAnalyses.length > 0) || 
@@ -303,7 +320,7 @@ export default function StudentResponseAnalysisDashboard({
               <div className="w-full">
                 <div className="border-t pt-4 mt-4">
                   <h4 className="text-md font-semibold mb-3 text-gray-900 dark:text-white">
-                    📚 이전 분석 기록 
+                    📚 저장된 분석 기록 
                     ({analysisMode === 'comprehensive' ? savedComprehensiveAnalyses.length : savedAnalyses.length}개)
                   </h4>
                   
@@ -323,6 +340,9 @@ export default function StudentResponseAnalysisDashboard({
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                                   📋 종합 분석 #{index + 1}
+                                </span>
+                                <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs rounded-full">
+                                  ✓ 저장됨
                                 </span>
                                 {comprehensiveAnalysis?.analysisId === savedAnalysis.analysisId && (
                                   <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 text-xs rounded-full">
@@ -364,6 +384,9 @@ export default function StudentResponseAnalysisDashboard({
                                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                                   👤 개별 분석 #{index + 1}
                                 </span>
+                                <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs rounded-full">
+                                  ✓ 저장됨
+                                </span>
                                 {analysis?.analysisId === savedAnalysis.analysisId && (
                                   <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 text-xs rounded-full">
                                     현재 보기
@@ -391,8 +414,8 @@ export default function StudentResponseAnalysisDashboard({
                   
                   <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      💡 <strong>사용법:</strong> 위의 분석 기록을 클릭하면 해당 분석 결과를 다시 볼 수 있습니다. 
-                      시간에 따른 학습 진행 상황을 비교하거나 이전 피드백을 참고할 때 유용합니다.
+                      💡 <strong>사용법:</strong> '분석 후 저장' 버튼으로 실행한 분석만 여기에 표시됩니다. 
+                      저장된 분석을 클릭하여 결과를 다시 볼 수 있고, 시간에 따른 학습 진행 상황을 비교할 수 있습니다.
                     </p>
                   </div>
                 </div>
@@ -415,9 +438,21 @@ export default function StudentResponseAnalysisDashboard({
           {/* 전체 평가 */}
           <Card className="p-6">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                📋 종합 분석 결과
-              </h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  📋 종합 분석 결과
+                </h3>
+                {/* 저장 상태 표시 */}
+                {savedComprehensiveAnalyses.some(a => a.analysisId === comprehensiveAnalysis.analysisId) ? (
+                  <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs rounded-full">
+                    ✓ 저장됨
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 text-xs rounded-full">
+                    임시 분석
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 생성: {new Date(comprehensiveAnalysis.generatedAt).toLocaleString()}
               </div>
@@ -643,9 +678,21 @@ export default function StudentResponseAnalysisDashboard({
           {/* 전체 인사이트 */}
           <Card className="p-6">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                📈 전체 분석 결과
-              </h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  📈 전체 분석 결과
+                </h3>
+                {/* 저장 상태 표시 */}
+                {savedAnalyses.some(a => a.analysisId === analysis.analysisId) ? (
+                  <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs rounded-full">
+                    ✓ 저장됨
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 text-xs rounded-full">
+                    임시 분석
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 생성: {new Date(analysis.generatedAt).toLocaleString()}
               </div>

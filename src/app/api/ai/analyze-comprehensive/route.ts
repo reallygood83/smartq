@@ -9,7 +9,7 @@ import { EducationLevel } from '@/types/education'
 
 export async function POST(request: NextRequest) {
   try {
-    const { questionId, sessionId, apiKey } = await request.json()
+    const { questionId, sessionId, apiKey, saveAnalysis = false } = await request.json()
 
     // 입력 검증
     if (!questionId || !sessionId || !apiKey) {
@@ -233,13 +233,15 @@ ${targetResponses.map((r, i) => `${i + 1}. ${r.isAnonymous ? '익명' : r.studen
       generatedAt: Date.now()
     }
 
-    // Firebase에 저장
-    try {
-      const analysisRef = ref(database, `comprehensiveAnalyses/${sessionId}/${analysisId}`)
-      await set(analysisRef, analysisData)
-    } catch (error) {
-      console.error('분석 결과 저장 실패:', error)
-      // 저장 실패해도 결과는 반환
+    // saveAnalysis가 true일 때만 Firebase에 저장
+    if (saveAnalysis) {
+      try {
+        const analysisRef = ref(database, `comprehensiveAnalyses/${sessionId}/${analysisId}`)
+        await set(analysisRef, analysisData)
+      } catch (error) {
+        console.error('분석 결과 저장 실패:', error)
+        // 저장 실패해도 결과는 반환
+      }
     }
 
     return NextResponse.json({

@@ -44,7 +44,7 @@ interface CollectiveAnalysis {
 
 export async function POST(request: NextRequest) {
   try {
-    const { questionId, sessionId, apiKey } = await request.json()
+    const { questionId, sessionId, apiKey, saveAnalysis = false } = await request.json()
 
     // 입력 검증
     if (!questionId || !sessionId || !apiKey) {
@@ -302,7 +302,7 @@ ${targetResponses.map((r, i) => `${i + 1}. ${r.isAnonymous ? '익명' : r.studen
       }
     }
 
-    // 분석 결과를 Firebase에 저장
+    // 분석 결과 생성
     const analysisId = `analysis_${Date.now()}`
     const analysisData = {
       analysisId,
@@ -318,12 +318,15 @@ ${targetResponses.map((r, i) => `${i + 1}. ${r.isAnonymous ? '익명' : r.studen
       generatedAt: Date.now()
     }
 
-    try {
-      const analysisRef = ref(database, `questionAnalyses/${sessionId}/${analysisId}`)
-      await set(analysisRef, analysisData)
-    } catch (error) {
-      console.error('분석 결과 저장 실패:', error)
-      // 저장 실패해도 결과는 반환
+    // saveAnalysis가 true일 때만 Firebase에 저장
+    if (saveAnalysis) {
+      try {
+        const analysisRef = ref(database, `questionAnalyses/${sessionId}/${analysisId}`)
+        await set(analysisRef, analysisData)
+      } catch (error) {
+        console.error('분석 결과 저장 실패:', error)
+        // 저장 실패해도 결과는 반홑
+      }
     }
 
     return NextResponse.json({
