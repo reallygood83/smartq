@@ -64,12 +64,13 @@ export default function ParticipationMonitor({ sessionId, activeQuestionId }: Pa
           const lengths = currentQuestionResponses.map(r => r?.text?.length || 0)
           const avgLength = lengths.length > 0 ? lengths.reduce((a, b) => a + b, 0) / lengths.length : 0
 
-          // 답변 길이별 분포
-          const distribution = {
-            short: lengths.filter(len => len < 20).length,
-            medium: lengths.filter(len => len >= 20 && len <= 100).length,
-            long: lengths.filter(len => len > 100).length
-          }
+          // 답변 길이별 분포 (성능 최적화)
+          const distribution = { short: 0, medium: 0, long: 0 }
+          lengths.forEach(len => {
+            if (len < 20) distribution.short++
+            else if (len <= 100) distribution.medium++
+            else distribution.long++
+          })
 
           setMetrics({
             totalConnectedStudents: totalStudents,

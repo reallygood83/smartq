@@ -133,7 +133,8 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
   // 질문의 좋아요 수 계산
   const getLikeCount = (questionId: string): number => {
     const likes = likesData[questionId]
-    return likes ? Object.keys(likes).length : 0
+    if (!likes || typeof likes !== 'object') return 0
+    return Object.keys(likes).length
   }
 
   // 내가 좋아요 했는지 확인
@@ -145,8 +146,8 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
     <div className="space-y-3">
       <div className="text-sm mb-4 text-center text-gray-600 dark:text-white">
         💬 {isAdultEducationSession 
-          ? adapt(`총 ${questions.length}개의 질의응답`, `${questions.length}개의 토론 질문`, `${questions.length}개의 전문 질문`)
-          : adapt(`총 ${questions.length}개의 질문이 있습니다`, `${questions.length}개의 질문이 있어요`, `질문이 ${questions.length}개 있어요`)}
+          ? adapt(`총 ${questions?.length || 0}개의 질의응답`, `${questions?.length || 0}개의 토론 질문`, `${questions?.length || 0}개의 전문 질문`)
+          : adapt(`총 ${questions?.length || 0}개의 질문이 있습니다`, `${questions?.length || 0}개의 질문이 있어요`, `질문이 ${questions?.length || 0}개 있어요`)}
       </div>
       
       <div className={`${isAdultEducationSession ? 'max-h-[32rem]' : 'max-h-96'} overflow-y-auto space-y-3 px-2`} 

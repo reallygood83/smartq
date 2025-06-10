@@ -1,0 +1,160 @@
+{
+  "rules": {
+    "sessions": {
+      ".indexOn": ["teacherId", "accessCode", "interactionMode"],
+      ".read": "true",
+      ".write": "auth != null",
+      "$sessionId": {
+        ".read": "true",
+        ".write": "auth != null && (data.child('teacherId').val() == auth.uid || !data.exists())",
+        ".validate": "newData.hasChildren(['title', 'accessCode', 'sessionType', 'teacherId', 'createdAt'])"
+      }
+    },
+    "questions": {
+      "$sessionId": {
+        ".read": "true",
+        ".write": "true",
+        "$questionId": {
+          ".write": "true",
+          ".validate": "newData.hasChildren(['questionId', 'text', 'studentId', 'isAnonymous', 'createdAt', 'sessionId'])",
+          "likes": {
+            "$studentId": {
+              ".write": "true",
+              ".validate": "newData.isBoolean()"
+            }
+          }
+        }
+      }
+    },
+    "teacherQuestions": {
+      ".indexOn": ["sessionId", "teacherId", "status"],
+      "$sessionId": {
+        ".read": "true",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$questionId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['questionId', 'sessionId', 'text', 'teacherId', 'order', 'source', 'status', 'createdAt'])"
+        }
+      }
+    },
+    "studentResponses": {
+      ".indexOn": ["sessionId", "questionId", "createdAt"],
+      "$sessionId": {
+        ".read": "true",
+        ".write": "true",
+        "$responseId": {
+          ".write": "true",
+          ".validate": "newData.hasChildren(['responseId', 'questionId', 'sessionId', 'text', 'studentId', 'createdAt'])"
+        }
+      }
+    },
+    "questionAnalyses": {
+      ".indexOn": ["sessionId", "questionId", "generatedAt"],
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$analysisId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['analysisId', 'sessionId', 'questionId', 'generatedAt'])"
+        }
+      }
+    },
+    "comprehensiveAnalyses": {
+      ".indexOn": ["sessionId", "questionId", "generatedAt"],
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$analysisId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['analysisId', 'sessionId', 'questionId', 'generatedAt'])"
+        }
+      }
+    },
+    "sharedContents": {
+      "$sessionId": {
+        ".read": "true",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$contentId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['contentId', 'sessionId', 'teacherId', 'createdAt'])"
+        }
+      }
+    },
+    "feedbackRequests": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$requestId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['requestId', 'sessionId', 'createdAt'])"
+        }
+      }
+    },
+    "feedbackResponses": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$responseId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['responseId', 'requestId', 'sessionId', 'createdAt'])"
+        }
+      }
+    },
+    "mentorshipProfiles": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$profileId": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['profileId', 'sessionId', 'userId', 'profileType', 'createdAt'])"
+        }
+      }
+    },
+    "mentorshipMatches": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$matchId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['matchId', 'sessionId', 'mentorId', 'menteeId', 'createdAt'])"
+        }
+      }
+    },
+    "feedbackAnalyses": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+        "$analysisId": {
+          ".write": "auth != null && root.child('sessions').child($sessionId).child('teacherId').val() == auth.uid",
+          ".validate": "newData.hasChildren(['analysisId', 'sessionId', 'createdAt'])"
+        }
+      }
+    },
+    "mentorProfiles": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$profileId": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt'])"
+        }
+      }
+    },
+    "menteeProfiles": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$profileId": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['profileId', 'sessionId', 'userId', 'createdAt'])"
+        }
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    }
+  }
+}

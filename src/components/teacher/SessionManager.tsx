@@ -113,8 +113,12 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       if (data) {
         try {
           const questionsList = Object.values(data).filter(item => item && typeof item === 'object') as Question[]
-          questionsList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-          setQuestions(questionsList)
+          if (Array.isArray(questionsList)) {
+            questionsList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+            setQuestions(questionsList)
+          } else {
+            setQuestions([])
+          }
         } catch (error) {
           console.error('질문 데이터 처리 오류:', error)
           setQuestions([])
@@ -131,8 +135,12 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       if (data) {
         try {
           const contentsList = Object.values(data).filter(item => item && typeof item === 'object') as SharedContent[]
-          contentsList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-          setSharedContents(contentsList)
+          if (Array.isArray(contentsList)) {
+            contentsList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+            setSharedContents(contentsList)
+          } else {
+            setSharedContents([])
+          }
         } catch (error) {
           console.error('공유 콘텐츠 데이터 처리 오류:', error)
           setSharedContents([])
@@ -389,7 +397,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           defaultExpanded={true}
         >
 
-        {!questions || questions.length === 0 ? (
+        {!questions?.length ? (
           <div className="text-center py-12">
             <div className="mb-4">
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -535,7 +543,7 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
         )}
 
         {/* 공유된 콘텐츠 목록 */}
-        {!sharedContents || sharedContents.length === 0 ? (
+        {!sharedContents?.length ? (
           <div className="text-center py-8">
             <div className="mb-4">
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
