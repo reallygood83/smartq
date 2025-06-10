@@ -9,16 +9,17 @@ import { ref, push, set } from 'firebase/database'
 interface QuestionInputProps {
   sessionId: string
   sessionType: SessionType
+  defaultStudentName?: string
 }
 
-export default function QuestionInput({ sessionId, sessionType }: QuestionInputProps) {
+export default function QuestionInput({ sessionId, sessionType, defaultStudentName }: QuestionInputProps) {
   const [questionText, setQuestionText] = useState('')
   const [studentName, setStudentName] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [studentId, setStudentId] = useState('')
 
-  // 학생 ID 초기화
+  // 학생 ID 및 이름 초기화
   useEffect(() => {
     let id = localStorage.getItem('smartq_student_id')
     if (!id) {
@@ -26,7 +27,13 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
       localStorage.setItem('smartq_student_id', id)
     }
     setStudentId(id)
-  }, [])
+    
+    // 기본 학생 이름이 제공된 경우 설정 및 익명 모드 대신 실명 모드로 기본 설정
+    if (defaultStudentName && !studentName) {
+      setStudentName(defaultStudentName)
+      setIsAnonymous(false) // 이름이 있으면 실명 모드로 기본 설정
+    }
+  }, [defaultStudentName, studentName])
 
   const getPlaceholderText = (type: SessionType): string => {
     switch (type) {
@@ -106,9 +113,12 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
       await set(newQuestionRef, questionData)
       console.log('질문 제출 성공')
       
-      // 폼 초기화
+      // 폼 초기화 (이름은 유지)
       setQuestionText('')
-      if (!isAnonymous) setStudentName('')
+      // 이름은 기본값이 있으면 유지, 없으면 초기화
+      if (!isAnonymous && !defaultStudentName) {
+        setStudentName('')
+      }
       
       alert('질문이 성공적으로 제출되었습니다!')
     } catch (error) {
@@ -153,21 +163,21 @@ export default function QuestionInput({ sessionId, sessionType }: QuestionInputP
           <input
             type="radio"
             name="anonymous"
-            checked={isAnonymous}
-            onChange={() => setIsAnonymous(true)}
-            className="text-blue-600 focus:ring-blue-500"
-          />
-          <span className="ml-2 text-sm text-gray-700 dark:text-white">익명으로 질문하기</span>
-        </label>
-        <label className="flex items-center">
-          <input
-            type="radio"
-            name="anonymous"
             checked={!isAnonymous}
             onChange={() => setIsAnonymous(false)}
             className="text-blue-600 focus:ring-blue-500"
           />
           <span className="ml-2 text-sm text-gray-700 dark:text-white">이름을 남기고 질문하기</span>
+        </label>
+        <label className="flex items-center">
+          <input
+            type="radio"
+            name="anonymous"
+            checked={isAnonymous}
+            onChange={() => setIsAnonymous(true)}
+            className="text-blue-600 focus:ring-blue-500"
+          />
+          <span className="ml-2 text-sm text-gray-700 dark:text-white">익명으로 질문하기</span>
         </label>
       </div>
 

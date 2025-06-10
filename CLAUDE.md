@@ -193,10 +193,11 @@ Teacher-led mode provides structured Q&A sessions where teachers control questio
 - Visual participation status indicators
 
 **StudentResponseAnalysisDashboard** (`/src/components/teacher/StudentResponseAnalysisDashboard.tsx`)
-- AI-powered response analysis using Gemini API
-- Individual and collective response insights
+- **Dual Analysis Modes**: Comprehensive (default) and Individual analysis
+- **Comprehensive Analysis**: Fast class-wide insights, token-efficient, teacher-focused recommendations
+- **Individual Analysis**: Detailed per-student feedback and assessment
 - Education level-adapted analysis prompts
-- Analysis history and export features
+- Analysis history and mode-specific result management
 
 ### Data Flow Architecture
 
@@ -244,8 +245,10 @@ Analysis Results Stored → Firebase questionAnalyses/
 - Student operations (questions, likes) work anonymously - no auth checks needed
 - Teacher operations require authentication state verification
 - Questions support real-time like functionality with student-specific tracking
-- **NEW**: Teacher-led mode uses separate data paths: `teacherQuestions/`, `studentResponses/`, `questionAnalyses/`
+- **NEW**: Teacher-led mode uses separate data paths: `teacherQuestions/`, `studentResponses/`, `questionAnalyses/`, `comprehensiveAnalyses/`
 - **NEW**: Always use batch updates when activating questions to ensure consistency
+- **NEW**: Comprehensive analysis results stored separately from individual analysis for better organization
+- **CRITICAL**: Always use `getStoredApiKey(user.uid)` with user ID parameter - never call without user ID
 
 **When adding AI features:**
 - API routes go in `/src/app/api/ai/`
@@ -253,6 +256,8 @@ Analysis Results Stored → Firebase questionAnalyses/
 - Follow the education level prompt enhancement pattern in `/src/lib/aiPrompts.ts`
 - **NEW**: Student response analysis uses education level-adapted prompts
 - **NEW**: Analysis results stored in Firebase for history and export features
+- **NEW**: Dual analysis modes - comprehensive (default, token-efficient) vs individual (detailed)
+- **NEW**: Comprehensive analysis focuses on class-wide patterns and teaching recommendations
 
 ### Environment Setup Requirements
 
@@ -289,13 +294,37 @@ NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.c
 - Like functionality allows students to interact with each other's questions
 - Anonymous student IDs persist across browser sessions
 - Popular questions (3+ likes) get visual highlighting
+- **NEW**: Student responses default to real name (not anonymous) for better teacher tracking
 
 **Educational Content:**
 - Shared materials support text, links, YouTube videos, and instructions
 - Materials section is collapsible to reduce initial page load
 - Educational level adaptation affects all content presentation
 
-## Recent Major Updates (Teacher-Led Mode Implementation)
+## Recent Major Updates
+
+### Student Response Analysis Dual Mode System (Latest)
+
+**Comprehensive Analysis Mode (Default)**
+- Fast, token-efficient analysis focused on class-wide patterns
+- Response type distribution (correct understanding, partial understanding, misconception, creative approach, off-topic)
+- Comprehension level distribution with visual indicators
+- Key insights: common understandings, difficulties, misconception patterns, creative ideas
+- Classroom recommendations: immediate actions, concepts to clarify, suggested activities, exemplary responses
+- Overall assessment: class understanding level, engagement, readiness for next topic
+
+**Individual Analysis Mode (Optional)**
+- Detailed per-student analysis and feedback
+- Individual comprehension scoring and level assessment
+- Student-specific strengths, improvement areas, and next steps
+- More comprehensive but token-intensive
+
+**Student Default Behavior Changes**
+- Student responses now default to real name entry (not anonymous)
+- Anonymous option available as checkbox for privacy when needed
+- Improves teacher ability to track individual student progress
+
+### Teacher-Led Mode Implementation
 
 ### New Components Added
 
@@ -312,7 +341,14 @@ NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.c
 - `/api/teacher-questions/create` - Create teacher questions
 - `/api/teacher-questions/activate` - Activate questions for students
 - `/api/student-responses/submit` - Submit student responses
-- `/api/ai/analyze-student-responses` - AI analysis of responses
+- `/api/ai/analyze-student-responses` - Individual AI analysis of responses
+- `/api/ai/analyze-comprehensive` - Comprehensive/collective analysis of responses
+- `/api/ai/analyze-questions` - General question analysis
+- `/api/ai/analyze-adult-session` - Adult education session analysis
+- `/api/ai/instructor-analysis` - Instructor-focused analysis
+- `/api/ai/learner-analysis` - Learner-focused analysis
+- `/api/ai/quality-monitoring` - Quality monitoring analysis
+- `/api/ai/validate-key` - Gemini API key validation
 
 **Type Definitions:**
 - `/src/types/teacher-led.ts` - Complete type system for teacher-led mode
@@ -335,10 +371,17 @@ firebase-realtime-database/
 │       ├── questionId: string
 │       ├── studentId: string
 │       └── text: string
-└── questionAnalyses/{sessionId}/
-    └── {questionId}/
-        ├── individualAnalyses: ResponseAnalysis[]
-        └── collectiveAnalysis: CollectiveAnalysis
+├── questionAnalyses/{sessionId}/
+│   └── {questionId}/
+│       ├── individualAnalyses: ResponseAnalysis[]
+│       └── collectiveAnalysis: CollectiveAnalysis
+└── comprehensiveAnalyses/{sessionId}/
+    └── {analysisId}/
+        ├── responseTypeDistribution: object
+        ├── comprehensionLevelDistribution: object
+        ├── keyInsights: object
+        ├── classroomRecommendations: object
+        └── overallAssessment: object
 ```
 
 ### Educational Design Principles Implemented
@@ -391,6 +434,9 @@ firebase-realtime-database/
 - **Firebase connection**: Check `.env.local` variables and network connectivity
 - **Dark mode contrast**: Always use `dark:text-white` for readable text
 - **Mobile responsiveness**: Test on mobile devices, especially student interfaces
+- **JSX syntax errors**: Use `/* comment */` instead of `{/* comment */}` inside conditional rendering expressions
+- **API key errors**: Ensure `getStoredApiKey(user.uid)` is called with user ID parameter
+- **Build failures**: Run `npm run build` locally to catch TypeScript and JSX errors before deployment
 
 ### Performance Optimization
 - Use `onValue` listeners efficiently (clean up in useEffect cleanup)

@@ -7,9 +7,10 @@ import { Button } from '@/components/common/Button'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { database } from '@/lib/firebase'
-import { ref, get, update } from 'firebase/database'
-import { Session, SessionType, Subject, getSessionTypeLabel, getSessionTypeIcon, ADULT_SESSION_TYPES } from '@/lib/utils'
+import { ref, get, update, onValue, push, set, remove } from 'firebase/database'
+import { Session, SessionType, Subject, getSessionTypeLabel, getSessionTypeIcon, ADULT_SESSION_TYPES, SharedContent } from '@/lib/utils'
 import { AdultLearnerType } from '@/types/education'
+import { TeacherQuestion } from '@/types/teacher-led'
 import { redirect } from 'next/navigation'
 
 export default function EditSessionPage() {
@@ -19,6 +20,9 @@ export default function EditSessionPage() {
   const sessionId = params.sessionId as string
   
   const [session, setSession] = useState<Session | null>(null)
+  const [sharedContents, setSharedContents] = useState<SharedContent[]>([])
+  const [teacherQuestions, setTeacherQuestions] = useState<TeacherQuestion[]>([])
+  const [activeTab, setActiveTab] = useState<'basic' | 'questions' | 'content'>('basic')
   const [formData, setFormData] = useState({
     title: '',
     sessionType: SessionType.GENERAL,
@@ -40,6 +44,14 @@ export default function EditSessionPage() {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  
+  // 새 질문 및 콘텐츠 상태
+  const [newQuestion, setNewQuestion] = useState('')
+  const [newContent, setNewContent] = useState({
+    title: '',
+    content: '',
+    type: 'text' as 'text' | 'link' | 'instruction' | 'youtube'
+  })
 
   // 세션 데이터 로드
   useEffect(() => {
@@ -94,6 +106,44 @@ export default function EditSessionPage() {
 
     loadSession()
   }, [user, sessionId, router])
+
+  // 공유 콘텐츠 실시간 동기화
+  useEffect(() => {
+    if (!sessionId) return
+
+    const contentsRef = ref(database, `sharedContents/${sessionId}`)
+    const unsubscribe = onValue(contentsRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const contentsList = Object.values(data) as SharedContent[]
+        contentsList.sort((a, b) => b.createdAt - a.createdAt)
+        setSharedContents(contentsList)
+      } else {
+        setSharedContents([])
+      }
+    })
+
+    return () => unsubscribe()
+  }, [sessionId])
+
+  // 교사 질문 실시간 동기화
+  useEffect(() => {
+    if (!sessionId) return
+
+    const questionsRef = ref(database, `teacherQuestions/${sessionId}`)
+    const unsubscribe = onValue(questionsRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const questionsList = Object.values(data) as TeacherQuestion[]
+        questionsList.sort((a, b) => a.order - b.order)
+        setTeacherQuestions(questionsList)
+      } else {
+        setTeacherQuestions([])
+      }
+    })
+
+    return () => unsubscribe()
+  }, [sessionId])
 
   if (loading || isLoading) {
     return (
@@ -176,6 +226,89 @@ export default function EditSessionPage() {
     }
   }
 
+  // 새 질문 추가
+  const handleAddQuestion = async () => {
+    if (!newQuestion.trim() || !user) return
+
+    try {
+      const questionsRef = ref(database, `teacherQuestions/${sessionId}`)
+      const newQuestionRef = push(questionsRef)
+      
+      const questionData: TeacherQuestion = {
+        questionId: newQuestionRef.key!,
+        sessionId,
+        text: newQuestion.trim(),
+        teacherId: user.uid,
+        order: teacherQuestions.length,
+        source: 'prepared',
+        status: 'waiting',
+        createdAt: Date.now()
+      }
+
+      await set(newQuestionRef, questionData)
+      setNewQuestion('')
+      alert('질문이 추가되었습니다!')
+    } catch (error) {
+      console.error('질문 추가 오류:', error)
+      alert('질문 추가에 실패했습니다.')
+    }
+  }
+
+  // 질문 삭제
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!confirm('이 질문을 삭제하시겠습니까?')) return
+
+    try {
+      const questionRef = ref(database, `teacherQuestions/${sessionId}/${questionId}`)
+      await remove(questionRef)
+      alert('질문이 삭제되었습니다!')
+    } catch (error) {
+      console.error('질문 삭제 오류:', error)
+      alert('질문 삭제에 실패했습니다.')
+    }
+  }
+
+  // 새 콘텐츠 추가
+  const handleAddContent = async () => {
+    if (!newContent.title.trim() || !newContent.content.trim() || !user) return
+
+    try {
+      const contentsRef = ref(database, `sharedContents/${sessionId}`)
+      const newContentRef = push(contentsRef)
+      
+      const contentData: SharedContent = {
+        contentId: newContentRef.key!,
+        title: newContent.title.trim(),
+        content: newContent.content.trim(),
+        type: newContent.type,
+        createdAt: Date.now(),
+        sessionId,
+        teacherId: user.uid
+      }
+
+      await set(newContentRef, contentData)
+      setNewContent({ title: '', content: '', type: 'text' })
+      alert('콘텐츠가 추가되었습니다!')
+    } catch (error) {
+      console.error('콘텐츠 추가 오류:', error)
+      alert('콘텐츠 추가에 실패했습니다.')
+    }
+  }
+
+  // 콘텐츠 삭제
+  const handleDeleteContent = async (contentId: string) => {
+    if (!confirm('이 콘텐츠를 삭제하시겠습니까?')) return
+
+    try {
+      const contentRef = ref(database, `sharedContents/${sessionId}/${contentId}`)
+      await remove(contentRef)
+      alert('콘텐츠가 삭제되었습니다!')
+    } catch (error) {
+      console.error('콘텐츠 삭제 오류:', error)
+      alert('콘텐츠 삭제에 실패했습니다.')
+    }
+  }
+
   const sessionTypes = [
     { value: SessionType.GENERAL, label: '❓ 일반 Q&A' },
     { value: SessionType.DEBATE, label: '💬 토론/논제 발굴' },
@@ -223,8 +356,46 @@ export default function EditSessionPage() {
           </p>
         </div>
 
+        {/* 탭 네비게이션 */}
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+          <button
+            type="button"
+            onClick={() => setActiveTab('basic')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'basic'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            기본 정보
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('questions')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'questions'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            교사 질문 ({teacherQuestions.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('content')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'content'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            공유 콘텐츠 ({sharedContents.length})
+          </button>
+        </div>
+
         <Card className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {activeTab === 'basic' && (
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* 세션 제목 */}
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -542,6 +713,213 @@ export default function EditSessionPage() {
               </Button>
             </div>
           </form>
+          )}
+
+          {activeTab === 'questions' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">교사 질문 관리</h3>
+                <p className="text-gray-600 mb-6">
+                  수업에서 사용할 질문들을 미리 준비하고 관리할 수 있습니다.
+                </p>
+              </div>
+
+              {/* 새 질문 추가 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium text-gray-900 mb-3">새 질문 추가</h4>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={newQuestion}
+                    onChange={(e) => setNewQuestion(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="질문을 입력하세요"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleAddQuestion}
+                    disabled={!newQuestion.trim()}
+                  >
+                    추가
+                  </Button>
+                </div>
+              </div>
+
+              {/* 기존 질문 목록 */}
+              <div>
+                <h4 className="text-md font-medium text-gray-900 mb-3">저장된 질문 ({teacherQuestions.length}개)</h4>
+                {teacherQuestions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    아직 등록된 질문이 없습니다.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {teacherQuestions.map((question, index) => (
+                      <div key={question.questionId} className="bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-sm font-medium text-gray-500">질문 {index + 1}</span>
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                question.status === 'waiting' ? 'bg-gray-100 text-gray-600' :
+                                question.status === 'active' ? 'bg-green-100 text-green-600' :
+                                'bg-blue-100 text-blue-600'
+                              }`}>
+                                {question.status === 'waiting' ? '대기' :
+                                 question.status === 'active' ? '활성' : '완료'}
+                              </span>
+                            </div>
+                            <p className="text-gray-900">{question.text}</p>
+                            <p className="text-sm text-gray-500 mt-2">
+                              생성: {new Date(question.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleDeleteQuestion(question.questionId)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'content' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">공유 콘텐츠 관리</h3>
+                <p className="text-gray-600 mb-6">
+                  학생들과 공유할 자료나 콘텐츠를 관리할 수 있습니다.
+                </p>
+              </div>
+
+              {/* 새 콘텐츠 추가 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium text-gray-900 mb-3">새 콘텐츠 추가</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      제목
+                    </label>
+                    <input
+                      type="text"
+                      value={newContent.title}
+                      onChange={(e) => setNewContent(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="콘텐츠 제목을 입력하세요"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      유형
+                    </label>
+                    <select
+                      value={newContent.type}
+                      onChange={(e) => setNewContent(prev => ({ ...prev, type: e.target.value as any }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="text">텍스트</option>
+                      <option value="link">링크</option>
+                      <option value="youtube">YouTube 동영상</option>
+                      <option value="instruction">중요 안내</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      내용
+                    </label>
+                    <textarea
+                      value={newContent.content}
+                      onChange={(e) => setNewContent(prev => ({ ...prev, content: e.target.value }))}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder={newContent.type === 'youtube' ? 'YouTube URL을 입력하세요' : 
+                                 newContent.type === 'link' ? 'URL을 입력하세요' : 
+                                 '내용을 입력하세요'}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleAddContent}
+                    disabled={!newContent.title.trim() || !newContent.content.trim()}
+                  >
+                    콘텐츠 추가
+                  </Button>
+                </div>
+              </div>
+
+              {/* 기존 콘텐츠 목록 */}
+              <div>
+                <h4 className="text-md font-medium text-gray-900 mb-3">저장된 콘텐츠 ({sharedContents.length}개)</h4>
+                {sharedContents.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    아직 등록된 콘텐츠가 없습니다.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {sharedContents.map((content) => (
+                      <div key={content.contentId} className="bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h5 className="font-medium text-gray-900">{content.title}</h5>
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                content.type === 'text' ? 'bg-blue-100 text-blue-600' :
+                                content.type === 'link' ? 'bg-green-100 text-green-600' :
+                                content.type === 'youtube' ? 'bg-red-100 text-red-600' :
+                                'bg-orange-100 text-orange-600'
+                              }`}>
+                                {content.type === 'text' ? '텍스트' :
+                                 content.type === 'link' ? '링크' :
+                                 content.type === 'youtube' ? 'YouTube' : '안내'}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 text-sm mb-2">
+                              {content.content.length > 100 ? content.content.substring(0, 100) + '...' : content.content}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              생성: {new Date(content.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleDeleteContent(content.contentId)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 하단 버튼 (기본 정보 탭에서만 표시) */}
+          {activeTab === 'basic' && (
+            <div className="flex items-center justify-between pt-6 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push('/teacher/dashboard')}
+              >
+                대시보드로 돌아가기
+              </Button>
+              <div className="text-sm text-gray-500">
+                세션 수정이 완료되었습니다.
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>

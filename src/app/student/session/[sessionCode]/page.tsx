@@ -457,7 +457,11 @@ export default function StudentSessionPage() {
                   ? adapt('질문 및 토론', '질의응답', '전문적 질문') 
                   : adapt('질문하기', '궁금한 것 물어보기', '질문 작성')}
               </h2>
-              <QuestionInput sessionId={session.sessionId} sessionType={session.sessionType} />
+              <QuestionInput 
+                sessionId={session.sessionId} 
+                sessionType={session.sessionType}
+                defaultStudentName={studentName}
+              />
             </Card>
 
             {/* 질문 목록 - 교육 레벨 적응형 */}

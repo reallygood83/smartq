@@ -19,7 +19,8 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
   const [myResponse, setMyResponse] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
-  const [isAnonymous, setIsAnonymous] = useState(false)
+  // 학생 이름이 있으면 기본적으로 실명 모드, 없으면 익명 모드
+  const [isAnonymous, setIsAnonymous] = useState(!studentName)
 
   // 활성 질문 실시간 동기화
   useEffect(() => {
