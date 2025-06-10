@@ -109,22 +109,29 @@ export default function AnalysisHistoryDashboard({
         const data = snapshot.val()
         console.log(`Comprehensive analyses for session ${sId}:`, data)
         if (data) {
-          const comprehensiveAnalyses = Object.values(data) as ComprehensiveAnalysis[]
-          const comprehensiveWithSession = comprehensiveAnalyses.map(analysis => ({
-            analysis,
-            session: sessions[sId],
-            question: questions[sId]?.[analysis.questionId],
-            type: 'comprehensive' as const
-          })).filter(item => item.question) // 질문 정보가 있는 것만 포함
+          try {
+            const comprehensiveAnalyses = Object.values(data).filter(item => item && typeof item === 'object') as ComprehensiveAnalysis[]
+            const comprehensiveWithSession = comprehensiveAnalyses
+              .filter(analysis => analysis && analysis.questionId)
+              .map(analysis => ({
+                analysis,
+                session: sessions[sId],
+                question: questions[sId]?.[analysis.questionId],
+                type: 'comprehensive' as const
+              }))
+              .filter(item => item.question) // 질문 정보가 있는 것만 포함
 
-          allAnalyses = allAnalyses.filter(item => 
-            !(item.type === 'comprehensive' && item.session.sessionId === sId)
-          )
-          allAnalyses.push(...comprehensiveWithSession)
-          
-          // 시간순 정렬
-          allAnalyses.sort((a, b) => b.analysis.generatedAt - a.analysis.generatedAt)
-          setAnalysisHistory([...allAnalyses])
+            allAnalyses = allAnalyses.filter(item => 
+              !(item.type === 'comprehensive' && item.session.sessionId === sId)
+            )
+            allAnalyses.push(...comprehensiveWithSession)
+            
+            // 시간순 정렬
+            allAnalyses.sort((a, b) => (b.analysis.generatedAt || 0) - (a.analysis.generatedAt || 0))
+            setAnalysisHistory([...allAnalyses])
+          } catch (error) {
+            console.error('종합 분석 데이터 처리 오류:', error)
+          }
         }
       })
 
@@ -134,22 +141,29 @@ export default function AnalysisHistoryDashboard({
         const data = snapshot.val()
         console.log(`Individual analyses for session ${sId}:`, data)
         if (data) {
-          const individualAnalyses = Object.values(data) as StudentResponseAnalysis[]
-          const individualWithSession = individualAnalyses.map(analysis => ({
-            analysis,
-            session: sessions[sId],
-            question: questions[sId]?.[analysis.questionId],
-            type: 'individual' as const
-          })).filter(item => item.question) // 질문 정보가 있는 것만 포함
+          try {
+            const individualAnalyses = Object.values(data).filter(item => item && typeof item === 'object') as StudentResponseAnalysis[]
+            const individualWithSession = individualAnalyses
+              .filter(analysis => analysis && analysis.questionId)
+              .map(analysis => ({
+                analysis,
+                session: sessions[sId],
+                question: questions[sId]?.[analysis.questionId],
+                type: 'individual' as const
+              }))
+              .filter(item => item.question) // 질문 정보가 있는 것만 포함
 
-          allAnalyses = allAnalyses.filter(item => 
-            !(item.type === 'individual' && item.session.sessionId === sId)
-          )
-          allAnalyses.push(...individualWithSession)
-          
-          // 시간순 정렬
-          allAnalyses.sort((a, b) => b.analysis.generatedAt - a.analysis.generatedAt)
-          setAnalysisHistory([...allAnalyses])
+            allAnalyses = allAnalyses.filter(item => 
+              !(item.type === 'individual' && item.session.sessionId === sId)
+            )
+            allAnalyses.push(...individualWithSession)
+            
+            // 시간순 정렬
+            allAnalyses.sort((a, b) => (b.analysis.generatedAt || 0) - (a.analysis.generatedAt || 0))
+            setAnalysisHistory([...allAnalyses])
+          } catch (error) {
+            console.error('개별 분석 데이터 처리 오류:', error)
+          }
         }
       })
 
@@ -172,22 +186,25 @@ export default function AnalysisHistoryDashboard({
     if (item.type === 'comprehensive') {
       const analysis = item.analysis as ComprehensiveAnalysis
       return {
-        responseCount: analysis.question.responseCount,
-        mainMetric: `이해도 ${analysis.overallAssessment.classUnderstandingLevel}%`,
-        secondaryMetric: `참여도 ${analysis.overallAssessment.engagementLevel}%`,
-        status: analysis.overallAssessment.readinessForNextTopic ? '✓ 다음 단계 준비됨' : '⚠ 추가 학습 필요'
+        responseCount: analysis.question?.responseCount || 0,
+        mainMetric: `이해도 ${analysis.overallAssessment?.classUnderstandingLevel || 0}%`,
+        secondaryMetric: `참여도 ${analysis.overallAssessment?.engagementLevel || 0}%`,
+        status: analysis.overallAssessment?.readinessForNextTopic ? '✓ 다음 단계 준비됨' : '⚠ 추가 학습 필요'
       }
     } else {
       const analysis = item.analysis as StudentResponseAnalysis
-      const avgScore = Math.round(
-        analysis.individualAnalyses.reduce((acc, ind) => acc + ind.analysisResults.comprehensionScore, 0) / 
-        analysis.individualAnalyses.length
-      )
+      const individualAnalyses = analysis.individualAnalyses || []
+      const avgScore = individualAnalyses.length > 0 
+        ? Math.round(
+            individualAnalyses.reduce((acc, ind) => acc + (ind?.analysisResults?.comprehensionScore || 0), 0) / 
+            individualAnalyses.length
+          )
+        : 0
       return {
-        responseCount: analysis.question.responseCount,
+        responseCount: analysis.question?.responseCount || 0,
         mainMetric: `평균 이해도 ${avgScore}%`,
-        secondaryMetric: `분석 대상 ${analysis.individualAnalyses.length}명`,
-        status: `개별 피드백 ${analysis.individualAnalyses.length}개`
+        secondaryMetric: `분석 대상 ${individualAnalyses.length}명`,
+        status: `개별 피드백 ${individualAnalyses.length}개`
       }
     }
   }
