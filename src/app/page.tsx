@@ -78,7 +78,7 @@ export default function HomePage() {
           </p>
           
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <Link href="/teacher/dashboard">
               <Button size="lg" className="px-8 py-4 text-lg">
                 {currentLevel === 'adult' ? `💼 ${term('instructor')}용 시작하기` : `🍎 ${term('instructor')}용 시작하기`}
@@ -92,6 +92,19 @@ export default function HomePage() {
             >
               {currentLevel === 'adult' ? `🎯 ${term('class')} 참여하기` : `📚 ${term('participant')} ${term('class')} 참여`}
             </Button>
+          </div>
+          
+          {/* 가이드 바로가기 링크 */}
+          <div className="flex justify-center">
+            <Link href="/guide">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              >
+                📖 처음 사용하시나요? 완전 사용 가이드 보기
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -241,6 +254,11 @@ export default function HomePage() {
             <Link href="/teacher/dashboard">
               <Button size="lg" className="px-8 py-4">
                 {getTerminology('teacher')}용 대시보드
+              </Button>
+            </Link>
+            <Link href="/guide">
+              <Button variant="outline" size="lg" className="px-8 py-4 border-2 border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                📖 사용 가이드 보기
               </Button>
             </Link>
             <Link href="/auth/login">
