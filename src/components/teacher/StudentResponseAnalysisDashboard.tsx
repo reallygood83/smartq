@@ -8,6 +8,7 @@ import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { getStoredApiKey } from '@/lib/encryption'
 import { TeacherQuestion, StudentResponse, StudentResponseAnalysis, ComprehensiveAnalysis } from '@/types/teacher-led'
+import { Linkify } from '@/lib/linkify'
 
 interface StudentResponseAnalysisDashboardProps {
   sessionId: string
@@ -334,7 +335,15 @@ export default function StudentResponseAnalysisDashboard({
             </div>
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
               <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">분석 대상 질문</h3>
-              <p className="text-blue-800 dark:text-blue-200">{question.text}</p>
+              <div className="text-blue-800 dark:text-blue-200">
+                <Linkify
+                  className="text-blue-600 hover:text-blue-500 dark:text-blue-300 dark:hover:text-blue-200 underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {question.text}
+                </Linkify>
+              </div>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
               <span>📝 답변 수: {responses.length}개</span>

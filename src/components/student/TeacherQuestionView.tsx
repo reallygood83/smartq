@@ -6,6 +6,7 @@ import { ref, onValue, push, set } from 'firebase/database'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { TeacherQuestion, StudentResponse } from '@/types/teacher-led'
+import { Linkify } from '@/lib/linkify'
 
 interface TeacherQuestionViewProps {
   sessionId: string
@@ -170,9 +171,15 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
         </div>
         
         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-6">
-          <p className="text-lg text-gray-900 dark:text-white font-medium">
-            {activeQuestion.text}
-          </p>
+          <div className="text-lg text-gray-900 dark:text-white font-medium">
+            <Linkify
+              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {activeQuestion.text}
+            </Linkify>
+          </div>
         </div>
 
         {/* 답변 작성 */}

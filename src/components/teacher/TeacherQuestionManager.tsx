@@ -11,6 +11,7 @@ import StudentResponseAnalysisDashboard from './StudentResponseAnalysisDashboard
 import QuestionTemplates from './QuestionTemplates'
 import ParticipationMonitor from './ParticipationMonitor'
 import { Session } from '@/lib/utils'
+import { Linkify } from '@/lib/linkify'
 
 interface TeacherQuestionManagerProps {
   sessionId: string
@@ -320,7 +321,15 @@ export default function TeacherQuestionManager({ sessionId, onQuestionActivated,
                         {question.source === 'prepared' ? '사전 준비' : '실시간 추가'}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-900 dark:text-white mb-2">{question.text}</p>
+                    <div className="text-sm text-gray-900 dark:text-white mb-2">
+                      <Linkify
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {question.text}
+                      </Linkify>
+                    </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
                       생성: {new Date(question.createdAt).toLocaleString()}
                       {question.activatedAt && (

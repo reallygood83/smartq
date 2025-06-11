@@ -6,6 +6,7 @@ import { database } from '@/lib/firebase'
 import { ref, onValue, set, remove } from 'firebase/database'
 import { useEducationLevel, useSmartTerminology, useFullTheme } from '@/contexts/EducationLevelContext'
 import { EducationLevel } from '@/types/education'
+import { Linkify } from '@/lib/linkify'
 
 interface QuestionListProps {
   sessionId: string
@@ -212,11 +213,21 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
                 </div>
                 
                 {/* 질문 내용 */}
-                <p className={`${isAdultEducationSession ? 'text-base' : 'text-sm'} leading-relaxed ${
+                <div className={`${isAdultEducationSession ? 'text-base' : 'text-sm'} leading-relaxed ${
                   isMine ? 'text-white' : 'text-gray-800 dark:text-white'
                 }`}>
-                  {question.text}
-                </p>
+                  <Linkify
+                    className={`${
+                      isMine 
+                        ? 'text-blue-200 hover:text-blue-100 underline' 
+                        : 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline'
+                    }`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {question.text}
+                  </Linkify>
+                </div>
                 
                 {/* 좋아요 버튼 및 카운트 */}
                 <div className={`mt-3 flex items-center ${isMine ? 'justify-between' : 'justify-between'}`}>

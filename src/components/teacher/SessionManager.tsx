@@ -11,6 +11,7 @@ import { Button } from '@/components/common/Button'
 import { getStoredApiKey } from '@/lib/encryption'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Linkify } from '@/lib/linkify'
 import PeerFeedbackSystem from '@/components/feedback/PeerFeedbackSystem'
 import FeedbackQualityDashboard from '@/components/feedback/FeedbackQualityDashboard'
 import AIAnalysisPanel from './AIAnalysisPanel'
@@ -438,7 +439,15 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
                         {new Date(question.createdAt).toLocaleTimeString()}
                       </span>
                     </div>
-                    <p className="text-gray-900">{question.text}</p>
+                    <div className="text-gray-900 dark:text-white">
+                      <Linkify
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {question.text}
+                      </Linkify>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -604,7 +613,15 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
                           {content.content}
                         </a>
                       ) : (
-                        <p className="text-gray-900 whitespace-pre-wrap">{content.content}</p>
+                        <div className="text-gray-900 dark:text-white whitespace-pre-wrap">
+                          <Linkify
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {content.content}
+                          </Linkify>
+                        </div>
                       )}
                     </div>
                   </div>

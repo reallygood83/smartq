@@ -13,6 +13,7 @@ import QuestionList from '@/components/student/QuestionList'
 import MentorshipAccess from '@/components/student/MentorshipAccess'
 import TeacherQuestionView from '@/components/student/TeacherQuestionView'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, getYouTubeEmbedUrl } from '@/lib/utils'
+import { Linkify } from '@/lib/linkify'
 import { useEducationLevel, useSmartTerminology, useFullTheme } from '@/contexts/EducationLevelContext'
 import { EducationLevel } from '@/types/education'
 
@@ -404,24 +405,46 @@ export default function StudentSessionPage() {
                                           <span className="text-lg mr-2">🔍</span>
                                           <div>
                                             <span className="font-semibold text-orange-900 dark:text-orange-200">예시: </span>
-                                            <span className="text-orange-800 dark:text-orange-200">{example}</span>
+                                            <span className="text-orange-800 dark:text-orange-200">
+                                              <Linkify
+                                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                              >
+                                                {example}
+                                              </Linkify>
+                                            </span>
                                           </div>
                                         </div>
                                       </div>
                                     )
                                   } else {
-                                    // 일반 설명 부분
+                                    // 일반 설명 부분 - Linkify 적용
                                     return (
-                                      <p key={index} className="text-orange-800 dark:text-orange-100 leading-relaxed">
-                                        {section}
-                                      </p>
+                                      <div key={index} className="text-orange-800 dark:text-orange-100 leading-relaxed">
+                                        <Linkify
+                                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          {section}
+                                        </Linkify>
+                                      </div>
                                     )
                                   }
                                 })}
                               </div>
                             ) : (
-                              // 일반 콘텐츠
-                              <p>{content.content}</p>
+                              // 일반 콘텐츠 - Linkify 적용
+                              <div>
+                                <Linkify
+                                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {content.content}
+                                </Linkify>
+                              </div>
                             )}
                           </div>
                         )}
