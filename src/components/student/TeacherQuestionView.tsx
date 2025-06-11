@@ -22,6 +22,7 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
   const [hasSubmitted, setHasSubmitted] = useState(false)
   // 학생 이름이 있으면 기본적으로 실명 모드, 없으면 익명 모드
   const [isAnonymous, setIsAnonymous] = useState(!studentName)
+  const [currentStudentName, setCurrentStudentName] = useState(studentName || '')
 
   // 활성 질문 실시간 동기화
   useEffect(() => {
@@ -98,8 +99,8 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
         createdAt: Date.now()
       }
 
-      if (!isAnonymous && studentName) {
-        responseData.studentName = studentName
+      if (!isAnonymous && currentStudentName) {
+        responseData.studentName = currentStudentName
       }
 
       const responseRef = ref(database, `studentResponses/${sessionId}/${responseId}`)
@@ -130,7 +131,7 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
         ...myExistingResponse,
         text: myResponse.trim(),
         isAnonymous,
-        studentName: (!isAnonymous && studentName) ? studentName : null
+        studentName: (!isAnonymous && currentStudentName) ? currentStudentName : null
       }
 
       await set(responseRef, updatedData)
@@ -215,13 +216,14 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
                 </label>
                 <input
                   type="text"
-                  value={studentName || ''}
+                  value={currentStudentName}
+                  onChange={(e) => setCurrentStudentName(e.target.value)}
                   placeholder="이름을 입력하세요"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-200"
-                  readOnly
+                  required={!isAnonymous}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  ※ 실명은 세션 접속 시 입력한 이름으로 표시됩니다
+                  ※ 이름을 입력하면 답변에 실명으로 표시됩니다
                 </p>
               </div>
             )}
@@ -244,7 +246,7 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
             {!hasSubmitted ? (
               <Button
                 onClick={submitResponse}
-                disabled={!myResponse.trim() || myResponse.length > 2000 || isSubmitting}
+                disabled={!myResponse.trim() || myResponse.length > 2000 || (!isAnonymous && !currentStudentName.trim()) || isSubmitting}
                 isLoading={isSubmitting}
                 className="flex-1"
               >
@@ -253,7 +255,7 @@ export default function TeacherQuestionView({ sessionId, studentId, studentName 
             ) : (
               <Button
                 onClick={updateResponse}
-                disabled={!myResponse.trim() || myResponse.length > 2000 || isSubmitting}
+                disabled={!myResponse.trim() || myResponse.length > 2000 || (!isAnonymous && !currentStudentName.trim()) || isSubmitting}
                 isLoading={isSubmitting}
                 className="flex-1"
                 variant="outline"
