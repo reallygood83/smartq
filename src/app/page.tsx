@@ -24,10 +24,15 @@ export default function HomePage() {
   const { resolvedTheme } = useTheme()
   const theme = getCurrentTheme()
 
-  const isAdultEducation = currentLevel === 'adult' || currentLevel === 'university'
-  const recommendedTypes = getRecommendedSessionTypes(isAdultEducation)
-
-  const sessionTypes = recommendedTypes.map(type => ({
+  // 세션 타입 정의 - 모든 레벨에서 보여줄 기본 6가지
+  const sessionTypes = [
+    SessionType.DEBATE,
+    SessionType.INQUIRY,
+    SessionType.PROBLEM,
+    SessionType.CREATIVE,
+    SessionType.DISCUSSION,
+    SessionType.GENERAL
+  ].map(type => ({
     type,
     description: getSessionTypeDescription(type)
   }))
