@@ -148,11 +148,11 @@ export async function analyzeQuestionsMultiSubject(
     const genAI = new GoogleGenerativeAI(userApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    // First, cluster the questions
-    const clusteringResult = await clusterQuestions(questions, userApiKey, educationLevel, adultLearnerType, sessionType)
-    
-    // Extract key concepts from questions
-    const conceptDefinitions = await extractConceptsFromQuestions(questions, sessionType, subjects, userApiKey, educationLevel, adultLearnerType);
+    // ✨ 병렬 처리로 성능 최적화: 3가지 API 호출을 동시에 실행
+    const [clusteringResult, conceptDefinitions] = await Promise.all([
+      clusterQuestions(questions, userApiKey, educationLevel, adultLearnerType, sessionType),
+      extractConceptsFromQuestions(questions, sessionType, subjects, userApiKey, educationLevel, adultLearnerType)
+    ]);
 
     // 성인 교육 여부에 따라 완전히 다른 프롬프트 사용
     const sessionTypeContext = getSessionTypeContext(sessionType);
@@ -177,7 +177,9 @@ ${difficultyLevel ? `난이도 수준: ${difficultyLevel}` : ''}
 ${keywordsText}
 
 ${terminology} 질문 그룹 분석 결과:
-${JSON.stringify(clusteringResult.clusters, null, 2)}
+${clusteringResult.clusters.map((cluster, index) => 
+  `그룹 ${index + 1}: ${cluster.clusterTitle} (질문 ${cluster.questions.length}개)`
+).join('\n')}
 
 **중요한 지침:**
 - 초등학교, 중학교, 고등학교 교육 활동은 절대 추천하지 마세요
@@ -222,7 +224,9 @@ ${multiSubjectAnalysisPrompt}
 ${keywordsText}
 
 ${terminology} 질문 그룹 분석 결과:
-${JSON.stringify(clusteringResult.clusters, null, 2)}
+${clusteringResult.clusters.map((cluster, index) => 
+  `그룹 ${index + 1}: ${cluster.clusterTitle} (질문 ${cluster.questions.length}개)`
+).join('\n')}
 
 다음 형식으로 응답해주세요:
 {
