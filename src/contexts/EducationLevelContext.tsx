@@ -244,29 +244,55 @@ export function useThemeVariables() {
   }, [currentLevel, getTheme])
 }
 
-// 향상된 테마 시스템을 위한 훅
+// 향상된 테마 시스템을 위한 훅 (단순화됨)
 export function useFullTheme() {
-  const { getCurrentTheme, currentLevel, adultLearnerType } = useEducationLevel()
-  
-  useEffect(() => {
-    const fullTheme = getCurrentTheme()
-    applyThemeToDocument(fullTheme)
-    
-    // 레벨별 body 클래스 추가
-    document.body.className = document.body.className.replace(/smartq-level-\w+/g, '')
-    document.body.classList.add(`smartq-level-${currentLevel}`)
-    
-    // 성인 학습자 타입별 클래스 추가
-    if (currentLevel === EducationLevel.ADULT && adultLearnerType) {
-      document.body.classList.add(`smartq-adult-${adultLearnerType}`)
-    } else {
-      // 성인 타입 클래스 제거
-      document.body.className = document.body.className.replace(/smartq-adult-\w+/g, '')
+  // 복잡한 테마 시스템을 비활성화하고 기본 라이트 테마만 반환
+  return {
+    colors: {
+      primary: '#3B82F6',
+      secondary: '#6B7280',
+      background: '#FFFFFF',
+      surface: '#FFFFFF',
+      text: {
+        primary: '#1F2937',
+        secondary: '#6B7280'
+      },
+      border: '#E5E7EB'
+    },
+    typography: {
+      fontSize: {
+        sm: '0.875rem',
+        base: '1rem',
+        lg: '1.125rem',
+        xl: '1.25rem'
+      },
+      fontFamily: {
+        primary: 'system-ui, sans-serif'
+      }
+    },
+    spacing: {
+      sm: '0.5rem',
+      md: '1rem',
+      lg: '1.5rem'
+    },
+    shadows: {
+      sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+    },
+    borders: {
+      radius: {
+        md: '0.375rem'
+      }
+    },
+    layout: {
+      container: {
+        maxWidth: '1200px'
+      },
+      header: {
+        height: '4rem'
+      }
     }
-    
-  }, [getCurrentTheme, currentLevel, adultLearnerType])
-  
-  return getCurrentTheme()
+  }
 }
 
 // 레벨별 권한 확인 훅

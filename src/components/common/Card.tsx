@@ -1,6 +1,5 @@
 'use client'
 
-import { useFullTheme, useLevelAdaptiveComponents } from '@/contexts/EducationLevelContext'
 import { forwardRef } from 'react'
 
 interface CardProps {
@@ -22,52 +21,17 @@ const Card = forwardRef<HTMLDivElement, CardProps>(function Card({
   hover = false,
   onClick
 }, ref) {
-  const theme = useFullTheme()
-  const { CardPadding, FontSize } = useLevelAdaptiveComponents()
-  
-  const dynamicPadding = padding ? theme.spacing.component.padding : '0'
-  
   return (
     <div 
       ref={ref}
-      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 transition-all duration-300 ${hover ? 'hover:scale-105 cursor-pointer' : ''} ${className}`}
-      style={{
-        borderRadius: theme.borders.radius.lg,
-        boxShadow: theme.shadows.md,
-        fontFamily: theme.typography.fontFamily.primary,
-        ...style
-      }}
+      className={`bg-white border border-gray-200 rounded-lg shadow-md transition-all duration-300 ${hover ? 'hover:scale-105 hover:shadow-lg hover:border-blue-500 cursor-pointer' : ''} ${className}`}
+      style={style}
       onClick={onClick}
-      onMouseEnter={(e) => {
-        if (hover) {
-          e.currentTarget.style.boxShadow = theme.shadows.lg
-          e.currentTarget.style.borderColor = theme.colors.primary
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (hover) {
-          e.currentTarget.style.boxShadow = theme.shadows.md
-          e.currentTarget.style.borderColor = theme.colors.border
-        }
-      }}
     >
       {title && (
-        <div 
-          className="border-b"
-          style={{
-            padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-            borderColor: theme.colors.border
-          }}
-        >
+        <div className="border-b border-gray-200 px-6 py-4">
           {typeof title === 'string' ? (
-            <h2 
-              className="font-semibold"
-              style={{
-                fontSize: theme.typography.fontSize.lg,
-                color: theme.colors.text.primary,
-                fontWeight: theme.typography.fontWeight.semibold
-              }}
-            >
+            <h2 className="text-lg font-semibold text-gray-900">
               {title}
             </h2>
           ) : (
@@ -75,7 +39,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(function Card({
           )}
         </div>
       )}
-      <div style={{ padding: dynamicPadding }}>
+      <div className={padding ? 'p-6' : ''}>
         {children}
       </div>
     </div>

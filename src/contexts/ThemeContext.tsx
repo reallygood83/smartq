@@ -1,103 +1,29 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext } from 'react'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light'
 
 interface ThemeContextType {
   theme: Theme
-  resolvedTheme: 'light' | 'dark'
   setTheme: (theme: Theme) => void
-  toggleTheme: () => void
+  resolvedTheme: 'light'
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-interface ThemeProviderProps {
-  children: ReactNode
-}
-
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>('system')
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
-
-  // 시스템 다크모드 감지
-  const getSystemTheme = (): 'light' | 'dark' => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    }
-    return 'light'
-  }
-
-  // 실제 적용될 테마 결정
-  const resolveTheme = (currentTheme: Theme): 'light' | 'dark' => {
-    if (currentTheme === 'system') {
-      return getSystemTheme()
-    }
-    return currentTheme
-  }
-
-  // 테마 설정
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // 항상 light 테마만 제공
+  const theme: Theme = 'light'
+  const resolvedTheme: 'light' = 'light'
+  
   const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('smartq-theme', newTheme)
-    }
+    // 현재는 light 테마만 지원하므로 아무것도 하지 않음
+    console.log('테마 변경이 요청되었지만 현재는 light 모드로 고정되어 있습니다:', newTheme)
   }
-
-  // 라이트/다크 토글 (시스템 모드는 제외)
-  const toggleTheme = () => {
-    if (theme === 'system') {
-      // 시스템 모드에서는 현재 시스템 테마의 반대로 변경
-      const systemTheme = getSystemTheme()
-      setTheme(systemTheme === 'dark' ? 'light' : 'dark')
-    } else {
-      setTheme(theme === 'dark' ? 'light' : 'dark')
-    }
-  }
-
-  // 초기 테마 로드 및 시스템 테마 변경 감지
-  useEffect(() => {
-    // 저장된 테마 로드
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('smartq-theme') as Theme
-      if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
-        setThemeState(savedTheme)
-      }
-    }
-
-    // 시스템 테마 변경 감지
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      if (theme === 'system') {
-        setResolvedTheme(getSystemTheme())
-      }
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme])
-
-  // resolvedTheme 업데이트
-  useEffect(() => {
-    const newResolvedTheme = resolveTheme(theme)
-    setResolvedTheme(newResolvedTheme)
-
-    // DOM에 클래스 적용
-    if (typeof window !== 'undefined') {
-      const root = window.document.documentElement
-      root.classList.remove('light', 'dark')
-      root.classList.add(newResolvedTheme)
-    }
-  }, [theme])
 
   return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      resolvedTheme, 
-      setTheme, 
-      toggleTheme 
-    }}>
+    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
       {children}
     </ThemeContext.Provider>
   )

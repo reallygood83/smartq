@@ -1,6 +1,5 @@
 'use client'
 
-import { useFullTheme, useLevelAdaptiveComponents } from '@/contexts/EducationLevelContext'
 import { forwardRef } from 'react'
 
 interface ButtonProps {
@@ -30,143 +29,54 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   style = {},
   animated = true
 }, ref) {
-  const theme = useFullTheme()
-  const { ButtonSize } = useLevelAdaptiveComponents()
   
-  // 레벨별 기본 사이즈 적용 (사용자가 지정하지 않은 경우)
-  const effectiveSize = size === 'md' ? (ButtonSize as 'sm' | 'md' | 'lg') : size
+  // 기본 클래스
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2'
   
-  // 레벨별 색상 매핑
-  const getVariantStyles = (variant: string) => {
-    switch (variant) {
-      case 'primary':
-        return {
-          backgroundColor: theme.colors.primary,
-          color: 'white',
-          hoverBackgroundColor: theme.colors.primaryDark,
-          focusRingColor: theme.colors.primary
-        }
-      case 'secondary':
-        return {
-          backgroundColor: theme.colors.secondary,
-          color: 'white',
-          hoverBackgroundColor: theme.colors.secondary,
-          focusRingColor: theme.colors.secondary
-        }
-      case 'success':
-        return {
-          backgroundColor: theme.colors.status.success,
-          color: 'white',
-          hoverBackgroundColor: theme.colors.status.success,
-          focusRingColor: theme.colors.status.success
-        }
-      case 'warning':
-        return {
-          backgroundColor: theme.colors.status.warning,
-          color: 'white',
-          hoverBackgroundColor: theme.colors.status.warning,
-          focusRingColor: theme.colors.status.warning
-        }
-      case 'danger':
-        return {
-          backgroundColor: theme.colors.status.error,
-          color: 'white',
-          hoverBackgroundColor: theme.colors.status.error,
-          focusRingColor: theme.colors.status.error
-        }
-      case 'outline':
-        return {
-          backgroundColor: theme.colors.surface,
-          color: theme.colors.text.primary,
-          hoverBackgroundColor: theme.colors.background,
-          focusRingColor: theme.colors.primary,
-          border: `${theme.borders.width.thin} solid ${theme.colors.border}`
-        }
-      default:
-        return {
-          backgroundColor: theme.colors.primary,
-          color: 'white',
-          hoverBackgroundColor: theme.colors.primaryDark,
-          focusRingColor: theme.colors.primary
-        }
-    }
+  // 변형별 클래스
+  const variantClasses = {
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
+    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
+    success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
+    warning: 'bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500',
+    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    outline: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-blue-500'
   }
   
-  const getSizeStyles = (size: string) => {
-    switch (size) {
-      case 'sm':
-        return {
-          padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-          fontSize: theme.typography.fontSize.sm
-        }
-      case 'lg':
-        return {
-          padding: `${theme.spacing.md} ${theme.spacing.xl}`,
-          fontSize: theme.typography.fontSize.lg
-        }
-      default: // 'md'
-        return {
-          padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-          fontSize: theme.typography.fontSize.base
-        }
-    }
+  // 크기별 클래스
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-base',
+    lg: 'px-6 py-3 text-lg'
   }
   
-  const variantStyles = getVariantStyles(variant)
-  const sizeStyles = getSizeStyles(effectiveSize)
+  // 상태별 클래스
+  const stateClasses = disabled || isLoading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+  const widthClasses = fullWidth ? 'w-full' : ''
+  const animationClasses = animated ? 'hover:scale-105 active:scale-95' : ''
   
-  const buttonStyle = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: theme.typography.fontWeight.medium,
-    borderRadius: theme.borders.radius.md,
-    fontFamily: theme.typography.fontFamily.primary,
-    transition: `all ${theme.animations.duration.normal} ${theme.animations.easing.easeInOut}`,
-    cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
-    opacity: disabled || isLoading ? 0.6 : 1,
-    width: fullWidth ? '100%' : 'auto',
-    outline: 'none',
-    border: 'none',
-    transformOrigin: 'center',
-    ...variantStyles,
-    ...sizeStyles,
-    ...style
-  }
+  const buttonClasses = [
+    baseClasses,
+    variantClasses[variant],
+    sizeClasses[size],
+    stateClasses,
+    widthClasses,
+    animationClasses,
+    className
+  ].filter(Boolean).join(' ')
   
   return (
     <button
       ref={ref}
       type={type}
-      className={`${animated ? 'hover:scale-105 active:scale-95' : ''} ${className}`.trim()}
-      style={buttonStyle}
+      className={buttonClasses}
+      style={style}
       onClick={onClick}
       disabled={disabled || isLoading}
-      onMouseEnter={(e) => {
-        if (!disabled && !isLoading) {
-          e.currentTarget.style.backgroundColor = variantStyles.hoverBackgroundColor
-          if (animated) {
-            e.currentTarget.style.boxShadow = theme.shadows.md
-          }
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!disabled && !isLoading) {
-          e.currentTarget.style.backgroundColor = variantStyles.backgroundColor
-          e.currentTarget.style.boxShadow = 'none'
-        }
-      }}
-      onFocus={(e) => {
-        e.currentTarget.style.boxShadow = `0 0 0 3px ${variantStyles.focusRingColor}33`
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.boxShadow = 'none'
-      }}
     >
       {isLoading && (
         <svg 
-          className="animate-spin -ml-1 mr-2" 
-          style={{ width: '1rem', height: '1rem' }}
+          className="animate-spin -ml-1 mr-2 w-4 h-4"
           fill="none" 
           viewBox="0 0 24 24"
         >

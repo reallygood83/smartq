@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { EducationLevel, AdultLearnerType, EDUCATION_LEVEL_CONFIGS, ADULT_LEARNER_CONFIGS } from '@/types/education'
 import { useEducationLevel } from '@/contexts/EducationLevelContext'
-import { Card } from '@/components/common/Card'
-import { Button } from '@/components/common/Button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface LevelSelectorProps {
   showModal?: boolean
