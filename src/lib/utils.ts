@@ -34,7 +34,9 @@ export enum Subject {
   MUSIC = 'music',
   PE = 'pe',
   PRACTICAL = 'practical',
-  MORAL = 'moral'
+  MORAL = 'moral',
+  CREATIVE_EXPERIENCE = 'creative_experience',
+  OTHER = 'other'
 }
 
 export interface Question {
@@ -221,6 +223,10 @@ export function getSubjectLabel(subject: Subject): string {
       return '실과';
     case Subject.MORAL:
       return '도덕';
+    case Subject.CREATIVE_EXPERIENCE:
+      return '창체';
+    case Subject.OTHER:
+      return '기타';
     default:
       return subject;
   }
@@ -361,6 +367,10 @@ export function getSubjectColor(subject: Subject): string {
       return 'bg-teal-100 text-teal-800';
     case Subject.MORAL:
       return 'bg-gray-100 text-gray-800';
+    case Subject.CREATIVE_EXPERIENCE:
+      return 'bg-emerald-100 text-emerald-800';
+    case Subject.OTHER:
+      return 'bg-slate-100 text-slate-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
