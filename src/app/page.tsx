@@ -45,10 +45,10 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900">
         <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
           <div className="text-center">
             {/* Logo with animation */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-6">
               <div className="relative">
                 <div className="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-20 animate-pulse" />
                 <div
@@ -60,11 +60,11 @@ export default function HomePage() {
             </div>
 
             {/* Main Title */}
-            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white mb-6">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white mb-4">
               Smart<span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Q</span>
             </h1>
 
-            <p className="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            <p className="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-3">
               {adapt('AI로 질문을 분석하고')}
               <br />
               <span className="text-blue-600 dark:text-blue-400">
@@ -72,14 +72,14 @@ export default function HomePage() {
               </span>
             </p>
 
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
               Gemini AI 기반 실시간 질문 분석 · 다교과 통합 지원 · 맞춤형 활동 추천
             </p>
 
             {/* Level Selector Badge */}
             <button
               onClick={() => setShowLevelSelector(true)}
-              className="inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 mb-10 border border-gray-200 dark:border-gray-700"
+              className="inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 mb-8 border border-gray-200 dark:border-gray-700"
             >
               <span className="text-2xl">{levelConfig.displayName === '초등교육' ? '🎨' : levelConfig.displayName === '중등교육' ? '📚' : levelConfig.displayName === '고등교육' ? '🎓' : levelConfig.displayName === '대학교육' ? '🏛️' : '💼'}</span>
               <span className="font-semibold text-gray-900 dark:text-white">{levelConfig.displayName}</span>
