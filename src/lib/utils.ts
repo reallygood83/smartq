@@ -1,5 +1,7 @@
 // SmartQ - Utility Types and Functions
 import { AdultLearnerType, SessionMode } from '@/types/education'
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export enum SessionType {
   // 기본 교육용 세션 타입
@@ -398,11 +400,11 @@ export function sanitizeForFirebase<T>(obj: T): T {
   if (obj === null || obj === undefined) {
     return obj
   }
-  
+
   if (Array.isArray(obj)) {
     return obj.map(item => sanitizeForFirebase(item)) as T
   }
-  
+
   if (typeof obj === 'object') {
     const sanitized = {} as T
     for (const [key, value] of Object.entries(obj)) {
@@ -412,13 +414,13 @@ export function sanitizeForFirebase<T>(obj: T): T {
     }
     return sanitized
   }
-  
+
   return obj
 }
 
 // AI 분석 결과에 sessionId를 추가하고 undefined 값을 제거하는 함수
 export function prepareAnalysisResultForFirebase(
-  result: MultiSubjectAnalysisResult, 
+  result: MultiSubjectAnalysisResult,
   sessionId: string
 ): MultiSubjectAnalysisResult {
   const cleanResult = {
@@ -428,6 +430,11 @@ export function prepareAnalysisResultForFirebase(
       sessionId: sessionId
     })) || []
   }
-  
+
   return sanitizeForFirebase(cleanResult)
+}
+
+// shadcn/ui utility function for merging classnames
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }

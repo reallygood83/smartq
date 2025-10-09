@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const effectiveEducationLevel = adultLearnerType ? 'adult' : (educationLevel || 'elementary');
 
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // 학습자 관점 분석 프롬프트 생성
     const learnerPrompt = getBidirectionalAnalysisPrompt(

@@ -41,7 +41,7 @@ function getSessionTypeContext(sessionType: SessionType): string {
 export async function validateApiKey(apiKey: string): Promise<boolean> {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     
     // Simple test prompt
     const result = await model.generateContent('Hello, this is a test. Please respond with "OK".');
@@ -64,7 +64,7 @@ export async function clusterQuestions(
 ): Promise<{ clusters: QuestionCluster[] }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const levelPrompts = getEducationLevelPrompts(educationLevel, adultLearnerType, sessionType);
     const terminology = getTerminology('student', educationLevel);
@@ -146,7 +146,7 @@ export async function analyzeQuestionsMultiSubject(
 }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // First, cluster the questions
     const clusteringResult = await clusterQuestions(questions, userApiKey, educationLevel, adultLearnerType, sessionType)
@@ -295,7 +295,7 @@ export async function extractConceptsFromQuestions(
 ): Promise<TermDefinition[]> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const subjectContext = subjects.map(s => getSubjectLabel(s)).join(', ');
     const sessionContext = getSessionTypeContext(sessionType);
@@ -409,7 +409,7 @@ export async function analyzeAdultEducationSession(
 }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Get specialized prompts
     const instructorPrompt = getBidirectionalAnalysisPrompt('instructor', sessionType, adultLearnerType);
@@ -528,7 +528,7 @@ export async function analyzePracticalQuestions(
 }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const analysisPrompt = getAdultEducationAnalysisPrompt(sessionType, adultLearnerType, industryFocus, difficultyLevel);
     const terminology = getTerminology('student', 'adult');
@@ -613,7 +613,7 @@ export async function recommendExperienceBasedActivities(
 }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const terminology = getTerminology('student', 'adult');
     const sessionContext = getSessionTypeContext(sessionType);
@@ -702,7 +702,7 @@ export async function generateExpertiseLevelExplanations(
 }> {
   try {
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const terminology = getTerminology('student', 'adult');
     const levelDescriptions = {

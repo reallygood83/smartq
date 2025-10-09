@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E40AF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#60A5FA;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Pattern Overlay -->
+  <g opacity="0.1">
+    <circle cx="100" cy="100" r="50" fill="white"/>
+    <circle cx="1100" cy="530" r="70" fill="white"/>
+    <circle cx="300" cy="500" r="40" fill="white"/>
+    <circle cx="900" cy="150" r="60" fill="white"/>
+  </g>
+
+  <!-- Main Content -->
+  <g>
+    <!-- Logo Circle -->
+    <circle cx="200" cy="315" r="80" fill="white" opacity="0.95"/>
+    <text x="200" y="355" font-family="Arial, sans-serif" font-size="90" font-weight="bold" fill="#3B82F6" text-anchor="middle">Q</text>
+  </g>
+
+  <!-- Title -->
+  <text x="350" y="280" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white" filter="url(#glow)">SmartQ</text>
+
+  <!-- Subtitle -->
+  <text x="350" y="350" font-family="Arial, sans-serif" font-size="32" fill="white" opacity="0.95">AI 기반 질문 분석 및 학습 활동 추천</text>
+
+  <!-- Features -->
+  <g transform="translate(350, 400)">
+    <circle cx="0" cy="0" r="8" fill="#FCD34D"/>
+    <text x="20" y="8" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">실시간 AI 분석</text>
+
+    <circle cx="250" cy="0" r="8" fill="#FCD34D"/>
+    <text x="270" y="8" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">다교과 통합 지원</text>
+
+    <circle cx="520" cy="0" r="8" fill="#FCD34D"/>
+    <text x="540" y="8" font-family="Arial, sans-serif" font-size="24" fill="white" opacity="0.9">맞춤형 추천</text>
+  </g>
+
+  <!-- Target Audience -->
+  <rect x="350" y="480" width="700" height="60" rx="30" fill="white" opacity="0.15"/>
+  <text x="600" y="517" font-family="Arial, sans-serif" font-size="26" fill="white" text-anchor="middle" font-weight="500">🍎 교사 · 강사를 위한 스마트 학습 플랫폼</text>
+</svg>

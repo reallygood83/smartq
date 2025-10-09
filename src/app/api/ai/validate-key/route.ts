@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // 실제 API 호출 테스트
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     // 간단한 테스트 요청
     const testPrompt = 'Hello'
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       valid: true,
       message: 'API 키가 유효합니다',
-      model: 'gemini-1.5-flash'
+      model: 'gemini-2.5-flash'
     })
 
   } catch (error: any) {

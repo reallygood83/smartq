@@ -119,7 +119,7 @@ export async function identifyLearningMilestones(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   // 분석 데이터 요약
   const analysisData = feedbackAnalyses.map(analysis => ({
@@ -193,7 +193,7 @@ export async function generateGrowthInsights(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const prompt = `
 다음 성장 패턴과 이정표를 바탕으로 개인화된 성장 인사이트를 생성해주세요.
@@ -258,7 +258,7 @@ export async function createPersonalizedGrowthPlan(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const prompt = `
 다음 정보를 바탕으로 개인화된 피드백 성장 계획을 수립해주세요.
@@ -337,7 +337,7 @@ export async function analyzeSessionImpact(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const beforeAvg = beforeAnalyses.length > 0 ? 
     beforeAnalyses.reduce((sum, a) => sum + a.qualityScore.overall, 0) / beforeAnalyses.length : 0
