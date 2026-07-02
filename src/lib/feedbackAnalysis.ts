@@ -1,6 +1,7 @@
 // AI 기반 피드백 품질 분석 엔진
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getGeminiModel } from './geminiModel'
 
 export interface FeedbackContent {
   id: string
@@ -82,7 +83,7 @@ export async function analyzeFeedbackQuality(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+  const model = getGeminiModel(genAI)
 
   const prompt = `
 다음 피드백을 종합적으로 분석하여 품질을 평가해주세요.
@@ -175,7 +176,7 @@ export async function analyzeBatchFeedback(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+  const model = getGeminiModel(genAI)
 
   // 피드백 요약 정보 생성
   const feedbackSummary = feedbacks.map((f, index) => ({
@@ -291,7 +292,7 @@ export async function getFeedbackImprovementSuggestions(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+  const model = getGeminiModel(genAI)
 
   const prompt = `
 다음 피드백을 더 효과적이고 건설적으로 개선해주세요.

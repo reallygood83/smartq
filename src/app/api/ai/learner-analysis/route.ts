@@ -1,6 +1,7 @@
 // SmartQ - 학습자용 성과 및 방향 분석 API
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiModel } from '@/lib/geminiModel';
 import { SessionType } from '@/lib/utils';
 import { AdultLearnerType, EducationLevel } from '@/types/education';
 import { 
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     const effectiveEducationLevel = adultLearnerType ? 'adult' : (educationLevel || 'elementary');
 
     const genAI = new GoogleGenerativeAI(userApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = getGeminiModel(genAI);
 
     // 학습자 관점 분석 프롬프트 생성
     const learnerPrompt = getBidirectionalAnalysisPrompt(

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getGeminiModel } from '@/lib/geminiModel'
 import { database } from '@/lib/firebase'
 import { ref, get, set } from 'firebase/database'
 import { StudentResponse, TeacherQuestion, ComprehensiveAnalysis } from '@/types/teacher-led'
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Gemini AI 초기화
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    const model = getGeminiModel(genAI)
 
     // Firebase 연결 확인
     console.log('Firebase database instance available:', !!database)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getGeminiModel, getGeminiModelName } from '@/lib/geminiModel'
 
 /**
  * API 키 유효성 검증 엔드포인트
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     // 실제 API 호출 테스트
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    const model = getGeminiModel(genAI)
 
     // 간단한 테스트 요청
     const testPrompt = 'Hello'
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       valid: true,
       message: 'API 키가 유효합니다',
-      model: 'gemini-2.5-flash'
+      model: getGeminiModelName()
     })
 
   } catch (error: any) {
