@@ -1,28 +1,27 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import Header from '@/components/common/Header'
 import Footer from '@/components/common/Footer'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import LevelSelector from '@/components/common/LevelSelector'
-import { getSessionTypeIcon, getSessionTypeLabel, getSessionTypeDescription, getRecommendedSessionTypes } from '@/lib/utils'
+import { Lightbulb } from 'lucide-react'
+import { getSessionTypeIcon, getSessionTypeLabel, getSessionTypeDescription } from '@/lib/utils'
 import { SessionType } from '@/lib/utils'
-import { useEducationLevel, useSmartTerminology, useLevelMessages } from '@/contexts/EducationLevelContext'
-import { useTheme } from '@/contexts/ThemeContext'
+import { useEducationLevel, useSmartTerminology } from '@/contexts/EducationLevelContext'
 
 export default function HomePage() {
   const [sessionCode, setSessionCode] = useState('')
   const [showLevelSelector, setShowLevelSelector] = useState(false)
-  const { levelConfig, currentLevel, getCurrentTheme } = useEducationLevel()
-  const { term, adapt } = useSmartTerminology()
-  const { resolvedTheme } = useTheme()
-  const theme = getCurrentTheme()
+  const { levelConfig } = useEducationLevel()
+  const { term } = useSmartTerminology()
+  const normalizedSessionCode = sessionCode.trim().toUpperCase()
+  const hasValidSessionCode = normalizedSessionCode.length === 6
 
   // 세션 타입 정의 - 모든 레벨에서 보여줄 기본 6가지
   const sessionTypes = [
@@ -41,91 +40,84 @@ export default function HomePage() {
     <>
       <Header />
 
-      {/* Hero Section - Enhanced with gradient and modern design */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900">
-        <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
+      <section className="relative overflow-hidden bg-white dark:bg-slate-950">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.12),transparent_34%),linear-gradient(135deg,rgba(240,253,244,0.88),rgba(255,255,255,0.88)_45%,rgba(239,246,255,0.9))] dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.2),transparent_36%),linear-gradient(135deg,rgba(15,23,42,1),rgba(15,23,42,0.94)_48%,rgba(30,41,59,1))]" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-14">
-          <div className="text-center">
-            {/* Logo with animation */}
-            <div className="flex justify-center mb-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-20 animate-pulse" />
-                <div
-                  className="relative bg-gradient-to-br from-blue-500 to-blue-600 text-white w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-bold shadow-2xl transform hover:scale-110 hover:rotate-3 transition-all duration-300"
-                >
-                  Q
-                </div>
-              </div>
-            </div>
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-10 sm:px-6 md:grid-cols-[1.02fr_0.98fr] lg:px-8 lg:py-16">
+          <div className="max-w-2xl">
+            <Badge className="mb-4 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200" variant="outline">
+              AI 질문 수업 도구
+            </Badge>
 
-            {/* Main Title */}
-            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-3">
-              Smart<span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Q</span>
+            <h1 className="text-4xl font-extrabold leading-tight text-gray-950 dark:text-white md:text-6xl">
+              Smart<span className="text-blue-600 dark:text-blue-400">Q</span>로 질문을 모으고 바로 수업으로 연결하세요
             </h1>
 
-            <p className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
-              {adapt('AI로 질문을 분석하고')}
-              <br />
-              <span className="text-blue-600 dark:text-blue-400">
-                {adapt('최적의 학습 활동을 추천합니다')}
-              </span>
+            <p className="mt-5 text-lg leading-8 text-gray-700 dark:text-gray-200 md:text-xl">
+              학생 질문을 실시간으로 모아 AI가 핵심 흐름을 분석하고, 교사가 다음 활동을 빠르게 선택할 수 있게 돕습니다.
             </p>
 
-            <p className="text-base text-gray-600 dark:text-gray-300 mb-4 max-w-2xl mx-auto">
-              Gemini AI 기반 실시간 질문 분석 · 다교과 통합 지원 · 맞춤형 활동 추천
-            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setShowLevelSelector(true)}
+                className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:border-blue-700 dark:hover:bg-slate-800"
+              >
+                <span>{levelConfig.displayName}</span>
+                <Badge variant="secondary">{levelConfig.ageRange}</Badge>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
 
-            {/* Level Selector Badge */}
-            <button
-              onClick={() => setShowLevelSelector(true)}
-              className="inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 mb-6 border border-gray-200 dark:border-gray-700"
-            >
-              <span className="text-2xl">{levelConfig.displayName === '초등교육' ? '🎨' : levelConfig.displayName === '중등교육' ? '📚' : levelConfig.displayName === '고등교육' ? '🎓' : levelConfig.displayName === '대학교육' ? '🏛️' : '💼'}</span>
-              <span className="font-semibold text-gray-900 dark:text-white">{levelConfig.displayName}</span>
-              <Badge variant="secondary">{levelConfig.ageRange}</Badge>
-              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/teacher/dashboard">
-                <Button size="lg" className="px-10 py-6 text-lg shadow-lg hover:shadow-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                  🍎 {term('instructor')}용 시작하기
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/teacher/dashboard" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full px-8 py-6 text-base font-bold shadow-lg sm:w-auto">
+                  {term('instructor')}로 시작하기
                 </Button>
               </Link>
               <Button
                 variant="outline"
                 size="lg"
-                className="px-10 py-6 text-lg shadow-lg hover:shadow-xl border-2"
+                className="w-full border-2 bg-white/80 px-8 py-6 text-base font-bold shadow-sm sm:w-auto dark:bg-slate-950/80"
                 onClick={() => document.getElementById('student-access')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                📚 {term('participant')} 참여하기
+                {term('participant')} 참여 코드 입력
               </Button>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-300">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                무료 사용 가능
+            <div className="mt-8 grid grid-cols-1 gap-3 text-sm text-gray-700 dark:text-gray-200 sm:grid-cols-3">
+              <div className="rounded-md border border-white/70 bg-white/70 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
+                <strong className="block text-gray-950 dark:text-white">실시간</strong>
+                질문 수집
               </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                실시간 협업
+              <div className="rounded-md border border-white/70 bg-white/70 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
+                <strong className="block text-gray-950 dark:text-white">AI</strong>
+                흐름 분석
               </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                Gemini AI 지원
+              <div className="rounded-md border border-white/70 bg-white/70 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
+                <strong className="block text-gray-950 dark:text-white">수업</strong>
+                활동 추천
               </div>
+            </div>
+          </div>
+
+          <div className="relative">
+            <Image
+              src="/images/smartq-classroom-hero.png"
+              alt="교사가 학생 질문을 화면에 띄워 수업을 진행하는 교실"
+              width={1672}
+              height={941}
+              priority
+              className="aspect-[16/10] w-full rounded-t-lg object-cover shadow-2xl md:rounded-lg"
+            />
+            <div className="rounded-b-lg border border-white/60 bg-white/90 p-4 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-950/88 md:absolute md:bottom-4 md:left-4 md:right-4 md:rounded-md">
+              <p className="text-sm font-semibold text-gray-950 dark:text-white">
+                오늘 수업 질문 42개 분석 완료
+              </p>
+              <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                핵심 개념과 토론 주제를 교사용 대시보드에서 바로 확인합니다.
+              </p>
             </div>
           </div>
         </div>
@@ -155,7 +147,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle className="text-2xl">AI 기반 스마트 분석</CardTitle>
                 <CardDescription className="text-base">
-                  Gemini 2.5 Flash를 활용한 실시간 질문 분석 및 클러스터링
+                  Gemini 기반 실시간 질문 분석 및 클러스터링
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -265,7 +257,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <Badge className="mb-4" variant="outline">다양한 학습 활동</Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              {adapt(`모든 ${term('learning')} ${term('activity')}을 지원합니다`)}
+              모든 학습 활동을 지원합니다
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               토론, 탐구, 문제해결부터 창작 활동까지
@@ -273,7 +265,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sessionTypes.map((session, index) => (
+            {sessionTypes.map((session) => (
               <Card
                 key={session.type}
                 className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-blue-500"
@@ -322,18 +314,25 @@ export default function HomePage() {
                 />
               </div>
 
-              <Link href={sessionCode ? `/student/session/${sessionCode}` : '#'}>
+              {hasValidSessionCode ? (
+                <Button asChild className="w-full py-6 text-lg" size="lg">
+                  <Link href={`/student/session/${normalizedSessionCode}`}>
+                    세션 참여하기
+                  </Link>
+                </Button>
+              ) : (
                 <Button
                   className="w-full py-6 text-lg"
                   size="lg"
-                  disabled={sessionCode.length !== 6}
+                  disabled
                 >
-                  {sessionCode.length === 6 ? '세션 참여하기 →' : '6자리 코드를 입력하세요'}
+                  6자리 코드를 입력하세요
                 </Button>
-              </Link>
+              )}
 
-              <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                💡 세션 코드는 대소문자를 구분하지 않습니다
+              <p className="flex items-center justify-center gap-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                <Lightbulb className="h-4 w-4" aria-hidden="true" />
+                <span>세션 코드는 대소문자를 구분하지 않습니다</span>
               </p>
             </CardContent>
           </Card>
@@ -466,7 +465,7 @@ export default function HomePage() {
             </Link>
             <Link href="/guide">
               <Button size="lg" variant="outline" className="px-10 py-6 text-lg border-2 border-white text-white hover:bg-white hover:text-blue-600 shadow-xl hover:shadow-2xl">
-                📖 완전 사용 가이드 보기
+                완전 사용 가이드 보기
               </Button>
             </Link>
           </div>

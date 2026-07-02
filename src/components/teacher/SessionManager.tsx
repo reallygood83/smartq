@@ -2,10 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { Session, Question, MultiSubjectAnalysisResult, SharedContent, TermDefinition } from '@/lib/utils'
+import {
+  Session,
+  Question,
+  QuestionStatus,
+  QUESTION_STATUS_LABELS,
+  QUESTION_STATUS_STYLES,
+  SharedContent,
+  getQuestionStatus
+} from '@/lib/utils'
 import { getSessionTypeIcon, getSessionTypeLabel, getSubjectLabel, getSubjectColor, isYouTubeUrl, getYouTubeEmbedUrl } from '@/lib/utils'
 import { database } from '@/lib/firebase'
-import { ref, onValue, push, set, remove } from 'firebase/database'
+import { ref, onValue, set, remove, update } from 'firebase/database'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { getStoredApiKey } from '@/lib/encryption'
@@ -28,7 +36,6 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
   const router = useRouter()
   const [session, setSession] = useState<Session | null>(null)
   const [questions, setQuestions] = useState<Question[]>([])
-  const [analysisResult, setAnalysisResult] = useState<MultiSubjectAnalysisResult | null>(null)
   const [sharedContents, setSharedContents] = useState<SharedContent[]>([])
   const [loading, setLoading] = useState(true)
   const [showContentForm, setShowContentForm] = useState(false)
@@ -97,9 +104,6 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
       const data = snapshot.val()
       if (data) {
         setSession(data)
-        if (data.aiAnalysisResult) {
-          setAnalysisResult(data.aiAnalysisResult)
-        }
       } else {
         // 세션이 존재하지 않으면 대시보드로 이동
         router.push('/teacher/dashboard')
@@ -219,30 +223,13 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
     }
   }
 
-  const shareConcept = async (concept: TermDefinition) => {
-    if (!user || !session) return
-
+  const handleQuestionStatusChange = async (questionId: string, status: QuestionStatus) => {
     try {
-      const contentId = Date.now().toString()
-      const content = `📚 **${concept.term}**\n\n${concept.definition}${concept.description ? `\n\n🔍 **예시:** ${concept.description}` : ''}`
-      
-      const newContent: SharedContent = {
-        contentId,
-        title: `개념 설명: ${concept.term}`,
-        content: content,
-        type: 'instruction',
-        createdAt: Date.now(),
-        sessionId,
-        teacherId: user.uid
-      }
-
-      const contentRef = ref(database, `sharedContents/${sessionId}/${contentId}`)
-      await set(contentRef, newContent)
-      
-      alert('개념 설명이 학생들에게 공유되었습니다!')
+      const questionRef = ref(database, `questions/${sessionId}/${questionId}`)
+      await update(questionRef, { status })
     } catch (error) {
-      console.error('개념 공유 오류:', error)
-      alert('개념 공유에 실패했습니다.')
+      console.error('질문 상태 변경 오류:', error)
+      alert('질문 상태 변경에 실패했습니다.')
     }
   }
 
@@ -421,37 +408,57 @@ export default function SessionManager({ sessionId }: SessionManagerProps) {
           </div>
         ) : (
           <div className="space-y-4">
-            {(questions || []).map((question, index) => (
-              <div
-                key={question.questionId}
-                className="border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        {index + 1}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {question.isAnonymous ? '익명' : (question.studentName || '학생')}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(question.createdAt).toLocaleTimeString()}
-                      </span>
+            {(questions || []).map((question, index) => {
+              const status = getQuestionStatus(question)
+              return (
+                <div
+                  key={question.questionId}
+                  className="border border-gray-200 rounded-lg p-4"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-sm font-medium text-blue-800">
+                          {index + 1}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {question.isAnonymous ? '익명' : (question.studentName || '학생')}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(question.createdAt).toLocaleTimeString()}
+                        </span>
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${QUESTION_STATUS_STYLES[status]}`}>
+                          {QUESTION_STATUS_LABELS[status]}
+                        </span>
+                      </div>
+                      <div className="text-gray-900 dark:text-white">
+                        <Linkify
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {question.text}
+                        </Linkify>
+                      </div>
                     </div>
-                    <div className="text-gray-900 dark:text-white">
-                      <Linkify
-                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                      진행 상태
+                      <select
+                        value={status}
+                        onChange={(event) => handleQuestionStatusChange(question.questionId, event.target.value as QuestionStatus)}
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        {question.text}
-                      </Linkify>
-                    </div>
+                        {(Object.keys(QUESTION_STATUS_LABELS) as QuestionStatus[]).map((value) => (
+                          <option key={value} value={value}>
+                            {QUESTION_STATUS_LABELS[value]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
         </CollapsiblePanel>

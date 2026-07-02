@@ -1,7 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Question, Session } from '@/lib/utils'
+import {
+  Question,
+  QUESTION_STATUS_LABELS,
+  QUESTION_STATUS_STYLES,
+  Session,
+  getQuestionStatus
+} from '@/lib/utils'
 import { database } from '@/lib/firebase'
 import { ref, onValue, set, remove } from 'firebase/database'
 import { useEducationLevel, useSmartTerminology, useFullTheme } from '@/contexts/EducationLevelContext'
@@ -16,7 +22,7 @@ interface QuestionListProps {
 
 export default function QuestionList({ sessionId, currentStudentId, session }: QuestionListProps) {
   const { currentLevel } = useEducationLevel()
-  const { term, adapt } = useSmartTerminology()
+  const { adapt } = useSmartTerminology()
   const theme = useFullTheme()
   
   const [questions, setQuestions] = useState<Question[]>([])
@@ -54,7 +60,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
         
         // 좋아요 데이터 추출
         const likes: {[questionId: string]: {[studentId: string]: boolean}} = {}
-        Object.entries(data).forEach(([questionId, questionData]: [string, any]) => {
+        Object.entries(data as Record<string, Question & { likes?: Record<string, boolean> }>).forEach(([questionId, questionData]) => {
           if (questionData.likes) {
             likes[questionId] = questionData.likes
           }
@@ -157,6 +163,7 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
           const isMine = isMyQuestion(question)
           const likeCount = getLikeCount(question.questionId)
           const isPopular = likeCount >= 3 // 3개 이상의 좋아요를 받으면 인기 질문
+          const status = getQuestionStatus(question)
           
           return (
             <div
@@ -210,6 +217,9 @@ export default function QuestionList({ sessionId, currentStudentId, session }: Q
                       minute: '2-digit'
                     })}
                   </span>
+                </div>
+                <div className={`mb-2 inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${QUESTION_STATUS_STYLES[status]}`}>
+                  {QUESTION_STATUS_LABELS[status]}
                 </div>
                 
                 {/* 질문 내용 */}

@@ -12,6 +12,11 @@ interface QuestionInputProps {
   defaultStudentName?: string
 }
 
+interface FirebaseErrorDetail {
+  code?: unknown
+  details?: unknown
+}
+
 export default function QuestionInput({ sessionId, sessionType, defaultStudentName }: QuestionInputProps) {
   const [questionText, setQuestionText] = useState('')
   const [studentName, setStudentName] = useState('')
@@ -105,6 +110,7 @@ export default function QuestionInput({ sessionId, sessionType, defaultStudentNa
         studentName: isAnonymous ? null : studentName.trim(),
         studentId: studentId, // 학생 식별을 위한 ID 추가
         isAnonymous,
+        status: 'collected',
         createdAt: Date.now(),
         sessionId
       }
@@ -126,8 +132,8 @@ export default function QuestionInput({ sessionId, sessionType, defaultStudentNa
       console.error('오류 상세:', {
         name: error instanceof Error ? error.name : 'Unknown',
         message: error instanceof Error ? error.message : String(error),
-        code: (error as any)?.code,
-        details: (error as any)?.details
+        code: (error as FirebaseErrorDetail)?.code,
+        details: (error as FirebaseErrorDetail)?.details
       })
       
       let errorMessage = '질문 제출에 실패했습니다.'

@@ -45,8 +45,29 @@ export interface Question {
   studentName?: string;
   studentId?: string; // 학생을 구분하기 위한 브라우저 세션 기반 ID
   isAnonymous: boolean;
+  status?: QuestionStatus;
   createdAt: number;
   sessionId: string;
+}
+
+export type QuestionStatus = 'collected' | 'selected' | 'exploring' | 'answered'
+
+export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
+  collected: '수집됨',
+  selected: '수업에서 선택됨',
+  exploring: '탐구 중',
+  answered: '답변됨'
+}
+
+export const QUESTION_STATUS_STYLES: Record<QuestionStatus, string> = {
+  collected: 'bg-gray-100 text-gray-700 border-gray-200',
+  selected: 'bg-blue-100 text-blue-800 border-blue-200',
+  exploring: 'bg-amber-100 text-amber-800 border-amber-200',
+  answered: 'bg-green-100 text-green-800 border-green-200'
+}
+
+export function getQuestionStatus(question: Pick<Question, 'status'>): QuestionStatus {
+  return question.status && question.status in QUESTION_STATUS_LABELS ? question.status : 'collected'
 }
 
 export interface Session {
@@ -416,13 +437,13 @@ export function sanitizeForFirebase<T>(obj: T): T {
   }
 
   if (typeof obj === 'object') {
-    const sanitized = {} as T
+    const sanitized: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(obj)) {
       if (value !== undefined) {
-        (sanitized as any)[key] = sanitizeForFirebase(value)
+        sanitized[key] = sanitizeForFirebase(value)
       }
     }
-    return sanitized
+    return sanitized as T
   }
 
   return obj
